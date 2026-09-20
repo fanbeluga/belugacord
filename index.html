@@ -58,7 +58,7 @@ body { font-family:'Inter','Segoe UI',Helvetica,Arial,sans-serif; background:#0a
 .dm-item-preview { color:#6b6b8a; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .dm-item-time { color:#6b6b8a; font-size:10px; }
 .user-panel { height:60px; background:rgba(10,5,20,0.8); border-top:1px solid rgba(138,43,226,0.15); display:flex; align-items:center; padding:0 10px; gap:10px; flex-shrink:0; }
-.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #a855f7, #06b6d4); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; color:white; font-size:14px; overflow:hidden; position:relative; }
+.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #a855f7, #06b6d4); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; color:white; font-size:14px; overflow:hidden; position:relative; cursor:pointer; }
 .avatar img { width:100%; height:100%; object-fit:cover; }
 .avatar .tier-badge { position:absolute; bottom:-4px; right:-4px; font-size:12px; background:#0a0a12; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ffd700; z-index:2; }
 .avatar.frame-gold { box-shadow:0 0 15px #ffd700; border:2px solid #ffd700; }
@@ -455,22 +455,88 @@ const TIERS = { premium: { icon: '💰', name: 'Premium' }, pro: { icon: '🏆',
 const COLORS = ['#ffd700','#a855f7','#06b6d4','#ec4899','#00ffaa','#ff8c00','#ff3366','#ffffff'];
 const GRADIENTS = ['linear-gradient(135deg,#ffd700,#ff8c00)','linear-gradient(135deg,#a855f7,#06b6d4)','linear-gradient(135deg,#ec4899,#a855f7)','linear-gradient(135deg,#00ffaa,#06b6d4)','linear-gradient(135deg,#ff3366,#ffd700)'];
 const FRAMES = ['none','frame-gold','frame-purple','frame-cyan','frame-fire'];
+
 function requestNotifications() { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }
 function notify(title, body) { if ('Notification' in window && Notification.permission === 'granted' && document.hidden) { try { new Notification(title, { body }); } catch(e) {} } }
+
 function switchTab(mode) { authMode = mode; document.getElementById('tabLogin').classList.toggle('active', mode === 'login'); document.getElementById('tabRegister').classList.toggle('active', mode === 'register'); document.getElementById('authError').textContent = ''; document.getElementById('emailField').style.display = mode === 'register' ? 'block' : 'none'; checkUsername(); }
 let checkTimer = null;
 function checkUsername() { const val = document.getElementById('authUsername').value.trim(); const status = document.getElementById('usernameStatus'); if (authMode !== 'register' || val.length < 2) { status.textContent = ''; return; } clearTimeout(checkTimer); checkTimer = setTimeout(async () => { try { const r = await fetch('/api/check_username?username=' + encodeURIComponent(val)); const d = await r.json(); status.textContent = d.available ? '✓ Ник свободен' : '✕ Ник занят'; status.className = 'auth-status ' + (d.available ? 'ok' : 'bad'); } catch(e) {} }, 400); }
 document.getElementById('authUsername').addEventListener('input', checkUsername);
-async function submitAuth() { const username = document.getElementById('authUsername').value.trim(); const password = document.getElementById('authPassword').value; const email = document.getElementById('authEmail').value.trim(); const err = document.getElementById('authError'); err.textContent = ''; if (!username || !password) { err.textContent = 'Заполни все поля'; return; } const url = authMode === 'login' ? '/api/login' : '/api/register'; try { const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password, email}) }); const d = await r.json(); if (!r.ok) { err.textContent = d.detail || 'Ошибка'; return; } token = d.token; localStorage.setItem('belugacord_token', token); me = d.user; enterApp(); } catch(e) { err.textContent = 'Ошибка соединения'; } }
+
+async function submitAuth() {
+    const username = document.getElementById('authUsername').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const email = document.getElementById('authEmail').value.trim();
+    const err = document.getElementById('authError');
+    err.textContent = '';
+    if (!username || !password) { err.textContent = 'Заполни все поля'; return; }
+    const url = authMode === 'login' ? '/api/login' : '/api/register';
+    try {
+        const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password, email}) });
+        const d = await r.json();
+        if (!r.ok) { err.textContent = d.detail || 'Ошибка'; return; }
+        token = d.token;
+        localStorage.setItem('belugacord_token', token);
+        me = d.user;
+        enterApp();
+    } catch(e) { err.textContent = 'Ошибка соединения'; }
+}
+
 function logout() { localStorage.removeItem('belugacord_token'); token = ''; me = null; adminVerified = false; if (ws) ws.close(); document.getElementById('app').classList.remove('active'); document.getElementById('authScreen').style.display = 'flex'; }
-async function boot() { if (token) { try { const r = await fetch('/api/me?token=' + encodeURIComponent(token)); if (r.ok) { me = await r.json(); enterApp(); return; } } catch(e) {} token = ''; localStorage.removeItem('belugacord_token'); } document.getElementById('authScreen').style.display = 'flex'; }
-function enterApp() { document.getElementById('authScreen').style.display = 'none'; document.getElementById('app').classList.add('active'); avatarPos = parsePos(me.avatar_pos); bannerPos = parsePos(me.banner_pos); nicknameColor = me.nickname_color; nicknameGradient = me.nickname_gradient; customStatus = me.custom_status; avatarFrame = me.avatar_frame; msgSound = me.msg_sound; callSound = me.call_sound; hiddenOnline = me.hidden_online; renderProfile(); loadServers(); connectWS(); showFriends(); if (me.is_admin) document.getElementById('adminBtn').style.display = 'block'; renderPremiumSettings(); requestNotifications(); }
+
+async function boot() {
+    if (token) {
+        try {
+            const r = await fetch('/api/me?token=' + encodeURIComponent(token));
+            if (r.ok) { me = await r.json(); enterApp(); return; }
+        } catch(e) {}
+        token = ''; localStorage.removeItem('belugacord_token');
+    }
+    document.getElementById('authScreen').style.display = 'flex';
+}
+
+function enterApp() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    avatarPos = parsePos(me.avatar_pos); bannerPos = parsePos(me.banner_pos);
+    nicknameColor = me.nickname_color; nicknameGradient = me.nickname_gradient;
+    customStatus = me.custom_status; avatarFrame = me.avatar_frame;
+    msgSound = me.msg_sound; callSound = me.call_sound; hiddenOnline = me.hidden_online;
+    renderProfile(); loadServers(); connectWS(); showFriends();
+    if (me.is_admin) document.getElementById('adminBtn').style.display = 'block';
+    renderPremiumSettings();
+    requestNotifications();
+}
+
 function parsePos(s) { if (!s) return {x:50,y:50}; const p = s.split(' '); return {x:parseFloat(p[0])||50,y:parseFloat(p[1])||50}; }
 function tierIcon(t) { return t && TIERS[t] ? TIERS[t].icon : ''; }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function renderProfile() { const av = document.getElementById('userAvatarSmall'); if (me.avatar) av.innerHTML = '<img src="' + me.avatar + '" style="object-position:' + avatarPos.x + '% ' + avatarPos.y + '%">'; else av.textContent = me.username.charAt(0).toUpperCase(); let badge = av.querySelector('.tier-badge'); if (badge) badge.remove(); if (me.premium_tier) { badge = document.createElement('div'); badge.className = 'tier-badge'; badge.textContent = tierIcon(me.premium_tier); av.appendChild(badge); } av.className = 'avatar' + (avatarFrame && avatarFrame !== 'none' ? ' ' + avatarFrame : ''); document.getElementById('userNameSmall').textContent = me.username; document.getElementById('userStatusSmall').textContent = customStatus || (me.is_admin ? 'админ' : (me.premium_tier ? TIERS[me.premium_tier].name : 'в сети')); document.getElementById('profileName').textContent = me.username; avatarData = me.avatar; bannerData = me.banner; const bigAv = document.getElementById('avatarPreview'); if (avatarData) bigAv.innerHTML = '<img src="' + avatarData + '" style="object-position:' + avatarPos.x + '% ' + avatarPos.y + '%">'; else bigAv.textContent = me.username.charAt(0).toUpperCase(); const banner = document.getElementById('bannerPreview'); const oldImg = banner.querySelector('img'); if (oldImg) oldImg.remove(); if (bannerData) { const img = document.createElement('img'); img.src = bannerData; img.style.objectPosition = bannerPos.x + '% ' + bannerPos.y + '%'; banner.insertBefore(img, banner.firstChild); } }
+function linkify(text) { const esc = escapeHtml(text || ''); return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+
+function renderProfile() {
+    const av = document.getElementById('userAvatarSmall');
+    if (me.avatar) av.innerHTML = '<img src="' + me.avatar + '" style="object-position:' + avatarPos.x + '% ' + avatarPos.y + '%">';
+    else av.textContent = me.username.charAt(0).toUpperCase();
+    let badge = av.querySelector('.tier-badge');
+    if (badge) badge.remove();
+    if (me.premium_tier) { badge = document.createElement('div'); badge.className = 'tier-badge'; badge.textContent = tierIcon(me.premium_tier); av.appendChild(badge); }
+    av.className = 'avatar' + (avatarFrame && avatarFrame !== 'none' ? ' ' + avatarFrame : '');
+    document.getElementById('userNameSmall').textContent = me.username;
+    document.getElementById('userStatusSmall').textContent = customStatus || (me.is_admin ? 'админ' : (me.premium_tier ? TIERS[me.premium_tier].name : 'в сети'));
+    document.getElementById('profileName').textContent = me.username;
+    avatarData = me.avatar; bannerData = me.banner;
+    const bigAv = document.getElementById('avatarPreview');
+    if (avatarData) bigAv.innerHTML = '<img src="' + avatarData + '" style="object-position:' + avatarPos.x + '% ' + avatarPos.y + '%">';
+    else bigAv.textContent = me.username.charAt(0).toUpperCase();
+    const banner = document.getElementById('bannerPreview');
+    const oldImg = banner.querySelector('img');
+    if (oldImg) oldImg.remove();
+    if (bannerData) { const img = document.createElement('img'); img.src = bannerData; img.style.objectPosition = bannerPos.x + '% ' + bannerPos.y + '%'; banner.insertBefore(img, banner.firstChild); }
+}
 function openProfile() { renderProfile(); renderPremiumSettings(); document.getElementById('profileModal').classList.add('open'); }
 function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
+
 const avatarEl = document.getElementById('avatarPreview');
 const bannerEl = document.getElementById('bannerPreview');
 let dragging = null, startX = 0, startY = 0, startPosX = 50, startPosY = 50;
@@ -483,20 +549,115 @@ bannerEl.addEventListener('mousedown', startDragBanner);
 bannerEl.addEventListener('touchstart', startDragBanner, { passive: true });
 function onDrag(e) { if (!dragging) return; e.preventDefault(); const t = e.touches ? e.touches[0] : e; const dx = t.clientX - startX; const dy = t.clientY - startY; const sens = 0.3; if (dragging === 'avatar') { avatarPos.x = Math.max(0, Math.min(100, startPosX - dx * sens)); avatarPos.y = Math.max(0, Math.min(100, startPosY - dy * sens)); const img = avatarEl.querySelector('img'); if (img) img.style.objectPosition = avatarPos.x + '% ' + avatarPos.y + '%'; } else { bannerPos.x = Math.max(0, Math.min(100, startPosX - dx * sens)); bannerPos.y = Math.max(0, Math.min(100, startPosY - dy * sens)); const img = bannerEl.querySelector('img'); if (img) img.style.objectPosition = bannerPos.x + '% ' + bannerPos.y + '%'; } }
 function stopDrag() { dragging = null; document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag); document.removeEventListener('mouseup', stopDrag); document.removeEventListener('touchend', stopDrag); }
+
 document.getElementById('avatarInput').addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { pendingAvatar = ev.target.result; avatarData = pendingAvatar; avatarPos = { x: 50, y: 50 }; renderProfile(); document.getElementById('profileModal').classList.add('open'); }; reader.readAsDataURL(file); });
 document.getElementById('bannerInput').addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { pendingBanner = ev.target.result; bannerData = pendingBanner; bannerPos = { x: 50, y: 50 }; renderProfile(); document.getElementById('profileModal').classList.add('open'); }; reader.readAsDataURL(file); });
-async function saveProfile() { try { await fetch('/api/update_profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, avatar: pendingAvatar, banner: pendingBanner, avatar_pos: avatarPos.x + '% ' + avatarPos.y + '%', banner_pos: bannerPos.x + '% ' + bannerPos.y + '%', nickname_color: nicknameColor, nickname_gradient: nicknameGradient, custom_status: customStatus, avatar_frame: avatarFrame, msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline }) }); Object.assign(me, { avatar: avatarData, banner: bannerData, nickname_color: nicknameColor, nickname_gradient: nicknameGradient, custom_status: customStatus, avatar_frame: avatarFrame, msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline }); closeProfile(); } catch(e) { alert('Ошибка'); } }
-function renderPremiumSettings() { const c = document.getElementById('premiumSettings'); c.innerHTML = ''; const tier = me.premium_tier; if (!tier) { c.innerHTML = '<div class="premium-section" style="text-align:center;"><h3>💎 Купи Premium</h3><p style="color:#8b8ba7;font-size:12px;">💰 Premium | 🏆 Pro</p></div>'; return; } let html = '<div class="premium-section"><h3>💰 Premium настройки</h3>'; html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;">Цвет ника</label><div class="color-options" style="margin-top:8px;">'; COLORS.forEach(c => { html += '<div class="color-opt' + (nicknameColor === c ? ' selected' : '') + '" style="background:' + c + ';color:' + c + ';" onclick="setNickColor(\'' + c + '\')"></div>'; }); html += '<div class="color-opt" style="background:transparent;border:2px dashed #666;" onclick="setNickColor(null)">✕</div></div>'; html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:12px;display:block;">Кастомный статус</label>'; html += '<input type="text" id="customStatusInput" maxlength="128" value="' + (customStatus || '') + '" placeholder="Твой статус" style="width:100%;background:rgba(10,10,18,0.8);border:1px solid rgba(138,43,226,0.2);border-radius:8px;padding:10px;color:#e0e0ff;margin-top:6px;">'; html += '<button class="save-btn" style="margin-top:8px;font-size:12px;" onclick="saveCustomStatus()">Сохранить статус</button>'; html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:12px;display:block;">Звук сообщения</label>'; html += '<div class="sound-row"><input type="text" value="' + (msgSound || 'по умолчанию') + '" readonly><button onclick="document.getElementById(\'msgSoundInput\').click()">Загрузить</button></div>'; html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:8px;display:block;">Звук звонка</label>'; html += '<div class="sound-row"><input type="text" value="' + (callSound || 'по умолчанию') + '" readonly><button onclick="document.getElementById(\'callSoundInput\').click()">Загрузить</button></div>'; html += '</div>'; if (tier === 'pro') { html += '<div class="pro-section"><h3>🏆 Pro Premium настройки</h3>'; html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;">Градиент ника</label><div class="gradient-options" style="margin-top:8px;">'; GRADIENTS.forEach((g, i) => { html += '<div class="gradient-opt' + (nicknameGradient === g ? ' selected' : '') + '" style="background:' + g + ';" onclick="setGradient(' + i + ')"></div>'; }); html += '<div class="gradient-opt" style="background:transparent;border:2px dashed #666;" onclick="setGradient(-1)">✕</div></div>'; html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:12px;display:block;">Рамка аватарки</label><div class="frame-options" style="margin-top:8px;">'; FRAMES.forEach(f => { html += '<div class="frame-opt' + (avatarFrame === f ? ' selected' : '') + '" onclick="setFrame(\'' + f + '\')">' + (f === 'none' ? 'Без рамки' : f.replace('frame-','')) + '</div>'; }); html += '</div>'; html += '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;color:#a0a0c0;font-size:12px;"><input type="checkbox" id="hiddenOnlineCb" ' + (hiddenOnline ? 'checked' : '') + ' onchange="setHiddenOnline(this.checked)"> Скрытый онлайн-статус</label></div>'; } c.innerHTML = html; }
+
+async function saveProfile() {
+    try {
+        await fetch('/api/update_profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, avatar: pendingAvatar, banner: pendingBanner, avatar_pos: avatarPos.x + '% ' + avatarPos.y + '%', banner_pos: bannerPos.x + '% ' + bannerPos.y + '%', nickname_color: nicknameColor, nickname_gradient: nicknameGradient, custom_status: customStatus, avatar_frame: avatarFrame, msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline }) });
+        Object.assign(me, { avatar: avatarData, banner: bannerData, nickname_color: nicknameColor, nickname_gradient: nicknameGradient, custom_status: customStatus, avatar_frame: avatarFrame, msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline });
+        closeProfile();
+    } catch(e) { alert('Ошибка'); }
+}
+
+function renderPremiumSettings() {
+    const c = document.getElementById('premiumSettings');
+    c.innerHTML = '';
+    const tier = me.premium_tier;
+    if (!tier) { c.innerHTML = '<div class="premium-section" style="text-align:center;"><h3>💎 Купи Premium</h3><p style="color:#8b8ba7;font-size:12px;">💰 Premium | 🏆 Pro</p></div>'; return; }
+    let html = '<div class="premium-section"><h3>💰 Premium настройки</h3>';
+    html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;">Цвет ника</label><div class="color-options" style="margin-top:8px;">';
+    COLORS.forEach(c => { html += '<div class="color-opt' + (nicknameColor === c ? ' selected' : '') + '" style="background:' + c + ';color:' + c + ';" onclick="setNickColor(\'' + c + '\')"></div>'; });
+    html += '<div class="color-opt" style="background:transparent;border:2px dashed #666;" onclick="setNickColor(null)">✕</div></div>';
+    html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:12px;display:block;">Кастомный статус</label>';
+    html += '<input type="text" id="customStatusInput" maxlength="128" value="' + (customStatus || '') + '" placeholder="Твой статус" style="width:100%;background:rgba(10,10,18,0.8);border:1px solid rgba(138,43,226,0.2);border-radius:8px;padding:10px;color:#e0e0ff;margin-top:6px;">';
+    html += '<button class="save-btn" style="margin-top:8px;font-size:12px;" onclick="saveCustomStatus()">Сохранить статус</button>';
+    html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:12px;display:block;">Звук сообщения</label>';
+    html += '<div class="sound-row"><input type="text" value="' + (msgSound || 'по умолчанию') + '" readonly><button onclick="document.getElementById(\'msgSoundInput\').click()">Загрузить</button></div>';
+    html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:8px;display:block;">Звук звонка</label>';
+    html += '<div class="sound-row"><input type="text" value="' + (callSound || 'по умолчанию') + '" readonly><button onclick="document.getElementById(\'callSoundInput\').click()">Загрузить</button></div>';
+    html += '</div>';
+    if (tier === 'pro') {
+        html += '<div class="pro-section"><h3>🏆 Pro Premium настройки</h3>';
+        html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;">Градиент ника</label><div class="gradient-options" style="margin-top:8px;">';
+        GRADIENTS.forEach((g, i) => { html += '<div class="gradient-opt' + (nicknameGradient === g ? ' selected' : '') + '" style="background:' + g + ';" onclick="setGradient(' + i + ')"></div>'; });
+        html += '<div class="gradient-opt" style="background:transparent;border:2px dashed #666;" onclick="setGradient(-1)">✕</div></div>';
+        html += '<label style="color:#a0a0c0;font-size:11px;text-transform:uppercase;font-weight:700;margin-top:12px;display:block;">Рамка аватарки</label><div class="frame-options" style="margin-top:8px;">';
+        FRAMES.forEach(f => { html += '<div class="frame-opt' + (avatarFrame === f ? ' selected' : '') + '" onclick="setFrame(\'' + f + '\')">' + (f === 'none' ? 'Без рамки' : f.replace('frame-','')) + '</div>'; });
+        html += '</div>';
+        html += '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;color:#a0a0c0;font-size:12px;"><input type="checkbox" id="hiddenOnlineCb" ' + (hiddenOnline ? 'checked' : '') + ' onchange="setHiddenOnline(this.checked)"> Скрытый онлайн-статус</label></div>';
+    }
+    c.innerHTML = html;
+}
 function setNickColor(c) { nicknameColor = c; renderPremiumSettings(); }
 function setGradient(i) { nicknameGradient = i === -1 ? null : GRADIENTS[i]; renderPremiumSettings(); }
 function setFrame(f) { avatarFrame = f; renderPremiumSettings(); }
 function setHiddenOnline(v) { hiddenOnline = v; }
 function saveCustomStatus() { customStatus = document.getElementById('customStatusInput').value; }
+
 document.getElementById('msgSoundInput').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; const fd = new FormData(); fd.append('token', token); fd.append('file', file); try { const r = await fetch('/api/upload', {method:'POST',body:fd}); const d = await r.json(); if (d.url) { msgSound = d.url; renderPremiumSettings(); } } catch(e) {} });
 document.getElementById('callSoundInput').addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; const fd = new FormData(); fd.append('token', token); fd.append('file', file); try { const r = await fetch('/api/upload', {method:'POST',body:fd}); const d = await r.json(); if (d.url) { callSound = d.url; renderPremiumSettings(); } } catch(e) {} });
-function linkify(text) { const esc = escapeHtml(text || ''); return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
-async function viewProfile(userId) { if (!userId) return; try { const r = await fetch('/api/user/' + userId); const u = await r.json(); const av = document.getElementById('viewAvatar'); const pos = parsePos(u.avatar_pos); if (u.avatar) av.innerHTML = '<img src="' + u.avatar + '" style="object-position:' + pos.x + '% ' + pos.y + '%">'; else av.textContent = u.username.charAt(0).toUpperCase(); av.className = 'profile-avatar' + (u.avatar_frame && u.avatar_frame !== 'none' ? ' ' + u.avatar_frame : ''); const b = document.getElementById('viewBanner'); const oldImg = b.querySelector('img'); if (oldImg) oldImg.remove(); if (u.banner) { const img = document.createElement('img'); const bpos = parsePos(u.banner_pos); img.src = u.banner; img.style.objectPosition = bpos.x + '% ' + bpos.y + '%'; b.insertBefore(img, b.firstChild); } const nameEl = document.getElementById('viewName'); nameEl.textContent = u.username; if (u.nickname_gradient) { nameEl.style.background = u.nickname_gradient; nameEl.style.webkitBackgroundClip = 'text'; nameEl.style.webkitTextFillColor = 'transparent'; nameEl.style.backgroundClip = 'text'; } else if (u.nickname_color) { nameEl.style.color = u.nickname_color; } let badges = ''; if (u.role === 'admin') badges += '<span class="badge admin">ADMIN</span> '; if (u.role === 'moderator') badges += '<span class="badge mod">MOD</span> '; if (u.premium_tier === 'premium') badges += '<span class="badge premium">💰 PREMIUM</span> '; if (u.premium_tier === 'pro') badges += '<span class="badge pro">🏆 PRO</span>'; document.getElementById('viewBadges').innerHTML = badges; let info = ''; if (u.custom_status) info += '<div class="profile-info-row"><span class="label">Статус</span><span class="value">' + escapeHtml(u.custom_status) + '</span></div>'; if (u.created_at) { const d = new Date(u.created_at).toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'}); info += '<div class="profile-info-row"><span class="label">Дата регистрации</span><span class="value">' + d + '</span></div>'; } if (u.role && u.role !== 'user') { const roleName = u.role === 'admin' ? 'Администратор' : 'Модератор'; info += '<div class="profile-info-row"><span class="label">Роль</span><span class="value">' + roleName + '</span></div>'; } document.getElementById('viewInfo').innerHTML = info; const actions = document.getElementById('viewActions'); actions.innerHTML = ''; if (userId !== me.id) { const msgBtn = document.createElement('button'); msgBtn.className = 'save-btn green'; msgBtn.textContent = '💬 Написать'; msgBtn.onclick = () => { document.getElementById('viewProfileModal').classList.remove('open'); openDM(userId, u.username, u.avatar, u.premium_tier); }; actions.appendChild(msgBtn); const fr = await fetch('/api/friends/check/' + userId + '?token=' + encodeURIComponent(token)); const fd = await fr.json(); if (fd.status === 'accepted') { const b = document.createElement('button'); b.className = 'save-btn gray'; b.textContent = '✓ В друзьях'; b.disabled = true; actions.appendChild(b); } else if (fd.status === 'pending') { const b = document.createElement('button'); b.className = 'save-btn gray'; b.textContent = '⏳ Запрос отправлен'; b.disabled = true; actions.appendChild(b); } else { const b = document.createElement('button'); b.className = 'save-btn'; b.textContent = '+ В друзья'; b.onclick = () => addFriendById(userId); actions.appendChild(b); } } document.getElementById('viewProfileModal').classList.add('open'); } catch(e) {} }
+
+// ★★★ ПРОСМОТР ЧУЖОГО ПРОФИЛЯ — ИСПРАВЛЕНО ★★★
+async function viewProfile(userId) {
+    if (!userId) return;
+    try {
+        const r = await fetch('/api/user/' + userId);
+        if (!r.ok) { alert('Не удалось загрузить профиль'); return; }
+        const u = await r.json();
+        const av = document.getElementById('viewAvatar');
+        const pos = parsePos(u.avatar_pos);
+        if (u.avatar) av.innerHTML = '<img src="' + u.avatar + '" style="object-position:' + pos.x + '% ' + pos.y + '%">';
+        else av.textContent = u.username.charAt(0).toUpperCase();
+        av.className = 'profile-avatar' + (u.avatar_frame && u.avatar_frame !== 'none' ? ' ' + u.avatar_frame : '');
+        const b = document.getElementById('viewBanner');
+        const oldImg = b.querySelector('img');
+        if (oldImg) oldImg.remove();
+        if (u.banner) {
+            const img = document.createElement('img');
+            const bpos = parsePos(u.banner_pos);
+            img.src = u.banner;
+            img.style.objectPosition = bpos.x + '% ' + bpos.y + '%';
+            b.insertBefore(img, b.firstChild);
+        }
+        const nameEl = document.getElementById('viewName');
+        nameEl.textContent = u.username;
+        nameEl.style.background = '';
+        nameEl.style.webkitTextFillColor = '';
+        nameEl.style.color = '';
+        if (u.nickname_gradient) { nameEl.style.background = u.nickname_gradient; nameEl.style.webkitBackgroundClip = 'text'; nameEl.style.webkitTextFillColor = 'transparent'; nameEl.style.backgroundClip = 'text'; }
+        else if (u.nickname_color) { nameEl.style.color = u.nickname_color; }
+        let badges = '';
+        if (u.role === 'admin') badges += '<span class="badge admin">ADMIN</span> ';
+        if (u.role === 'moderator') badges += '<span class="badge mod">MOD</span> ';
+        if (u.premium_tier === 'premium') badges += '<span class="badge premium">💰 PREMIUM</span> ';
+        if (u.premium_tier === 'pro') badges += '<span class="badge pro">🏆 PRO</span>';
+        document.getElementById('viewBadges').innerHTML = badges;
+        let info = '';
+        if (u.custom_status) info += '<div class="profile-info-row"><span class="label">Статус</span><span class="value">' + escapeHtml(u.custom_status) + '</span></div>';
+        if (u.created_at) { const d = new Date(u.created_at).toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'}); info += '<div class="profile-info-row"><span class="label">Дата регистрации</span><span class="value">' + d + '</span></div>'; }
+        if (u.role && u.role !== 'user') { const roleName = u.role === 'admin' ? 'Администратор' : 'Модератор'; info += '<div class="profile-info-row"><span class="label">Роль</span><span class="value">' + roleName + '</span></div>'; }
+        document.getElementById('viewInfo').innerHTML = info;
+        const actions = document.getElementById('viewActions');
+        actions.innerHTML = '';
+        if (userId !== me.id) {
+            const msgBtn = document.createElement('button');
+            msgBtn.className = 'save-btn green';
+            msgBtn.textContent = '💬 Написать';
+            msgBtn.onclick = () => { document.getElementById('viewProfileModal').classList.remove('open'); openDM(userId, u.username, u.avatar, u.premium_tier); };
+            actions.appendChild(msgBtn);
+            const fr = await fetch('/api/friends/check/' + userId + '?token=' + encodeURIComponent(token));
+            const fd = await fr.json();
+            if (fd.status === 'accepted') { const btn = document.createElement('button'); btn.className = 'save-btn gray'; btn.textContent = '✓ В друзьях'; btn.disabled = true; actions.appendChild(btn); }
+            else if (fd.status === 'pending') { const btn = document.createElement('button'); btn.className = 'save-btn gray'; btn.textContent = '⏳ Запрос отправлен'; btn.disabled = true; actions.appendChild(btn); }
+            else { const btn = document.createElement('button'); btn.className = 'save-btn'; btn.textContent = '+ В друзья'; btn.onclick = () => addFriendById(userId); actions.appendChild(btn); }
+        }
+        document.getElementById('viewProfileModal').classList.add('open');
+    } catch(e) { alert('Ошибка: ' + e.message); }
+}
 async function addFriendById(userId) { try { const r = await fetch('/api/friends/request_by_id', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:userId})}); const d = await r.json(); if (r.ok) { alert('Запрос отправлен'); document.getElementById('viewProfileModal').classList.remove('open'); } else alert(d.detail || 'Ошибка'); } catch(e) {} }
+
 async function loadServers() { try { const r = await fetch('/api/servers/list?token=' + encodeURIComponent(token)); const servers = await r.json(); const list = document.getElementById('serverList'); list.innerHTML = ''; servers.forEach(s => { const d = document.createElement('div'); d.className = 'guild'; if (s.avatar) d.innerHTML = '<img src="' + s.avatar + '">'; else d.textContent = s.name.charAt(0).toUpperCase(); d.title = s.name; d.onclick = () => openServer(s.id, s.name); list.appendChild(d); }); } catch(e) {} }
 async function openCreateServer() { const name = prompt('Название сервера:'); if (!name) return; try { const r = await fetch('/api/servers/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, name }) }); const d = await r.json(); if (r.ok) { loadServers(); openServer(d.id, d.name); } else alert(d.detail || 'Ошибка'); } catch(e) {} }
 async function openJoinServer() { const invite = prompt('Код приглашения:'); if (!invite) return; try { const r = await fetch('/api/servers/join', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, invite }) }); const d = await r.json(); if (r.ok) { loadServers(); openServer(d.id, d.name); } else alert(d.detail || 'Ошибка'); } catch(e) {} }
@@ -512,29 +673,120 @@ async function deleteServer() { if (!confirm('Удалить сервер?')) re
 async function leaveServer() { if (!confirm('Выйти из сервера?')) return; try { const r = await fetch('/api/servers/leave', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, server_id: currentServerId }) }); if (r.ok) { document.getElementById('serverSettingsModal').classList.remove('open'); currentServerId = null; currentServerData = null; document.getElementById('serverSettingsBtn').style.display = 'none'; loadServers(); showFriends(); } } catch(e) {} }
 function copyInvite() { const inp = document.getElementById('serverInviteInput'); inp.select(); document.execCommand('copy'); alert('Код скопирован: ' + inp.value); }
 async function openMembers() { if (!currentServerId) return; try { const r = await fetch('/api/servers/' + currentServerId + '/members?token=' + encodeURIComponent(token)); const members = await r.json(); const list = document.getElementById('membersList'); list.innerHTML = ''; members.forEach(m => { const row = document.createElement('div'); row.className = 'member-row'; const av = m.avatar ? '<img src="' + m.avatar + '">' : m.username.charAt(0).toUpperCase(); const roleText = m.role === 'admin' ? 'Администратор' : (m.role === 'moderator' ? 'Модератор' : 'Участник'); const tierB = m.premium_tier ? '<div class="tier-badge">' + tierIcon(m.premium_tier) + '</div>' : ''; row.innerHTML = '<div class="avatar">' + av + tierB + '</div><div><div class="member-name">' + escapeHtml(m.username) + '</div><div class="member-role ' + m.role + '">' + roleText + '</div></div>'; row.onclick = () => { document.getElementById('membersModal').classList.remove('open'); viewProfile(m.id); }; list.appendChild(row); }); document.getElementById('membersModal').classList.add('open'); } catch(e) {} }
+
 async function showFriends() { document.getElementById('friendsScreen').classList.add('active'); document.getElementById('chatScreen').style.display = 'none'; document.getElementById('dmScreen').classList.remove('active'); document.getElementById('sidebarTitle').textContent = 'Друзья'; document.getElementById('serverSettingsBtn').style.display = 'none'; await loadSidebarFriends(); loadFriends(); if (window.innerWidth <= 768) toggleSidebar(); }
 async function loadSidebarFriends() { try { const r = await fetch('/api/dm/list?token=' + encodeURIComponent(token)); const dms = await r.json(); const c = document.getElementById('sidebarContent'); c.innerHTML = '<div class="channel-cat">Личные сообщения</div>'; if (dms.length === 0) c.innerHTML += '<div style="padding:12px;color:#6b6b8a;font-size:12px;">Нет переписок</div>'; dms.forEach(d => { const item = document.createElement('div'); item.className = 'dm-item' + (currentDMUser && currentDMUser.id === d.user_id ? ' active' : ''); const av = d.avatar ? '<img src="' + d.avatar + '">' : d.username.charAt(0).toUpperCase(); const tierB = d.premium_tier ? '<div class="tier-badge">' + tierIcon(d.premium_tier) + '</div>' : ''; const preview = d.last_file ? '📎 Файл' : (d.last_text || ''); const time = d.last_time ? new Date(d.last_time).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : ''; item.innerHTML = '<div class="avatar">' + av + tierB + '</div><div class="dm-item-info"><div class="dm-item-name">' + escapeHtml(d.username) + '</div><div class="dm-item-preview">' + escapeHtml(preview) + '</div></div><div class="dm-item-time">' + time + '</div>'; item.onclick = () => openDM(d.user_id, d.username, d.avatar, d.premium_tier); c.appendChild(item); }); } catch(e) {} }
 async function loadFriends() { try { const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token)); const friends = await r.json(); document.getElementById('friendsTitle').textContent = 'Друзья — ' + friends.filter(f => f.status === 'accepted').length; const list = document.getElementById('friendsList'); list.innerHTML = ''; friends.forEach(f => { const d = document.createElement('div'); d.className = 'friend-row'; const av = f.avatar ? '<img src="' + f.avatar + '">' : f.username.charAt(0).toUpperCase(); const tierB = f.premium_tier ? '<div class="tier-badge">' + tierIcon(f.premium_tier) + '</div>' : ''; let actions = ''; if (f.status === 'pending' && f.to_user === me.id) { actions = '<button onclick="event.stopPropagation();acceptFriend(' + f.id + ')" title="Принять">✓</button>'; } d.innerHTML = '<div class="avatar">' + av + tierB + '</div><div style="flex:1;"><div class="friend-name">' + escapeHtml(f.username) + '</div><div class="friend-status">' + (f.status === 'accepted' ? 'в друзьях' : 'запрос') + '</div></div><div class="friend-actions">' + actions + '</div>'; if (f.status === 'accepted') d.onclick = () => openDM(f.id, f.username, f.avatar, f.premium_tier); list.appendChild(d); }); } catch(e) {} }
 async function addFriend() { const inp = document.getElementById('addFriendInput'); const username = inp.value.trim(); if (!username) return; try { const r = await fetch('/api/friends/request', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, username }) }); const d = await r.json(); if (r.ok) { alert('Запрос отправлен'); inp.value = ''; loadFriends(); } else alert(d.detail || 'Ошибка'); } catch(e) {} }
 async function acceptFriend(id) { try { await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, friend_id: id }) }); loadFriends(); loadSidebarFriends(); } catch(e) {} }
-async function openDM(userId, username, avatar, tier) { currentDMUser = { id: userId, username, avatar }; document.getElementById('dmScreen').classList.add('active'); document.getElementById('chatScreen').style.display = 'none'; document.getElementById('friendsScreen').classList.remove('active'); const av = document.getElementById('dmAvatar'); if (avatar) av.innerHTML = '<img src="' + avatar + '">'; else av.textContent = username.charAt(0).toUpperCase(); let badge = av.querySelector('.tier-badge'); if (badge) badge.remove(); if (tier) { badge = document.createElement('div'); badge.className = 'tier-badge'; badge.textContent = tierIcon(tier); av.appendChild(badge); } document.getElementById('dmName').textContent = username; document.getElementById('dmChat').innerHTML = ''; try { const r = await fetch('/api/dm/' + userId + '/messages?token=' + encodeURIComponent(token)); const msgs = await r.json(); msgs.forEach(m => addDMMessage(m)); } catch(e) {} loadSidebarFriends(); if (window.innerWidth <= 768) toggleSidebar(); }
+
+async function openDM(userId, username, avatar, tier) {
+    currentDMUser = { id: userId, username, avatar };
+    document.getElementById('dmScreen').classList.add('active');
+    document.getElementById('chatScreen').style.display = 'none';
+    document.getElementById('friendsScreen').classList.remove('active');
+    const av = document.getElementById('dmAvatar');
+    if (avatar) av.innerHTML = '<img src="' + avatar + '">';
+    else av.textContent = username.charAt(0).toUpperCase();
+    let badge = av.querySelector('.tier-badge');
+    if (badge) badge.remove();
+    if (tier) { badge = document.createElement('div'); badge.className = 'tier-badge'; badge.textContent = tierIcon(tier); av.appendChild(badge); }
+    document.getElementById('dmName').textContent = username;
+    document.getElementById('dmChat').innerHTML = '';
+    try { const r = await fetch('/api/dm/' + userId + '/messages?token=' + encodeURIComponent(token)); const msgs = await r.json(); msgs.forEach(m => addDMMessage(m)); } catch(e) {}
+    loadSidebarFriends();
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
 function renderUsername(el, name, color, gradient) { el.textContent = name; if (gradient) { el.style.background = gradient; el.style.webkitBackgroundClip = 'text'; el.style.webkitTextFillColor = 'transparent'; el.style.backgroundClip = 'text'; } else if (color) { el.style.color = color; } }
 function buildTierInline(tier) { if (!tier) return ''; return '<span class="tier-inline">' + tierIcon(tier) + '</span>'; }
-function addMessage(m) { const chat = document.getElementById('chat'); const div = document.createElement('div'); div.className = 'message'; const t = m.created_at ? new Date(m.created_at).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : ''; const pos = parsePos(m.avatar_pos); let av = '<div class="avatar" onclick="viewProfile(' + m.user_id + ')">' + m.username.charAt(0).toUpperCase(); if (m.avatar) av = '<div class="avatar" onclick="viewProfile(' + m.user_id + ')"><img src="' + m.avatar + '" style="object-position:' + pos.x + '% ' + pos.y + '%">'; if (m.premium_tier) av += '<div class="tier-badge">' + tierIcon(m.premium_tier) + '</div>'; av += '</div>'; let fileHTML = ''; if (m.file_url) { const isVideo = /\.(mp4|webm|mov)$/i.test(m.file_url); const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(m.file_url); if (isVideo) fileHTML = '<video class="msg-file" controls src="' + m.file_url + '"></video>'; else if (isImage) fileHTML = '<img class="msg-file" src="' + m.file_url + '">'; else fileHTML = '<a class="msg-file-link" href="' + m.file_url + '" target="_blank">📎 Скачать файл</a>'; } div.innerHTML = av + '<div class="msg-content"><div class="msg-header"><span class="username" onclick="viewProfile(' + m.user_id + ')"></span>' + buildTierInline(m.premium_tier) + '<span class="timestamp">' + t + '</span></div><div class="msg-text">' + linkify(m.text || '') + '</div>' + fileHTML + '</div>'; renderUsername(div.querySelector('.username'), m.username, m.nickname_color, m.nickname_gradient); chat.appendChild(div); chat.scrollTop = chat.scrollHeight; }
-function addDMMessage(m) { const chat = document.getElementById('dmChat'); const div = document.createElement('div'); div.className = 'message'; const t = m.created_at ? new Date(m.created_at).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : ''; let av = '<div class="avatar">' + m.username.charAt(0).toUpperCase() + '</div>'; if (m.avatar) av = '<div class="avatar"><img src="' + m.avatar + '"></div>'; let fileHTML = ''; if (m.file_url) { const isVideo = /\.(mp4|webm|mov)$/i.test(m.file_url); const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(m.file_url); if (isVideo) fileHTML = '<video class="msg-file" controls src="' + m.file_url + '"></video>'; else if (isImage) fileHTML = '<img class="msg-file" src="' + m.file_url + '">'; else fileHTML = '<a class="msg-file-link" href="' + m.file_url + '" target="_blank">📎 Скачать файл</a>'; } div.innerHTML = av + '<div class="msg-content"><div class="msg-header"><span class="username"></span>' + buildTierInline(m.premium_tier) + '<span class="timestamp">' + t + '</span></div><div class="msg-text">' + linkify(m.text || '') + '</div>' + fileHTML + '</div>'; renderUsername(div.querySelector('.username'), m.username, m.nickname_color, m.nickname_gradient); chat.appendChild(div); chat.scrollTop = chat.scrollHeight; }
+
+function addMessage(m) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message';
+    const t = m.created_at ? new Date(m.created_at).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';
+    const pos = parsePos(m.avatar_pos);
+    let av = '<div class="avatar" onclick="viewProfile(' + m.user_id + ')">' + m.username.charAt(0).toUpperCase();
+    if (m.avatar) av = '<div class="avatar" onclick="viewProfile(' + m.user_id + ')"><img src="' + m.avatar + '" style="object-position:' + pos.x + '% ' + pos.y + '%">';
+    if (m.premium_tier) av += '<div class="tier-badge">' + tierIcon(m.premium_tier) + '</div>';
+    av += '</div>';
+    let fileHTML = '';
+    if (m.file_url) {
+        const isVideo = /\.(mp4|webm|mov)$/i.test(m.file_url);
+        const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(m.file_url);
+        if (isVideo) fileHTML = '<video class="msg-file" controls src="' + m.file_url + '"></video>';
+        else if (isImage) fileHTML = '<img class="msg-file" src="' + m.file_url + '">';
+        else fileHTML = '<a class="msg-file-link" href="' + m.file_url + '" target="_blank">📎 Скачать файл</a>';
+    }
+    div.innerHTML = av + '<div class="msg-content"><div class="msg-header"><span class="username" onclick="viewProfile(' + m.user_id + ')"></span>' + buildTierInline(m.premium_tier) + '<span class="timestamp">' + t + '</span></div><div class="msg-text">' + linkify(m.text || '') + '</div>' + fileHTML + '</div>';
+    renderUsername(div.querySelector('.username'), m.username, m.nickname_color, m.nickname_gradient);
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function addDMMessage(m) {
+    const chat = document.getElementById('dmChat');
+    const div = document.createElement('div');
+    div.className = 'message';
+    const t = m.created_at ? new Date(m.created_at).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';
+    let av = '<div class="avatar">' + m.username.charAt(0).toUpperCase() + '</div>';
+    if (m.avatar) av = '<div class="avatar"><img src="' + m.avatar + '"></div>';
+    let fileHTML = '';
+    if (m.file_url) {
+        const isVideo = /\.(mp4|webm|mov)$/i.test(m.file_url);
+        const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(m.file_url);
+        if (isVideo) fileHTML = '<video class="msg-file" controls src="' + m.file_url + '"></video>';
+        else if (isImage) fileHTML = '<img class="msg-file" src="' + m.file_url + '">';
+        else fileHTML = '<a class="msg-file-link" href="' + m.file_url + '" target="_blank">📎 Скачать файл</a>';
+    }
+    div.innerHTML = av + '<div class="msg-content"><div class="msg-header"><span class="username"></span>' + buildTierInline(m.premium_tier) + '<span class="timestamp">' + t + '</span></div><div class="msg-text">' + linkify(m.text || '') + '</div>' + fileHTML + '</div>';
+    renderUsername(div.querySelector('.username'), m.username, m.nickname_color, m.nickname_gradient);
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
 function send() { const inp = document.getElementById('inp'); const text = inp.value.trim(); if (!text || !ws || ws.readyState !== WebSocket.OPEN) return; ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text })); inp.value = ''; }
 document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 function sendDM() { const inp = document.getElementById('dmInp'); const text = inp.value.trim(); if (!text || !ws || ws.readyState !== WebSocket.OPEN || !currentDMUser) return; ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text })); inp.value = ''; }
 document.getElementById('dmInp').addEventListener('keydown', e => { if (e.key === 'Enter') sendDM(); });
+
 async function uploadFile(input) { const file = input.files[0]; if (!file) return; const fd = new FormData(); fd.append('token', token); fd.append('file', file); try { const r = await fetch('/api/upload', { method:'POST', body: fd }); const d = await r.json(); if (d.url) ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text:'', file_url: d.url })); else alert(d.detail || 'Ошибка загрузки'); } catch(e) {} input.value = ''; }
 async function uploadDMFile(input) { const file = input.files[0]; if (!file || !currentDMUser) return; const fd = new FormData(); fd.append('token', token); fd.append('file', file); try { const r = await fetch('/api/upload', { method:'POST', body: fd }); const d = await r.json(); if (d.url) ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text:'', file_url: d.url })); } catch(e) {} input.value = ''; }
+
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('backdrop').classList.toggle('open'); }
-function connectWS() { const proto = location.protocol === 'https:' ? 'wss://' : 'ws://'; ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token)); ws.onmessage = (event) => { let data; try { data = JSON.parse(event.data); } catch(e) { return; } if (data.type === 'message') { if (data.channel_id === currentChannelId) { addMessage({id:data.id, user_id:data.user_id, username:data.username, avatar:data.avatar, avatar_pos:data.avatar_pos, premium_tier:data.premium_tier, nickname_color:data.nickname_color, nickname_gradient:data.nickname_gradient, text:data.text, file_url:data.file_url, created_at:data.created_at}); playMsgSound(); } } else if (data.type === 'dm') { if (currentDMUser && (data.from_user === currentDMUser.id || data.to_user === currentDMUser.id)) { addDMMessage(data); } else { showToast(data.username + ': ' + (data.text || '📎'), data.avatar, null, null); notify(data.username, data.text || '📎'); } loadSidebarFriends(); playMsgSound(); } else if (data.type === 'friend_request') { showFriendRequestToast(data); notify('Запрос в друзья', data.from_name + ' хочет добавить тебя'); } else if (data.type === 'friend_accepted') { showToast(data.by + ' принял запрос', null, null, null); loadFriends(); loadSidebarFriends(); } else if (data.type === 'call') { playCallSound(); showIncomingCall(data); notify('Входящий звонок', data.from_name + ' звонит тебе'); } else if (data.type === 'offer' || data.type === 'answer' || data.type === 'ice') { handleSignal(data); } else if (data.type === 'call_decline') { document.getElementById('callModal').classList.remove('open'); if (pc) { pc.close(); pc = null; } } else if (data.type === 'banned') { alert('Ты забанен'); logout(); } }; ws.onclose = () => setTimeout(connectWS, 2000); }
+
+function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token));
+    ws.onmessage = (event) => {
+        let data; try { data = JSON.parse(event.data); } catch(e) { return; }
+        if (data.type === 'message') {
+            if (data.channel_id === currentChannelId) {
+                addMessage({id:data.id, user_id:data.user_id, username:data.username, avatar:data.avatar, avatar_pos:data.avatar_pos, premium_tier:data.premium_tier, nickname_color:data.nickname_color, nickname_gradient:data.nickname_gradient, text:data.text, file_url:data.file_url, created_at:data.created_at});
+                playMsgSound();
+            }
+        } else if (data.type === 'dm') {
+            if (currentDMUser && (data.from_user === currentDMUser.id || data.to_user === currentDMUser.id)) { addDMMessage(data); }
+            else { showToast(data.username + ': ' + (data.text || '📎'), data.avatar, null, null); notify(data.username, data.text || '📎'); }
+            loadSidebarFriends(); playMsgSound();
+        } else if (data.type === 'friend_request') { showFriendRequestToast(data); notify('Запрос в друзья', data.from_name + ' хочет добавить тебя'); }
+        else if (data.type === 'friend_accepted') { showToast(data.by + ' принял запрос', null, null, null); loadFriends(); loadSidebarFriends(); }
+        else if (data.type === 'call') { playCallSound(); showIncomingCall(data); notify('Входящий звонок', data.from_name + ' звонит тебе'); }
+        else if (data.type === 'offer' || data.type === 'answer' || data.type === 'ice') { handleSignal(data); }
+        else if (data.type === 'call_decline') { document.getElementById('callModal').classList.remove('open'); if (pc) { pc.close(); pc = null; } }
+        else if (data.type === 'banned') { alert('Ты забанен'); logout(); }
+    };
+    ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
 function playMsgSound() { try { if (msgSound) { msgAudio.src = msgSound; msgAudio.volume = 0.5; msgAudio.play().catch(()=>{}); } else { playBeep(880, 0.08, 0.15); } } catch(e) {} }
 function playCallSound() { try { if (callSound) { callAudio.src = callSound; callAudio.volume = 0.7; callAudio.play().catch(()=>{}); } else { playBeep(660, 0.15, 0.5); setTimeout(() => playBeep(880, 0.15, 0.5), 300); } } catch(e) {} }
 function playBeep(freq, dur, vol) { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.frequency.value = freq; osc.connect(gain); gain.connect(ctx.destination); gain.gain.setValueAtTime(vol, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur); osc.start(); osc.stop(ctx.currentTime + dur); } catch(e) {} }
+
 function showToast(title, avatar, btnText, btnAction) { const t = document.createElement('div'); t.className = 'toast'; let av = '<div class="avatar">?</div>'; if (avatar) av = '<div class="avatar"><img src="' + avatar + '"></div>'; t.innerHTML = av + '<div class="toast-text"><div class="toast-title">' + escapeHtml(title) + '</div></div>'; if (btnText && btnAction) { const b = document.createElement('button'); b.className = 'toast-btn'; b.textContent = btnText; b.onclick = () => { btnAction(); t.remove(); }; t.appendChild(b); } document.body.appendChild(t); setTimeout(() => t.remove(), 8000); }
 function showFriendRequestToast(data) { const t = document.createElement('div'); t.className = 'toast'; let av = '<div class="avatar">' + data.from_name.charAt(0).toUpperCase() + '</div>'; if (data.from_avatar) av = '<div class="avatar"><img src="' + data.from_avatar + '"></div>'; t.innerHTML = av + '<div class="toast-text"><div class="toast-title">' + escapeHtml(data.from_name) + '</div><div class="toast-sub">хочет добавить в друзья</div></div>'; const acc = document.createElement('button'); acc.className = 'toast-btn accept'; acc.textContent = 'Принять'; acc.onclick = async () => { await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, friend_id: data.from_id }) }); loadFriends(); loadSidebarFriends(); t.remove(); }; t.appendChild(acc); document.body.appendChild(t); setTimeout(() => t.remove(), 15000); }
+
 async function startCallDM() { if (!currentDMUser) return; await initiateCall(currentDMUser.id, currentDMUser.username); }
 async function initiateCall(targetId, targetName) { callTarget = targetId; try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }); localStream.getTracks().forEach(t => pc.addTrack(t, localStream)); pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); }; pc.ontrack = e => { const audio = new Audio(); audio.srcObject = e.streams[0]; audio.play(); }; const offer = await pc.createOffer(); await pc.setLocalDescription(offer); ws.send(JSON.stringify({ type:'call', target: callTarget })); ws.send(JSON.stringify({ type:'offer', target: callTarget, sdp: offer })); showCallModal(targetName, 'Звоним...', false); } catch(e) { alert('Ошибка звонка: ' + e.message); } }
 function showIncomingCall(data) { showCallModal(data.from_name, 'Входящий звонок', true, data.from, data.from_avatar); }
@@ -542,12 +794,14 @@ function showCallModal(name, status, incoming, fromId, fromAvatar) { document.ge
 async function acceptCall(fromId) { callTarget = fromId; try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }); localStream.getTracks().forEach(t => pc.addTrack(t, localStream)); pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); }; pc.ontrack = e => { const audio = new Audio(); audio.srcObject = e.streams[0]; audio.play(); }; document.getElementById('callStatus').textContent = 'В разговоре'; document.getElementById('callActions').innerHTML = '<button class="call-btn decline" onclick="endCall()">✕</button>'; } catch(e) { alert('Ошибка микрофона'); } }
 function endCall() { if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget })); document.getElementById('callModal').classList.remove('open'); if (pc) { pc.close(); pc = null; } }
 async function handleSignal(data) { if (!pc) return; if (data.type === 'offer') { await pc.setRemoteDescription(new RTCSessionDescription(data.sdp)); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); ws.send(JSON.stringify({ type:'answer', target: data.from, sdp: answer })); } else if (data.type === 'answer') { await pc.setRemoteDescription(new RTCSessionDescription(data.sdp)); } else if (data.type === 'ice') { try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {} } }
+
 function openAdminLogin() { document.getElementById('adminLoginModal').classList.add('open'); document.getElementById('adminPassword').value = ''; document.getElementById('adminError').textContent = ''; }
 async function verifyAdmin() { const password = document.getElementById('adminPassword').value; try { const r = await fetch('/api/admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token, password}) }); const d = await r.json(); if (!r.ok) { document.getElementById('adminError').textContent = d.detail || 'Ошибка'; return; } adminVerified = true; document.getElementById('adminLoginModal').classList.remove('open'); document.getElementById('adminModal').classList.add('open'); showAdminTab('users'); } catch(e) { document.getElementById('adminError').textContent = 'Ошибка'; } }
 async function showAdminTab(tab, btn) { document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active')); if (btn) btn.classList.add('active'); const body = document.getElementById('adminBody'); body.innerHTML = '<div style="text-align:center;padding:40px;color:#6b6b8a;">Загрузка...</div>'; if (tab === 'logs') await renderAdminLogs(); else await renderAdminUsers(tab); }
 async function renderAdminUsers(mode = 'users') { try { const r = await fetch('/api/admin/users?token=' + encodeURIComponent(token)); const users = await r.json(); const body = document.getElementById('adminBody'); body.innerHTML = ''; users.forEach(u => { const row = document.createElement('div'); row.className = 'admin-user-row'; let badges = ''; if (u.is_admin) badges += '<span class="badge admin">ADMIN</span>'; if (u.is_moderator) badges += '<span class="badge mod">MOD</span>'; if (u.premium_tier === 'premium') badges += '<span class="badge premium">💰</span>'; if (u.premium_tier === 'pro') badges += '<span class="badge pro">🏆</span>'; if (u.is_banned) badges += '<span class="badge banned">BAN</span>'; if (u.mute_until) badges += '<span class="badge muted">MUTE</span>'; let actions = ''; if (mode === 'moderation') { actions = u.is_banned ? '<button class="unban-btn" onclick="adminAction(' + u.id + ',\'unban\')">Разбан</button>' : '<button class="ban-btn" onclick="adminAction(' + u.id + ',\'ban\')">Бан</button>'; actions += u.mute_until ? '<button class="unmod-btn" onclick="adminAction(' + u.id + ',\'unmute\')">Размут</button>' : '<button class="mod-btn" onclick="adminAction(' + u.id + ',\'mute\')">Мут</button>'; } else if (mode === 'premium') { if (u.premium_tier === 'premium') { actions = '<button class="pro-btn" onclick="adminAction(' + u.id + ',\'grant_pro\')">🏆 Дать Pro</button>'; actions += '<button class="revoke-btn" onclick="adminAction(' + u.id + ',\'revoke_premium\')">Забрать</button>'; } else if (u.premium_tier === 'pro') { actions = '<button class="revoke-btn" onclick="adminAction(' + u.id + ',\'revoke_premium\')">Забрать Pro</button>'; } else { actions = '<button class="premium-btn" onclick="adminAction(' + u.id + ',\'grant_premium\')">💰 Premium</button>'; actions += '<button class="pro-btn" onclick="adminAction(' + u.id + ',\'grant_pro\')">🏆 Pro</button>'; } } else if (mode === 'roles') { actions = u.is_admin ? '<button class="unadmin-btn" onclick="adminAction(' + u.id + ',\'revoke_admin\')">-Админ</button>' : '<button class="admin-btn" onclick="adminAction(' + u.id + ',\'grant_admin\')">+Админ</button>'; actions += u.is_moderator ? '<button class="unmod-btn" onclick="adminAction(' + u.id + ',\'revoke_moderator\')">-Модер</button>' : '<button class="mod-btn" onclick="adminAction(' + u.id + ',\'grant_moderator\')">+Модер</button>'; } else { actions = '<button class="ban-btn" onclick="adminAction(' + u.id + ',\'' + (u.is_banned ? 'unban' : 'ban') + '\')">' + (u.is_banned ? 'Разбан' : 'Бан') + '</button>'; actions += '<button class="del-btn" onclick="if(confirm(\'Удалить?\'))adminAction(' + u.id + ',\'delete\')">Удалить</button>'; } row.innerHTML = '<div class="admin-user-name">' + escapeHtml(u.username) + '</div><div class="admin-user-badges">' + badges + '</div><div class="admin-actions">' + actions + '</div>'; body.appendChild(row); }); } catch(e) { document.getElementById('adminBody').innerHTML = '<div style="color:#ff3366;">Ошибка</div>'; } }
 async function renderAdminLogs() { try { const r = await fetch('/api/admin/logs?token=' + encodeURIComponent(token)); const logs = await r.json(); const body = document.getElementById('adminBody'); body.innerHTML = ''; logs.forEach(l => { const d = document.createElement('div'); d.className = 'log-row'; const time = new Date(l.created_at).toLocaleString('ru-RU'); d.innerHTML = '<div class="log-time">' + time + ' — ' + escapeHtml(l.admin_name || '?') + '</div><div class="log-text">' + escapeHtml(l.action) + ' → ' + escapeHtml(l.target_name || '?') + (l.details ? ' (' + escapeHtml(l.details) + ')' : '') + '</div>'; body.appendChild(d); }); if (logs.length === 0) body.innerHTML = '<div style="color:#6b6b8a;text-align:center;padding:40px;">Логов нет</div>'; } catch(e) {} }
 async function adminAction(targetId, action) { if (!adminVerified) { alert('Введи пароль админа заново'); openAdminLogin(); return; } try { const r = await fetch('/api/admin/action', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, target_id: targetId, action }) }); if (r.ok) { const d = await r.json(); if (d.new_password) alert('Новый пароль: ' + d.new_password); showAdminTab('users'); } } catch(e) {} }
+
 boot();
 </script>
 </body>
