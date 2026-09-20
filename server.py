@@ -29,6 +29,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 pool: Optional[asyncpg.Pool] = None
+online_users = set()  # user_id -> online
 
 async def get_pool():
     global pool
@@ -77,7 +78,6 @@ async def init_db():
         except Exception:
             pass
         await conn.execute("UPDATE users SET is_admin = TRUE WHERE username = $1", ADMIN_USERNAME)
-        # Сервера — добавляем аватарку, баннер, описание
         await conn.execute("""CREATE TABLE IF NOT EXISTS servers (
             id SERIAL PRIMARY KEY, name VARCHAR(64) NOT NULL,
             owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -100,7 +100,14 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS messages (
             id SERIAL PRIMARY KEY, channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            text TEXT, file_url TEXT, created_at TIMESTAMP DEFAULT NOW())""")
+            text TEXT, file_url TEXT,
+            reply_to INTEGER, reactions TEXT DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW())""")
+        for col, typ in [("reply_to", "INTEGER"), ("reactions", "TEXT DEFAULT '{}'")]:
+            try:
+                await conn.execute(f"ALTER TABLE messages ADD COLUMN IF NOT EXISTS {col} {typ}")
+            except Exception:
+                pass
         await conn.execute("""CREATE TABLE IF NOT EXISTS friendships (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -108,7 +115,12 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS dms (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            text TEXT, file_url TEXT, created_at TIMESTAMP DEFAULT NOW())""")
+            text TEXT, file_url TEXT, reactions TEXT DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW())""")
+        try:
+            await conn.execute("ALTER TABLE dms ADD COLUMN IF NOT EXISTS reactions TEXT DEFAULT '{}'")
+        except Exception:
+            pass
         await conn.execute("""CREATE TABLE IF NOT EXISTS admin_logs (
             id SERIAL PRIMARY KEY, admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             action VARCHAR(32), target_id INTEGER, details TEXT,
@@ -170,7 +182,6 @@ def tier_of(user):
     return user.get("premium_tier")
 
 def user_public(row):
-    # определяем роль
     role = "user"
     if row.get("is_admin"): role = "admin"
     elif row.get("is_moderator"): role = "moderator"
@@ -187,7 +198,8 @@ def user_public(row):
         "call_sound": row.get("call_sound"),
         "hidden_online": row.get("hidden_online"),
         "created_at": row["created_at"].isoformat() if row.get("created_at") else None,
-        "role": role
+        "role": role,
+        "online": row["id"] in online_users
     }
 
 # ===== API =====
@@ -212,9 +224,8 @@ async def register(data: dict):
         existing = await conn.fetchrow("SELECT id FROM users WHERE username = $1", username)
         if existing: raise HTTPException(400, "Ник занят")
         is_admin = (username == ADMIN_USERNAME)
-        row = await conn.fetchrow(
-            "INSERT INTO users (username, password_hash, email, is_admin) VALUES ($1,$2,$3,$4) RETURNING *",
-            username, hash_password(password), email, is_admin)
+        row = await conn.fetchrow("INSERT INTO users (username, password_hash, email, is_admin) VALUES ($1,$2,$3,$4) RETURNING *",
+                                  username, hash_password(password), email, is_admin)
     token = make_token(row["id"], row["username"])
     return {"token": token, "user": user_public(row)}
 
@@ -286,7 +297,12 @@ async def get_user(user_id: int):
     if d.get("is_admin"): d["role"] = "admin"
     elif d.get("is_moderator"): d["role"] = "moderator"
     else: d["role"] = "user"
+    d["online"] = user_id in online_users
     return d
+
+@app.get("/api/online")
+async def get_online():
+    return {"users": list(online_users)}
 
 # ===== СЕРВЕРА =====
 @app.post("/api/servers/create")
@@ -299,8 +315,7 @@ async def create_server(data: dict):
     p = await get_pool()
     async with p.acquire() as conn:
         count = await conn.fetchval("SELECT COUNT(*) FROM servers WHERE owner_id = $1", user["id"])
-        if count >= limits["servers"]:
-            raise HTTPException(400, f"Лимит серверов: {limits['servers']}")
+        if count >= limits["servers"]: raise HTTPException(400, f"Лимит серверов: {limits['servers']}")
         invite = secrets.token_urlsafe(8)
         row = await conn.fetchrow("INSERT INTO servers (name, owner_id, invite_code) VALUES ($1,$2,$3) RETURNING id, name, invite_code",
                                   name, user["id"], invite)
@@ -314,9 +329,8 @@ async def list_servers(token: str):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT s.id, s.name, s.invite_code, s.avatar, s.banner, s.description,
-            s.owner_id FROM servers s
-            JOIN server_members sm ON sm.server_id = s.id WHERE sm.user_id = $1""", user["id"])
+        rows = await conn.fetch("""SELECT s.id, s.name, s.invite_code, s.avatar, s.banner, s.description, s.owner_id
+            FROM servers s JOIN server_members sm ON sm.server_id = s.id WHERE sm.user_id = $1""", user["id"])
     return [dict(r) for r in rows]
 
 @app.get("/api/servers/{server_id}")
@@ -325,9 +339,8 @@ async def get_server(server_id: int, token: str):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        row = await conn.fetchrow("""SELECT s.id, s.name, s.invite_code, s.avatar, s.banner, s.description,
-            s.owner_id, u.username AS owner_name FROM servers s
-            JOIN users u ON u.id = s.owner_id WHERE s.id = $1""", server_id)
+        row = await conn.fetchrow("""SELECT s.id, s.name, s.invite_code, s.avatar, s.banner, s.description, s.owner_id,
+            u.username AS owner_name FROM servers s JOIN users u ON u.id = s.owner_id WHERE s.id = $1""", server_id)
     if not row: raise HTTPException(404, "Не найден")
     return dict(row)
 
@@ -341,14 +354,11 @@ async def update_server(data: dict):
     async with p.acquire() as conn:
         server = await conn.fetchrow("SELECT owner_id FROM servers WHERE id = $1", server_id)
         if not server: raise HTTPException(404, "Сервер не найден")
-        if server["owner_id"] != user["id"]:
-            raise HTTPException(403, "Только владелец")
-        name = data.get("name"); avatar = data.get("avatar")
-        banner = data.get("banner"); description = data.get("description")
-        await conn.execute("""UPDATE servers SET
-            name = COALESCE($1, name), avatar = COALESCE($2, avatar),
-            banner = COALESCE($3, banner), description = COALESCE($4, description)
-            WHERE id = $5""", name, avatar, banner, description, server_id)
+        if server["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
+        name = data.get("name"); avatar = data.get("avatar"); banner = data.get("banner"); description = data.get("description")
+        await conn.execute("""UPDATE servers SET name = COALESCE($1, name), avatar = COALESCE($2, avatar),
+            banner = COALESCE($3, banner), description = COALESCE($4, description) WHERE id = $5""",
+            name, avatar, banner, description, server_id)
     return {"ok": True}
 
 @app.post("/api/servers/delete")
@@ -361,8 +371,7 @@ async def delete_server(data: dict):
     async with p.acquire() as conn:
         server = await conn.fetchrow("SELECT owner_id FROM servers WHERE id = $1", server_id)
         if not server: raise HTTPException(404, "Сервер не найден")
-        if server["owner_id"] != user["id"] and not user.get("is_admin"):
-            raise HTTPException(403, "Только владелец")
+        if server["owner_id"] != user["id"] and not user.get("is_admin"): raise HTTPException(403, "Только владелец")
         await conn.execute("DELETE FROM servers WHERE id = $1", server_id)
     return {"ok": True}
 
@@ -384,9 +393,8 @@ async def get_members(server_id: int, token: str):
     p = await get_pool()
     async with p.acquire() as conn:
         rows = await conn.fetch("""SELECT u.id, u.username, u.avatar, u.premium_tier, u.is_admin, u.is_moderator,
-            sm.joined_at FROM server_members sm
-            JOIN users u ON u.id = sm.user_id WHERE sm.server_id = $1
-            ORDER BY sm.joined_at""", server_id)
+            sm.joined_at FROM server_members sm JOIN users u ON u.id = sm.user_id
+            WHERE sm.server_id = $1 ORDER BY sm.joined_at""", server_id)
     result = []
     for r in rows:
         d = dict(r)
@@ -394,6 +402,7 @@ async def get_members(server_id: int, token: str):
         if d.get("is_admin"): d["role"] = "admin"
         elif d.get("is_moderator"): d["role"] = "moderator"
         else: d["role"] = "user"
+        d["online"] = d["id"] in online_users
         result.append(d)
     return result
 
@@ -429,8 +438,7 @@ async def create_channel(data: dict):
     p = await get_pool()
     async with p.acquire() as conn:
         count = await conn.fetchval("SELECT COUNT(*) FROM channels WHERE server_id = $1", server_id)
-        if count >= limits["channels"]:
-            raise HTTPException(400, f"Лимит каналов: {limits['channels']}")
+        if count >= limits["channels"]: raise HTTPException(400, f"Лимит каналов: {limits['channels']}")
         row = await conn.fetchrow("INSERT INTO channels (server_id, name, type) VALUES ($1,$2,$3) RETURNING id, name, type",
                                   server_id, name, ctype)
     return dict(row)
@@ -445,8 +453,7 @@ async def delete_channel(data: dict):
     async with p.acquire() as conn:
         ch = await conn.fetchrow("SELECT s.owner_id FROM channels c JOIN servers s ON s.id = c.server_id WHERE c.id = $1", channel_id)
         if not ch: raise HTTPException(404, "Канал не найден")
-        if ch["owner_id"] != user["id"] and not user.get("is_admin"):
-            raise HTTPException(403, "Только владелец")
+        if ch["owner_id"] != user["id"] and not user.get("is_admin"): raise HTTPException(403, "Только владелец")
         await conn.execute("DELETE FROM channels WHERE id = $1", channel_id)
     return {"ok": True}
 
@@ -456,11 +463,15 @@ async def get_messages(channel_id: int, token: str, limit: int = 50):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT m.id, m.text, m.file_url, m.created_at, u.id AS user_id,
-            u.username, u.avatar, u.avatar_pos, u.premium_tier, u.nickname_color,
-            u.nickname_gradient, u.avatar_frame
-            FROM messages m JOIN users u ON u.id = m.user_id WHERE m.channel_id = $1
-            ORDER BY m.id DESC LIMIT $2""", channel_id, limit)
+        rows = await conn.fetch("""SELECT m.id, m.text, m.file_url, m.created_at, m.reply_to, m.reactions,
+            u.id AS user_id, u.username, u.avatar, u.avatar_pos, u.premium_tier, u.nickname_color,
+            u.nickname_gradient, u.avatar_frame,
+            ru.username AS reply_to_name, rm.text AS reply_to_text
+            FROM messages m
+            JOIN users u ON u.id = m.user_id
+            LEFT JOIN messages rm ON rm.id = m.reply_to
+            LEFT JOIN users ru ON ru.id = rm.user_id
+            WHERE m.channel_id = $1 ORDER BY m.id DESC LIMIT $2""", channel_id, limit)
     return [dict(r) for r in reversed(rows)]
 
 @app.post("/api/upload")
@@ -518,7 +529,12 @@ async def friends_list(token: str):
             u.nickname_gradient, f.status, f.from_user, f.to_user
             FROM friendships f JOIN users u ON (u.id = f.from_user OR u.id = f.to_user)
             WHERE (f.from_user = $1 OR f.to_user = $1) AND u.id != $1""", user["id"])
-    return [dict(r) for r in rows]
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["online"] = d["id"] in online_users
+        result.append(d)
+    return result
 
 @app.get("/api/friends/check/{user_id}")
 async def friend_check(user_id: int, token: str):
@@ -546,7 +562,7 @@ async def get_dm(user_id: int, token: str):
     if not me_user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT d.id, d.text, d.file_url, d.created_at,
+        rows = await conn.fetch("""SELECT d.id, d.text, d.file_url, d.created_at, d.reactions,
             u.id AS user_id, u.username, u.avatar, u.premium_tier, u.nickname_color, u.nickname_gradient
             FROM dms d JOIN users u ON u.id = d.from_user
             WHERE (d.from_user=$1 AND d.to_user=$2) OR (d.from_user=$2 AND d.to_user=$1)
@@ -560,17 +576,14 @@ async def dm_list(token: str):
     p = await get_pool()
     async with p.acquire() as conn:
         rows = await conn.fetch("""
-            SELECT DISTINCT ON (other_id)
-                other_id AS user_id,
+            SELECT DISTINCT ON (other_id) other_id AS user_id,
                 u.username, u.avatar, u.premium_tier, u.nickname_color, u.nickname_gradient,
                 d.text AS last_text, d.file_url AS last_file, d.created_at AS last_time
             FROM (
                 SELECT CASE WHEN from_user = $1 THEN to_user ELSE from_user END AS other_id,
                        text, file_url, created_at, id
                 FROM dms WHERE from_user = $1 OR to_user = $1
-            ) d
-            JOIN users u ON u.id = d.other_id
-            ORDER BY other_id, d.id DESC
+            ) d JOIN users u ON u.id = d.other_id ORDER BY other_id, d.id DESC
         """, user["id"])
     return [dict(r) for r in rows]
 
@@ -579,44 +592,53 @@ async def dm_list(token: str):
 async def admin_verify(data: dict):
     token = data.get("token"); password = data.get("password")
     user = await get_current_user(token)
-    if not user or not user.get("is_admin"):
-        raise HTTPException(403, "Не админ")
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(403, "Неверный пароль")
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
+    if password != ADMIN_PASSWORD: raise HTTPException(403, "Неверный пароль")
     return {"ok": True}
+
+@app.get("/api/admin/stats")
+async def admin_stats(token: str):
+    user = await get_current_user(token)
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        u = await conn.fetchval("SELECT COUNT(*) FROM users")
+        s = await conn.fetchval("SELECT COUNT(*) FROM servers")
+        m = await conn.fetchval("SELECT COUNT(*) FROM messages")
+    return {"users": u, "servers": s, "messages": m, "online": len(online_users)}
 
 @app.get("/api/admin/users")
 async def admin_users(token: str):
     user = await get_current_user(token)
-    if not user or not user.get("is_admin"):
-        raise HTTPException(403, "Не админ")
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
     p = await get_pool()
     async with p.acquire() as conn:
         rows = await conn.fetch("""SELECT id, username, email, is_admin, is_moderator, premium_tier,
             is_banned, mute_until, created_at FROM users ORDER BY id""")
-    return [dict(r) for r in rows]
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["online"] = d["id"] in online_users
+        result.append(d)
+    return result
 
 @app.get("/api/admin/logs")
 async def admin_logs(token: str):
     user = await get_current_user(token)
-    if not user or not user.get("is_admin"):
-        raise HTTPException(403, "Не админ")
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
     p = await get_pool()
     async with p.acquire() as conn:
         rows = await conn.fetch("""SELECT l.id, l.action, l.details, l.created_at,
             a.username AS admin_name, u.username AS target_name
-            FROM admin_logs l
-            LEFT JOIN users a ON a.id = l.admin_id
-            LEFT JOIN users u ON u.id = l.target_id
-            ORDER BY l.id DESC LIMIT 100""")
+            FROM admin_logs l LEFT JOIN users a ON a.id = l.admin_id
+            LEFT JOIN users u ON u.id = l.target_id ORDER BY l.id DESC LIMIT 100""")
     return [dict(r) for r in rows]
 
 @app.post("/api/admin/action")
 async def admin_action(data: dict):
     token = data.get("token")
     user = await get_current_user(token)
-    if not user or not user.get("is_admin"):
-        raise HTTPException(403, "Не админ")
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
     target_id = data.get("target_id"); action = data.get("action")
     p = await get_pool()
     async with p.acquire() as conn:
@@ -657,8 +679,13 @@ async def admin_action(data: dict):
 class Manager:
     def __init__(self): self.active = {}
     async def connect(self, uid, ws):
-        await ws.accept(); self.active[uid] = ws
-    def disconnect(self, uid): self.active.pop(uid, None)
+        await ws.accept()
+        self.active[uid] = ws
+        online_users.add(uid)
+        await self.broadcast_online(uid, True)
+    def disconnect(self, uid):
+        self.active.pop(uid, None)
+        online_users.discard(uid)
     async def send_to(self, uid, data):
         ws = self.active.get(uid)
         if ws:
@@ -668,6 +695,8 @@ class Manager:
         for ws in list(self.active.values()):
             try: await ws.send_json(data)
             except: pass
+    async def broadcast_online(self, uid, is_online):
+        await self.broadcast({"type": "online", "user_id": uid, "online": is_online})
 
 manager = Manager()
 
@@ -687,19 +716,24 @@ async def ws_endpoint(websocket: WebSocket):
             if t == "message":
                 if user.get("mute_until"): continue
                 channel_id = data.get("channel_id"); text = data.get("text",""); file_url = data.get("file_url")
+                reply_to = data.get("reply_to")
                 limits = LIMITS.get(tier_of(user), LIMITS[None])
                 if len(text) > limits["msg"]: text = text[:limits["msg"]]
                 p = await get_pool()
                 async with p.acquire() as conn:
-                    row = await conn.fetchrow("INSERT INTO messages (channel_id, user_id, text, file_url) VALUES ($1,$2,$3,$4) RETURNING id, created_at",
-                                              channel_id, user["id"], text, file_url)
+                    row = await conn.fetchrow("INSERT INTO messages (channel_id, user_id, text, file_url, reply_to) VALUES ($1,$2,$3,$4,$5) RETURNING id, created_at",
+                                              channel_id, user["id"], text, file_url, reply_to)
+                    reply_name = None; reply_text = None
+                    if reply_to:
+                        rr = await conn.fetchrow("SELECT m.text, u.username FROM messages m JOIN users u ON u.id = m.user_id WHERE m.id = $1", reply_to)
+                        if rr: reply_name = rr["username"]; reply_text = rr["text"]
                 await manager.broadcast({"type":"message","id":row["id"],"channel_id":channel_id,
                     "user_id":user["id"],"username":user["username"],"avatar":user["avatar"],
                     "avatar_pos":user.get("avatar_pos"),"premium_tier":user.get("premium_tier"),
-                    "nickname_color":user.get("nickname_color"),
-                    "nickname_gradient":user.get("nickname_gradient"),
+                    "nickname_color":user.get("nickname_color"),"nickname_gradient":user.get("nickname_gradient"),
                     "avatar_frame":user.get("avatar_frame"),
-                    "text":text,"file_url":file_url,"created_at":row["created_at"].isoformat()})
+                    "text":text,"file_url":file_url,"created_at":row["created_at"].isoformat(),
+                    "reply_to_name":reply_name,"reply_to_text":reply_text,"reactions":"{}"})
             elif t == "dm":
                 to_user = data.get("to_user"); text = data.get("text",""); file_url = data.get("file_url")
                 limits = LIMITS.get(tier_of(user), LIMITS[None])
@@ -709,19 +743,50 @@ async def ws_endpoint(websocket: WebSocket):
                     row = await conn.fetchrow("INSERT INTO dms (from_user, to_user, text, file_url) VALUES ($1,$2,$3,$4) RETURNING id, created_at",
                                               user["id"], to_user, text, file_url)
                 payload = {"type":"dm","id":row["id"],"from_user":user["id"],"to_user":to_user,
-                    "username":user["username"],"avatar":user["avatar"],
-                    "premium_tier":user.get("premium_tier"),
-                    "nickname_color":user.get("nickname_color"),
-                    "nickname_gradient":user.get("nickname_gradient"),
-                    "text":text,"file_url":file_url,"created_at":row["created_at"].isoformat()}
+                    "username":user["username"],"avatar":user["avatar"],"premium_tier":user.get("premium_tier"),
+                    "nickname_color":user.get("nickname_color"),"nickname_gradient":user.get("nickname_gradient"),
+                    "text":text,"file_url":file_url,"created_at":row["created_at"].isoformat(),"reactions":"{}"}
                 await manager.send_to(to_user, payload)
                 await manager.send_to(user["id"], payload)
+            elif t == "typing":
+                channel_id = data.get("channel_id")
+                await manager.broadcast({"type":"typing","channel_id":channel_id,"username":user["username"]})
+            elif t == "typing_dm":
+                to_user = data.get("to_user")
+                await manager.send_to(to_user, {"type":"typing_dm","from":user["id"],"username":user["username"]})
+            elif t == "reaction":
+                message_id = data.get("message_id"); emoji = data.get("emoji")
+                p = await get_pool()
+                async with p.acquire() as conn:
+                    row = await conn.fetchrow("SELECT reactions FROM messages WHERE id = $1", message_id)
+                    if row:
+                        try: reactions = json.loads(row["reactions"] or "{}")
+                        except: reactions = {}
+                        if emoji not in reactions: reactions[emoji] = []
+                        if user["username"] in reactions[emoji]:
+                            reactions[emoji].remove(user["username"])
+                            if not reactions[emoji]: del reactions[emoji]
+                        else:
+                            reactions[emoji].append(user["username"])
+                        await conn.execute("UPDATE messages SET reactions = $1 WHERE id = $2", json.dumps(reactions), message_id)
+                        await manager.broadcast({"type":"reaction_update","message_id":message_id,"emoji":emoji,"reactions":reactions})
+            elif t == "delete_message":
+                message_id = data.get("message_id"); is_dm = data.get("is_dm")
+                p = await get_pool()
+                async with p.acquire() as conn:
+                    if is_dm:
+                        await conn.execute("DELETE FROM dms WHERE id = $1 AND from_user = $2", message_id, user["id"])
+                        await manager.broadcast({"type":"dm_deleted","message_id":message_id})
+                    else:
+                        await conn.execute("DELETE FROM messages WHERE id = $1 AND user_id = $2", message_id, user["id"])
+                        await manager.broadcast({"type":"message_deleted","message_id":message_id})
             elif t in ("call","offer","answer","ice","call_decline","call_end"):
                 target = data.get("target")
                 if target:
                     await manager.send_to(target, {**data, "from":user["id"], "from_name":user["username"], "from_avatar":user["avatar"]})
     except WebSocketDisconnect:
         manager.disconnect(user["id"])
+        await manager.broadcast_online(user["id"], False)
 
 @app.get("/")
 async def index():
