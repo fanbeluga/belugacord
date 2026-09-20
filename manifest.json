@@ -1,0 +1,20 @@
+{
+  "name": "Belugacord",
+  "short_name": "Belugacord",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#313338",
+  "theme_color": "#5865f2",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968756.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968756.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
