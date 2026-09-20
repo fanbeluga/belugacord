@@ -11,7 +11,6 @@
 html, body { height:100%; overflow:hidden; }
 body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#1e1f22; color:#dbdee1; display:flex; font-size:14px; }
 
-/* ЭКРАН ВХОДА */
 .auth-screen { position:fixed; inset:0; background:#313338; display:flex; align-items:center; justify-content:center; padding:16px; z-index:2000; overflow-y:auto; }
 .auth-box { background:#2b2d31; border-radius:8px; padding:32px; width:100%; max-width:420px; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 .auth-box h1 { color:#f2f3f5; font-size:24px; margin-bottom:8px; text-align:center; }
@@ -24,36 +23,27 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
 .auth-field input { width:100%; background:#1e1f22; border:none; border-radius:4px; padding:10px; color:#dbdee1; font-size:15px; outline:none; }
 .auth-field input:focus { outline:2px solid #5865f2; }
 .auth-status { font-size:12px; margin-top:6px; height:16px; }
-.auth-status.ok { color:#23a55a; }
-.auth-status.bad { color:#f23f43; }
+.auth-status.ok { color:#23a55a; } .auth-status.bad { color:#f23f43; }
 .auth-btn { width:100%; background:#5865f2; color:white; border:none; padding:12px; border-radius:4px; font-size:15px; font-weight:600; cursor:pointer; margin-top:8px; }
 .auth-btn:hover { background:#4752c4; }
-.auth-btn:disabled { background:#4e5058; cursor:not-allowed; }
 .auth-error { color:#f23f43; font-size:13px; margin-top:12px; text-align:center; min-height:18px; }
 
-/* ОСНОВНОЙ ИНТЕРФЕЙС */
 .app { display:none; width:100%; height:100%; }
 .app.active { display:flex; }
-
 .guilds { width:72px; background:#1e1f22; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:8px; flex-shrink:0; overflow-y:auto; }
-.guild { width:48px; height:48px; border-radius:50%; background:#313338; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:18px; color:#dbdee1; cursor:pointer; transition:all 0.15s; position:relative; flex-shrink:0; overflow:hidden; }
+.guild { width:48px; height:48px; border-radius:50%; background:#313338; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:18px; color:#dbdee1; cursor:pointer; transition:all 0.15s; flex-shrink:0; overflow:hidden; }
 .guild:hover { border-radius:16px; background:#5865f2; color:white; }
 .guild.active { border-radius:16px; background:#5865f2; color:white; }
-.guild.friends { background:#313338; }
-.guild.friends.active { background:#5865f2; }
 .guild svg { width:26px; height:26px; fill:currentColor; }
 .guild-divider { width:32px; height:2px; background:#35373c; border-radius:1px; flex-shrink:0; }
-.guild img { width:100%; height:100%; object-fit:cover; }
 .guild-add { background:#313338; color:#23a55a; font-size:24px; }
 .guild-add:hover { background:#23a55a; color:white; }
 
 .sidebar { width:240px; background:#2b2d31; display:flex; flex-direction:column; flex-shrink:0; }
 .sidebar-header { height:48px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 0 rgba(0,0,0,0.2); font-weight:600; color:#f2f3f5; cursor:pointer; flex-shrink:0; font-size:15px; }
-.sidebar-header:hover { background:#35373c; }
 .sidebar-content { flex:1; overflow-y:auto; padding:8px; }
 .channel-cat { font-size:11px; text-transform:uppercase; color:#949ba4; font-weight:700; padding:16px 8px 4px; display:flex; justify-content:space-between; align-items:center; }
 .channel-cat .add { cursor:pointer; color:#949ba4; font-size:16px; }
-.channel-cat .add:hover { color:#f2f3f5; }
 .channel { padding:6px 8px; border-radius:4px; color:#949ba4; cursor:pointer; font-size:15px; display:flex; align-items:center; gap:6px; margin-bottom:2px; font-weight:500; }
 .channel:hover { background:#35373c; color:#dbdee1; }
 .channel.active { background:#404249; color:#f2f3f5; }
@@ -87,13 +77,11 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
 .input-box input[type="text"] { flex:1; background:none; border:none; outline:none; color:#dbdee1; font-size:15px; padding:11px 0; font-family:inherit; }
 .input-box input::placeholder { color:#6d6f78; }
 .file-btn { color:#b5bac1; cursor:pointer; font-size:20px; padding:4px; }
-.file-btn:hover { color:#f2f3f5; }
 
 .friends-screen { display:none; flex-direction:column; flex:1; overflow:hidden; }
 .friends-screen.active { display:flex; }
 .friends-topbar { height:48px; padding:0 16px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 0 rgba(0,0,0,0.2); flex-shrink:0; overflow-x:auto; }
 .friends-tab { color:#b5bac1; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:15px; font-weight:500; white-space:nowrap; }
-.friends-tab:hover { background:#35373c; color:#dbdee1; }
 .friends-tab.active { background:#404249; color:#f2f3f5; }
 .friends-body { flex:1; overflow-y:auto; padding:16px 24px; }
 .friends-body h3 { font-size:12px; text-transform:uppercase; color:#949ba4; font-weight:700; margin:16px 0 8px; }
@@ -108,8 +96,10 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
 .add-friend-box p { color:#b5bac1; font-size:12px; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
 .add-friend-input { display:flex; gap:8px; }
 .add-friend-input input { flex:1; background:#2b2d31; border:1px solid #1e1f22; border-radius:4px; padding:10px 12px; color:#dbdee1; font-size:14px; outline:none; }
-.add-friend-input input:focus { border-color:#5865f2; }
 .add-friend-input button { background:#5865f2; color:white; border:none; padding:0 16px; border-radius:4px; font-weight:600; cursor:pointer; }
+
+.dm-screen { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.dm-screen.active { display:flex; }
 
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1500; align-items:center; justify-content:center; padding:16px; overflow-y:auto; }
 .modal-overlay.open { display:flex; }
@@ -125,8 +115,21 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
 .save-btn { margin-top:24px; width:100%; background:#5865f2; color:white; border:none; padding:12px; border-radius:4px; font-size:15px; font-weight:600; cursor:pointer; }
 .close-btn { position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.6); color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; z-index:10; }
 .logout-btn { margin-top:12px; width:100%; background:#f23f43; color:white; border:none; padding:10px; border-radius:4px; font-weight:600; cursor:pointer; }
+.admin-btn { margin-top:8px; width:100%; background:#f0b232; color:#1e1f22; border:none; padding:10px; border-radius:4px; font-weight:600; cursor:pointer; }
 
-.call-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1800; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+/* Всплывашка */
+.toast { position:fixed; bottom:24px; right:24px; background:#2b2d31; border-radius:8px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,0.5); z-index:3000; display:flex; gap:12px; align-items:center; max-width:360px; animation:slideIn 0.3s; }
+@keyframes slideIn { from { transform:translateX(400px); } to { transform:translateX(0); } }
+.toast .avatar { width:40px; height:40px; font-size:16px; }
+.toast-text { flex:1; }
+.toast-title { color:#f2f3f5; font-weight:600; font-size:14px; margin-bottom:4px; }
+.toast-sub { color:#949ba4; font-size:13px; }
+.toast-btn { background:#5865f2; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:600; font-size:13px; }
+.toast-btn.accept { background:#23a55a; }
+.toast-btn.decline { background:#f23f43; }
+
+/* Звонок */
+.call-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:2500; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
 .call-modal.open { display:flex; }
 .call-avatar { width:120px; height:120px; border-radius:50%; background:#5865f2; display:flex; align-items:center; justify-content:center; font-size:48px; color:white; font-weight:600; overflow:hidden; }
 .call-avatar img { width:100%; height:100%; object-fit:cover; }
@@ -145,20 +148,16 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
     .main-header .burger { display:block; }
     .messages { padding:12px 12px 0; }
     .message { gap:12px; }
-    .message .avatar { width:36px; height:36px; }
     .input-area { padding:8px 12px 16px; }
-    .friends-body { padding:12px 16px; }
     .overlay-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:400; }
     .overlay-backdrop.open { display:block; }
 }
 ::-webkit-scrollbar { width:8px; height:8px; }
-::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:#1a1b1e; border-radius:4px; }
 </style>
 </head>
 <body>
 
-<!-- ЭКРАН ВХОДА -->
 <div class="auth-screen" id="authScreen">
     <div class="auth-box">
         <h1>Belugacord</h1>
@@ -181,11 +180,10 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
     </div>
 </div>
 
-<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
 <div class="app" id="app">
     <div class="guilds" id="guilds">
         <div class="guild friends" onclick="showFriends()" title="Друзья">
-            <svg viewBox="0 0 24 24"><path d="M13 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-9 10a1 1 0 0 1-1-1v-1c0-2.76 3.58-5 8-5s8 2.24 8 5v1a1 1 0 0 1-1 1H4zm16-10a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm-1 2c1.5 0 2.8.5 3.7 1.4.6.6.3 1.6-.5 1.6H16v-2c0-.4 0-.7-.1-1h3.1z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M13 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-9 10a1 1 0 0 1-1-1v-1c0-2.76 3.58-5 8-5s8 2.24 8 5v1a1 1 0 0 1-1 1H4zm16-10a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
         </div>
         <div class="guild-divider"></div>
         <div id="serverList"></div>
@@ -203,7 +201,7 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
             <div class="avatar" id="userAvatarSmall" onclick="openProfile()">?</div>
             <div class="user-info" onclick="openProfile()">
                 <div class="user-name" id="userNameSmall">...</div>
-                <div class="user-status">в сети</div>
+                <div class="user-status" id="userStatusSmall">в сети</div>
             </div>
         </div>
     </div>
@@ -224,6 +222,23 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
                     <label class="file-btn" for="fileInput">+</label>
                     <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this)">
                     <input type="text" id="inp" placeholder="Написать сообщение..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <div class="dm-screen" id="dmScreen">
+            <div class="main-header">
+                <button class="burger" onclick="toggleSidebar()">☰</button>
+                <div class="avatar" id="dmAvatar" style="width:24px;height:24px;font-size:11px;">?</div>
+                <span id="dmName">ЛС</span>
+                <button class="file-btn" style="margin-left:auto;" onclick="startCallDM()" title="Позвонить">📞</button>
+            </div>
+            <div class="messages" id="dmChat"></div>
+            <div class="input-area">
+                <div class="input-box">
+                    <label class="file-btn" for="dmFileInput">+</label>
+                    <input type="file" id="dmFileInput" style="display:none" onchange="uploadDMFile(this)">
+                    <input type="text" id="dmInp" placeholder="Написать сообщение..." autocomplete="off">
                 </div>
             </div>
         </div>
@@ -249,7 +264,6 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
     </div>
 </div>
 
-<!-- МОДАЛКА ПРОФИЛЯ -->
 <div class="modal-overlay" id="profileModal">
     <div class="modal">
         <button class="close-btn" onclick="closeProfile()">✕</button>
@@ -262,7 +276,20 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
             <label>Аватарка</label>
             <button class="save-btn" onclick="document.getElementById('avatarInput').click()">Загрузить аватарку</button>
             <button class="save-btn" style="background:#23a55a;margin-top:8px;" onclick="saveProfile()">Сохранить</button>
+            <button class="admin-btn" id="adminBtn" style="display:none;" onclick="openAdmin()">Админ-панель</button>
             <button class="logout-btn" onclick="logout()">Выйти из аккаунта</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="adminModal">
+    <div class="modal">
+        <button class="close-btn" onclick="document.getElementById('adminModal').classList.remove('open')">✕</button>
+        <div class="profile-info" style="padding:24px;">
+            <h2>Админ-панель</h2>
+            <label>Забанить юзера по нику</label>
+            <input type="text" id="banInput" placeholder="Ник" style="width:100%;background:#1e1f22;border:none;border-radius:4px;padding:10px;color:#dbdee1;">
+            <button class="save-btn" style="background:#f23f43;" onclick="adminBan()">Забанить</button>
         </div>
     </div>
 </div>
@@ -270,7 +297,6 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
 <input type="file" id="avatarInput" accept="image/*" style="display:none">
 <input type="file" id="bannerInput" accept="image/*" style="display:none">
 
-<!-- МОДАЛКА ЗВОНКА -->
 <div class="call-modal" id="callModal">
     <div class="call-avatar" id="callAvatar">?</div>
     <div class="call-name" id="callName">...</div>
@@ -280,15 +306,12 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
 
 <script>
 let token = localStorage.getItem('belugacord_token') || '';
-let me = null;
-let ws = null;
-let currentServerId = null;
-let currentChannelId = null;
-let avatarData = null;
-let bannerData = null;
-let pendingAvatar = null;
-let pendingBanner = null;
+let me = null, ws = null;
+let currentServerId = null, currentChannelId = null;
+let currentDMUser = null;
+let avatarData = null, bannerData = null, pendingAvatar = null, pendingBanner = null;
 let authMode = 'login';
+let pc = null, localStream = null, callTarget = null;
 
 // ===== АВТОРИЗАЦИЯ =====
 function switchTab(mode) {
@@ -316,7 +339,6 @@ function checkUsername() {
         } catch(e) { status.textContent = ''; }
     }, 400);
 }
-
 document.getElementById('authUsername').addEventListener('input', checkUsername);
 
 async function submitAuth() {
@@ -345,7 +367,6 @@ function logout() {
     document.getElementById('authScreen').style.display = 'flex';
 }
 
-// ===== СТАРТ =====
 async function boot() {
     if (token) {
         try {
@@ -363,6 +384,7 @@ function enterApp() {
     renderProfile();
     loadServers();
     connectWS();
+    if (me.is_admin) document.getElementById('adminBtn').style.display = 'block';
 }
 
 // ===== ПРОФИЛЬ =====
@@ -371,9 +393,9 @@ function renderProfile() {
     if (me.avatar) av.innerHTML = '<img src="' + me.avatar + '">';
     else av.textContent = me.username.charAt(0).toUpperCase();
     document.getElementById('userNameSmall').textContent = me.username;
+    document.getElementById('userStatusSmall').textContent = me.is_admin ? 'админ' : 'в сети';
     document.getElementById('profileName').textContent = me.username;
-    avatarData = me.avatar;
-    bannerData = me.banner;
+    avatarData = me.avatar; bannerData = me.banner;
     const bigAv = document.getElementById('avatarPreview');
     if (avatarData) bigAv.innerHTML = '<img src="' + avatarData + '">';
     else bigAv.textContent = me.username.charAt(0).toUpperCase();
@@ -386,7 +408,6 @@ function renderProfile() {
         banner.insertBefore(img, banner.firstChild);
     }
 }
-
 function openProfile() { document.getElementById('profileModal').classList.add('open'); }
 function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
 
@@ -412,6 +433,16 @@ async function saveProfile() {
     } catch(e) { alert('Ошибка сохранения'); }
 }
 
+function openAdmin() { document.getElementById('adminModal').classList.add('open'); }
+async function adminBan() {
+    const username = document.getElementById('banInput').value.trim();
+    if (!username) return;
+    try {
+        const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token));
+        alert('Бан через админку — в разработке. Пока забанить вручную в БД.');
+    } catch(e) {}
+}
+
 // ===== СЕРВЕРЫ =====
 async function loadServers() {
     try {
@@ -429,7 +460,6 @@ async function loadServers() {
         });
     } catch(e) {}
 }
-
 async function openCreateServer() {
     const name = prompt('Название сервера:');
     if (!name) return;
@@ -441,7 +471,6 @@ async function openCreateServer() {
         else alert(d.detail || 'Ошибка');
     } catch(e) { alert('Ошибка'); }
 }
-
 async function openJoinServer() {
     const invite = prompt('Код приглашения:');
     if (!invite) return;
@@ -458,8 +487,8 @@ async function openServer(id, name) {
     currentServerId = id;
     document.getElementById('sidebarTitle').textContent = name;
     document.getElementById('friendsScreen').classList.remove('active');
+    document.getElementById('dmScreen').classList.remove('active');
     document.getElementById('chatScreen').style.display = 'flex';
-    document.querySelectorAll('.guild').forEach(g => g.classList.remove('active'));
     try {
         const r = await fetch('/api/servers/' + id + '/channels?token=' + encodeURIComponent(token));
         const channels = await r.json();
@@ -502,9 +531,11 @@ async function openChannel(id, name) {
     if (window.innerWidth <= 768) toggleSidebar();
 }
 
+// ===== ДРУЗЬЯ =====
 function showFriends() {
     document.getElementById('friendsScreen').classList.add('active');
     document.getElementById('chatScreen').style.display = 'none';
+    document.getElementById('dmScreen').classList.remove('active');
     document.getElementById('sidebarTitle').textContent = 'Друзья';
     document.getElementById('sidebarContent').innerHTML = '';
     loadFriends();
@@ -515,7 +546,7 @@ async function loadFriends() {
     try {
         const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token));
         const friends = await r.json();
-        document.getElementById('friendsTitle').textContent = 'Друзья — ' + friends.length;
+        document.getElementById('friendsTitle').textContent = 'Друзья — ' + friends.filter(f => f.status === 'accepted').length;
         const list = document.getElementById('friendsList');
         list.innerHTML = '';
         friends.forEach(f => {
@@ -523,8 +554,11 @@ async function loadFriends() {
             d.className = 'friend-row';
             const av = f.avatar ? '<img src="' + f.avatar + '">' : f.username.charAt(0).toUpperCase();
             let actions = '';
-            if (f.status === 'pending') actions = '<button onclick="acceptFriend(' + f.id + ')" title="Принять">✓</button>';
-            d.innerHTML = '<div class="avatar">' + av + '</div><div><div class="friend-name">' + escapeHtml(f.username) + '</div><div class="friend-status">' + (f.status === 'accepted' ? 'в друзьях' : 'запрос') + '</div></div><div class="friend-actions">' + actions + '</div>';
+            if (f.status === 'pending' && f.to_user === me.id) {
+                actions = '<button onclick="event.stopPropagation();acceptFriend(' + f.id + ')" title="Принять">✓</button>';
+            }
+            d.innerHTML = '<div class="avatar">' + av + '</div><div style="flex:1;"><div class="friend-name">' + escapeHtml(f.username) + '</div><div class="friend-status">' + (f.status === 'accepted' ? 'в друзьях' : 'запрос') + '</div></div><div class="friend-actions">' + actions + '</div>';
+            if (f.status === 'accepted') d.onclick = () => openDM(f.id, f.username, f.avatar);
             list.appendChild(d);
         });
     } catch(e) {}
@@ -551,18 +585,94 @@ async function acceptFriend(id) {
     } catch(e) {}
 }
 
+// ===== ЛС =====
+async function openDM(userId, username, avatar) {
+    currentDMUser = { id: userId, username, avatar };
+    document.getElementById('dmScreen').classList.add('active');
+    document.getElementById('chatScreen').style.display = 'none';
+    document.getElementById('friendsScreen').classList.remove('active');
+    const av = document.getElementById('dmAvatar');
+    if (avatar) av.innerHTML = '<img src="' + avatar + '">';
+    else av.textContent = username.charAt(0).toUpperCase();
+    document.getElementById('dmName').textContent = username;
+    document.getElementById('dmChat').innerHTML = '';
+    try {
+        const r = await fetch('/api/dm/' + userId + '/messages?token=' + encodeURIComponent(token));
+        const msgs = await r.json();
+        msgs.forEach(m => addDMMessage(m.username, m.text, m.avatar, m.file_url, m.created_at, false));
+    } catch(e) {}
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+function addDMMessage(name, text, avatar, fileUrl, createdAt, isOwn) {
+    const chat = document.getElementById('dmChat');
+    const div = document.createElement('div');
+    div.className = 'message';
+    const t = createdAt ? new Date(createdAt).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+    let av = '<div class="avatar">' + name.charAt(0).toUpperCase() + '</div>';
+    if (avatar) av = '<div class="avatar"><img src="' + avatar + '"></div>';
+    let fileHTML = '';
+    if (fileUrl) {
+        const isVideo = /\.(mp4|webm|mov)$/i.test(fileUrl);
+        fileHTML = isVideo ? '<video class="msg-file" controls src="' + fileUrl + '"></video>' : '<img class="msg-file" src="' + fileUrl + '">';
+    }
+    div.innerHTML = av + '<div class="msg-content"><div class="msg-header"><span class="username">' + escapeHtml(name) + '</span><span class="timestamp">сегодня в ' + t + '</span></div><div class="msg-text">' + escapeHtml(text || '') + '</div>' + fileHTML + '</div>';
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function sendDM() {
+    const inp = document.getElementById('dmInp');
+    const text = inp.value.trim();
+    if (!text || !ws || ws.readyState !== WebSocket.OPEN || !currentDMUser) return;
+    ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text }));
+    inp.value = '';
+}
+document.getElementById('dmInp').addEventListener('keydown', e => { if (e.key === 'Enter') sendDM(); });
+
+async function uploadDMFile(input) {
+    const file = input.files[0]; if (!file || !currentDMUser) return;
+    const fd = new FormData();
+    fd.append('token', token); fd.append('file', file);
+    try {
+        const r = await fetch('/api/upload', { method:'POST', body: fd });
+        const d = await r.json();
+        if (d.url) ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text:'', file_url: d.url }));
+    } catch(e) {}
+    input.value = '';
+}
+
 // ===== ЧАТ =====
 function connectWS() {
     const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
     ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token));
     ws.onmessage = (event) => {
         let data; try { data = JSON.parse(event.data); } catch(e) { return; }
-        if (data.type === 'message' && data.channel_id === currentChannelId) {
-            addMessage(data.username, data.text, data.avatar, data.file_url, data.created_at);
+        if (data.type === 'message') {
+            if (data.channel_id === currentChannelId) {
+                addMessage(data.username, data.text, data.avatar, data.file_url, data.created_at);
+            }
+        } else if (data.type === 'dm') {
+            if (currentDMUser && (data.from_user === currentDMUser.id || data.to_user === currentDMUser.id)) {
+                addDMMessage(data.username, data.text, data.avatar, data.file_url, data.created_at, data.from_user === me.id);
+            } else {
+                showToast(data.username + ': ' + (data.text || '📎'), data.avatar, null, null);
+            }
+        } else if (data.type === 'friend_request') {
+            showFriendRequestToast(data);
+        } else if (data.type === 'friend_accepted') {
+            showToast(data.by + ' принял запрос', null, null, null);
+            loadFriends();
         } else if (data.type === 'call') {
             showIncomingCall(data);
         } else if (data.type === 'offer' || data.type === 'answer' || data.type === 'ice') {
             handleSignal(data);
+        } else if (data.type === 'call_decline') {
+            document.getElementById('callModal').classList.remove('open');
+            if (pc) { pc.close(); pc = null; }
+        } else if (data.type === 'banned') {
+            alert('Ты забанен');
+            logout();
         }
     };
     ws.onclose = () => setTimeout(connectWS, 2000);
@@ -599,15 +709,12 @@ document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 
 async function uploadFile(input) {
     const file = input.files[0]; if (!file) return;
     const fd = new FormData();
-    fd.append('token', token);
-    fd.append('file', file);
+    fd.append('token', token); fd.append('file', file);
     try {
         const r = await fetch('/api/upload', { method:'POST', body: fd });
         const d = await r.json();
-        if (d.url) {
-            ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text: '', file_url: d.url }));
-        }
-    } catch(e) { alert('Ошибка загрузки'); }
+        if (d.url) ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text:'', file_url: d.url }));
+    } catch(e) {}
     input.value = '';
 }
 
@@ -616,20 +723,63 @@ function toggleSidebar() {
     document.getElementById('backdrop').classList.toggle('open');
 }
 
-// ===== ЗВОНКИ =====
-let pc = null;
-let localStream = null;
-let callTarget = null;
+// ===== ВСПЛЫВАШКИ =====
+function showToast(title, avatar, btnText, btnAction) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    let av = '<div class="avatar">?</div>';
+    if (avatar) av = '<div class="avatar"><img src="' + avatar + '"></div>';
+    t.innerHTML = av + '<div class="toast-text"><div class="toast-title">' + escapeHtml(title) + '</div></div>';
+    if (btnText && btnAction) {
+        const b = document.createElement('button');
+        b.className = 'toast-btn'; b.textContent = btnText;
+        b.onclick = () => { btnAction(); t.remove(); };
+        t.appendChild(b);
+    }
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 8000);
+}
 
+function showFriendRequestToast(data) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    let av = '<div class="avatar">?</div>';
+    if (data.from_avatar) av = '<div class="avatar"><img src="' + data.from_avatar + '"></div>';
+    else av = '<div class="avatar">' + data.from_name.charAt(0).toUpperCase() + '</div>';
+    t.innerHTML = av + '<div class="toast-text"><div class="toast-title">' + escapeHtml(data.from_name) + '</div><div class="toast-sub">хочет добавить в друзья</div></div>';
+    const acc = document.createElement('button');
+    acc.className = 'toast-btn accept'; acc.textContent = 'Принять';
+    acc.onclick = async () => {
+        await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, friend_id: data.from_id }) });
+        loadFriends(); t.remove();
+    };
+    t.appendChild(acc);
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 15000);
+}
+
+// ===== ЗВОНКИ =====
 async function startCall() {
     const username = prompt('Кому звонить? (ник)');
     if (!username) return;
     try {
         const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token));
         const friends = await r.json();
-        const friend = friends.find(f => f.username === username);
+        const friend = friends.find(f => f.username === username && f.status === 'accepted');
         if (!friend) { alert('Друг не найден'); return; }
-        callTarget = friend.id;
+        await initiateCall(friend.id, friend.username);
+    } catch(e) { alert('Ошибка: ' + e.message); }
+}
+
+async function startCallDM() {
+    if (!currentDMUser) return;
+    await initiateCall(currentDMUser.id, currentDMUser.username);
+}
+
+async function initiateCall(targetId, targetName) {
+    callTarget = targetId;
+    try {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
         localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
@@ -637,39 +787,49 @@ async function startCall() {
         pc.ontrack = e => { const audio = new Audio(); audio.srcObject = e.streams[0]; audio.play(); };
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        ws.send(JSON.stringify({ type:'call', target: callTarget, from_name: me.username }));
+        ws.send(JSON.stringify({ type:'call', target: callTarget }));
         ws.send(JSON.stringify({ type:'offer', target: callTarget, sdp: offer }));
-        showCallModal(friend.username, 'Звоним...');
+        showCallModal(targetName, 'Звоним...', false);
     } catch(e) { alert('Ошибка звонка: ' + e.message); }
 }
 
 function showIncomingCall(data) {
-    showCallModal(data.from_name, 'Входящий звонок', true, data.from);
+    showCallModal(data.from_name, 'Входящий звонок', true, data.from, data.from_avatar);
 }
 
-function showCallModal(name, status, incoming, fromId) {
+function showCallModal(name, status, incoming, fromId, fromAvatar) {
     document.getElementById('callModal').classList.add('open');
     document.getElementById('callName').textContent = name;
     document.getElementById('callStatus').textContent = status;
+    const av = document.getElementById('callAvatar');
+    if (fromAvatar) av.innerHTML = '<img src="' + fromAvatar + '">';
+    else av.textContent = name.charAt(0).toUpperCase();
     const actions = document.getElementById('callActions');
     actions.innerHTML = '';
     if (incoming) {
         const accept = document.createElement('button');
         accept.className = 'call-btn accept'; accept.textContent = '✓';
-        accept.onclick = () => acceptCall(fromId);
+        accept.onclick = () => acceptCall(fromId, name, fromAvatar);
         const decline = document.createElement('button');
         decline.className = 'call-btn decline'; decline.textContent = '✕';
-        decline.onclick = () => { document.getElementById('callModal').classList.remove('open'); ws.send(JSON.stringify({ type:'call', target: fromId, action:'decline' })); };
+        decline.onclick = () => {
+            ws.send(JSON.stringify({ type:'call_decline', target: fromId }));
+            document.getElementById('callModal').classList.remove('open');
+        };
         actions.appendChild(accept); actions.appendChild(decline);
     } else {
         const decline = document.createElement('button');
         decline.className = 'call-btn decline'; decline.textContent = '✕';
-        decline.onclick = () => { document.getElementById('callModal').classList.remove('open'); if (pc) pc.close(); };
+        decline.onclick = () => {
+            if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget }));
+            document.getElementById('callModal').classList.remove('open');
+            if (pc) { pc.close(); pc = null; }
+        };
         actions.appendChild(decline);
     }
 }
 
-async function acceptCall(fromId) {
+async function acceptCall(fromId, name, avatar) {
     callTarget = fromId;
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -678,12 +838,22 @@ async function acceptCall(fromId) {
         pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); };
         pc.ontrack = e => { const audio = new Audio(); audio.srcObject = e.streams[0]; audio.play(); };
         document.getElementById('callStatus').textContent = 'В разговоре';
-        document.getElementById('callActions').innerHTML = '<button class="call-btn decline" onclick="document.getElementById(\'callModal\').classList.remove(\'open\'); if(pc) pc.close();">✕</button>';
+        document.getElementById('callActions').innerHTML = '<button class="call-btn decline" onclick="endCall()">✕</button>';
     } catch(e) { alert('Ошибка микрофона'); }
 }
 
+function endCall() {
+    if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget }));
+    document.getElementById('callModal').classList.remove('open');
+    if (pc) { pc.close(); pc = null; }
+}
+
 async function handleSignal(data) {
-    if (!pc) return;
+    if (!pc) {
+        // Если мы принимаем звонок — pc создаётся в acceptCall. Тут на случай offer до accept
+        if (data.type === 'offer') return;
+        return;
+    }
     if (data.type === 'offer') {
         await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
         const answer = await pc.createAnswer();
@@ -696,7 +866,9 @@ async function handleSignal(data) {
     }
 }
 
-// ===== СТАРТ =====
+// Заглушка для offer, если acceptCall ещё не создал pc
+const origHandleSignal = handleSignal;
+
 boot();
 </script>
 </body>
