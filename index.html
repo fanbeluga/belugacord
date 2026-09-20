@@ -169,4 +169,535 @@ body { font-family:'gg sans','Segoe UI',Helvetica,Arial,sans-serif; background:#
         </div>
         <div class="auth-field">
             <label>Имя пользователя</label>
-            <input type="text" id="authUsername" maxlength="32" autocomplete
+            <input type="text" id="authUsername" maxlength="32" autocomplete="off">
+            <div class="auth-status" id="usernameStatus"></div>
+        </div>
+        <div class="auth-field">
+            <label>Пароль</label>
+            <input type="password" id="authPassword" maxlength="64">
+        </div>
+        <button class="auth-btn" id="authBtn" onclick="submitAuth()">Войти</button>
+        <div class="auth-error" id="authError"></div>
+    </div>
+</div>
+
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
+<div class="app" id="app">
+    <div class="guilds" id="guilds">
+        <div class="guild friends" onclick="showFriends()" title="Друзья">
+            <svg viewBox="0 0 24 24"><path d="M13 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-9 10a1 1 0 0 1-1-1v-1c0-2.76 3.58-5 8-5s8 2.24 8 5v1a1 1 0 0 1-1 1H4zm16-10a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm-1 2c1.5 0 2.8.5 3.7 1.4.6.6.3 1.6-.5 1.6H16v-2c0-.4 0-.7-.1-1h3.1z"/></svg>
+        </div>
+        <div class="guild-divider"></div>
+        <div id="serverList"></div>
+        <div class="guild guild-add" onclick="openCreateServer()" title="Создать сервер">+</div>
+        <div class="guild guild-add" onclick="openJoinServer()" title="Присоединиться" style="font-size:18px;">→</div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header" id="sidebarHeader">
+            <span id="sidebarTitle">Belugacord</span>
+            <span>▾</span>
+        </div>
+        <div class="sidebar-content" id="sidebarContent"></div>
+        <div class="user-panel">
+            <div class="avatar" id="userAvatarSmall" onclick="openProfile()">?</div>
+            <div class="user-info" onclick="openProfile()">
+                <div class="user-name" id="userNameSmall">...</div>
+                <div class="user-status">в сети</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay-backdrop" id="backdrop" onclick="toggleSidebar()"></div>
+
+    <div class="main">
+        <div id="chatScreen" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+            <div class="main-header">
+                <button class="burger" onclick="toggleSidebar()">☰</button>
+                <span class="hash">#</span>
+                <span id="channelName">общий</span>
+                <button class="file-btn" style="margin-left:auto;" onclick="startCall()" title="Позвонить">📞</button>
+            </div>
+            <div class="messages" id="chat"></div>
+            <div class="input-area">
+                <div class="input-box">
+                    <label class="file-btn" for="fileInput">+</label>
+                    <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this)">
+                    <input type="text" id="inp" placeholder="Написать сообщение..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <div class="friends-screen" id="friendsScreen">
+            <div class="friends-topbar">
+                <div class="friends-tab active">Все</div>
+                <div class="friends-tab">В сети</div>
+                <div class="friends-tab">В ожидании</div>
+            </div>
+            <div class="friends-body">
+                <div class="add-friend-box">
+                    <p>Добавить в друзья</p>
+                    <div class="add-friend-input">
+                        <input type="text" placeholder="Введите имя пользователя" id="addFriendInput">
+                        <button onclick="addFriend()">Отправить</button>
+                    </div>
+                </div>
+                <h3 id="friendsTitle">Друзья — 0</h3>
+                <div id="friendsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛКА ПРОФИЛЯ -->
+<div class="modal-overlay" id="profileModal">
+    <div class="modal">
+        <button class="close-btn" onclick="closeProfile()">✕</button>
+        <div class="banner" id="bannerPreview">
+            <button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить баннер</button>
+        </div>
+        <div class="profile-avatar" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">?</div>
+        <div class="profile-info">
+            <h2 id="profileName">Профиль</h2>
+            <label>Аватарка</label>
+            <button class="save-btn" onclick="document.getElementById('avatarInput').click()">Загрузить аватарку</button>
+            <button class="save-btn" style="background:#23a55a;margin-top:8px;" onclick="saveProfile()">Сохранить</button>
+            <button class="logout-btn" onclick="logout()">Выйти из аккаунта</button>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="avatarInput" accept="image/*" style="display:none">
+<input type="file" id="bannerInput" accept="image/*" style="display:none">
+
+<!-- МОДАЛКА ЗВОНКА -->
+<div class="call-modal" id="callModal">
+    <div class="call-avatar" id="callAvatar">?</div>
+    <div class="call-name" id="callName">...</div>
+    <div class="call-status" id="callStatus">...</div>
+    <div class="call-actions" id="callActions"></div>
+</div>
+
+<script>
+let token = localStorage.getItem('belugacord_token') || '';
+let me = null;
+let ws = null;
+let currentServerId = null;
+let currentChannelId = null;
+let avatarData = null;
+let bannerData = null;
+let pendingAvatar = null;
+let pendingBanner = null;
+let authMode = 'login';
+
+// ===== АВТОРИЗАЦИЯ =====
+function switchTab(mode) {
+    authMode = mode;
+    document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+    document.getElementById('authBtn').textContent = mode === 'login' ? 'Войти' : 'Зарегистрироваться';
+    document.getElementById('authError').textContent = '';
+    checkUsername();
+}
+
+let checkTimer = null;
+function checkUsername() {
+    const val = document.getElementById('authUsername').value.trim();
+    const status = document.getElementById('usernameStatus');
+    if (authMode !== 'register') { status.textContent = ''; return; }
+    if (val.length < 2) { status.textContent = ''; return; }
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(async () => {
+        try {
+            const r = await fetch('/api/check_username?username=' + encodeURIComponent(val));
+            const d = await r.json();
+            if (d.available) { status.textContent = '✓ Ник свободен'; status.className = 'auth-status ok'; }
+            else { status.textContent = '✕ Ник занят'; status.className = 'auth-status bad'; }
+        } catch(e) { status.textContent = ''; }
+    }, 400);
+}
+
+document.getElementById('authUsername').addEventListener('input', checkUsername);
+
+async function submitAuth() {
+    const username = document.getElementById('authUsername').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const err = document.getElementById('authError');
+    err.textContent = '';
+    if (!username || !password) { err.textContent = 'Заполни все поля'; return; }
+    const url = authMode === 'login' ? '/api/login' : '/api/register';
+    try {
+        const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password}) });
+        const d = await r.json();
+        if (!r.ok) { err.textContent = d.detail || 'Ошибка'; return; }
+        token = d.token;
+        localStorage.setItem('belugacord_token', token);
+        me = d.user;
+        enterApp();
+    } catch(e) { err.textContent = 'Ошибка соединения'; }
+}
+
+function logout() {
+    localStorage.removeItem('belugacord_token');
+    token = ''; me = null;
+    if (ws) ws.close();
+    document.getElementById('app').classList.remove('active');
+    document.getElementById('authScreen').style.display = 'flex';
+}
+
+// ===== СТАРТ =====
+async function boot() {
+    if (token) {
+        try {
+            const r = await fetch('/api/me?token=' + encodeURIComponent(token));
+            if (r.ok) { me = await r.json(); enterApp(); return; }
+        } catch(e) {}
+        token = ''; localStorage.removeItem('belugacord_token');
+    }
+    document.getElementById('authScreen').style.display = 'flex';
+}
+
+function enterApp() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    renderProfile();
+    loadServers();
+    connectWS();
+}
+
+// ===== ПРОФИЛЬ =====
+function renderProfile() {
+    const av = document.getElementById('userAvatarSmall');
+    if (me.avatar) av.innerHTML = '<img src="' + me.avatar + '">';
+    else av.textContent = me.username.charAt(0).toUpperCase();
+    document.getElementById('userNameSmall').textContent = me.username;
+    document.getElementById('profileName').textContent = me.username;
+    avatarData = me.avatar;
+    bannerData = me.banner;
+    const bigAv = document.getElementById('avatarPreview');
+    if (avatarData) bigAv.innerHTML = '<img src="' + avatarData + '">';
+    else bigAv.textContent = me.username.charAt(0).toUpperCase();
+    const banner = document.getElementById('bannerPreview');
+    const oldImg = banner.querySelector('img');
+    if (oldImg) oldImg.remove();
+    if (bannerData) {
+        const img = document.createElement('img');
+        img.src = bannerData;
+        banner.insertBefore(img, banner.firstChild);
+    }
+}
+
+function openProfile() { document.getElementById('profileModal').classList.add('open'); }
+function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
+
+document.getElementById('avatarInput').addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { pendingAvatar = ev.target.result; avatarData = pendingAvatar; renderProfile(); };
+    reader.readAsDataURL(file);
+});
+document.getElementById('bannerInput').addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { pendingBanner = ev.target.result; bannerData = pendingBanner; renderProfile(); };
+    reader.readAsDataURL(file);
+});
+
+async function saveProfile() {
+    try {
+        await fetch('/api/update_profile', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, avatar: pendingAvatar, banner: pendingBanner }) });
+        me.avatar = avatarData; me.banner = bannerData;
+        closeProfile();
+    } catch(e) { alert('Ошибка сохранения'); }
+}
+
+// ===== СЕРВЕРЫ =====
+async function loadServers() {
+    try {
+        const r = await fetch('/api/servers/list?token=' + encodeURIComponent(token));
+        const servers = await r.json();
+        const list = document.getElementById('serverList');
+        list.innerHTML = '';
+        servers.forEach(s => {
+            const d = document.createElement('div');
+            d.className = 'guild';
+            d.textContent = s.name.charAt(0).toUpperCase();
+            d.title = s.name;
+            d.onclick = () => openServer(s.id, s.name);
+            list.appendChild(d);
+        });
+    } catch(e) {}
+}
+
+async function openCreateServer() {
+    const name = prompt('Название сервера:');
+    if (!name) return;
+    try {
+        const r = await fetch('/api/servers/create', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, name }) });
+        const d = await r.json();
+        if (r.ok) { loadServers(); openServer(d.id, d.name); }
+        else alert(d.detail || 'Ошибка');
+    } catch(e) { alert('Ошибка'); }
+}
+
+async function openJoinServer() {
+    const invite = prompt('Код приглашения:');
+    if (!invite) return;
+    try {
+        const r = await fetch('/api/servers/join', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, invite }) });
+        const d = await r.json();
+        if (r.ok) { loadServers(); openServer(d.id, d.name); }
+        else alert(d.detail || 'Ошибка');
+    } catch(e) { alert('Ошибка'); }
+}
+
+async function openServer(id, name) {
+    currentServerId = id;
+    document.getElementById('sidebarTitle').textContent = name;
+    document.getElementById('friendsScreen').classList.remove('active');
+    document.getElementById('chatScreen').style.display = 'flex';
+    document.querySelectorAll('.guild').forEach(g => g.classList.remove('active'));
+    try {
+        const r = await fetch('/api/servers/' + id + '/channels?token=' + encodeURIComponent(token));
+        const channels = await r.json();
+        renderChannels(channels);
+        if (channels.length) openChannel(channels[0].id, channels[0].name);
+    } catch(e) {}
+}
+
+function renderChannels(channels) {
+    const c = document.getElementById('sidebarContent');
+    c.innerHTML = '<div class="channel-cat">Текстовые каналы <span class="add" onclick="createChannel()">+</span></div>';
+    channels.forEach(ch => {
+        const d = document.createElement('div');
+        d.className = 'channel' + (ch.id === currentChannelId ? ' active' : '');
+        d.innerHTML = '<span class="hash">#</span> ' + escapeHtml(ch.name);
+        d.onclick = () => openChannel(ch.id, ch.name);
+        c.appendChild(d);
+    });
+}
+
+async function createChannel() {
+    const name = prompt('Название канала:');
+    if (!name) return;
+    try {
+        const r = await fetch('/api/channels/create', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, server_id: currentServerId, name }) });
+        if (r.ok) openServer(currentServerId, document.getElementById('sidebarTitle').textContent);
+    } catch(e) {}
+}
+
+async function openChannel(id, name) {
+    currentChannelId = id;
+    document.getElementById('channelName').textContent = name;
+    document.getElementById('chat').innerHTML = '';
+    try {
+        const r = await fetch('/api/channels/' + id + '/messages?token=' + encodeURIComponent(token));
+        const msgs = await r.json();
+        msgs.forEach(m => addMessage(m.username, m.text, m.avatar, m.file_url, m.created_at));
+    } catch(e) {}
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+function showFriends() {
+    document.getElementById('friendsScreen').classList.add('active');
+    document.getElementById('chatScreen').style.display = 'none';
+    document.getElementById('sidebarTitle').textContent = 'Друзья';
+    document.getElementById('sidebarContent').innerHTML = '';
+    loadFriends();
+    if (window.innerWidth <= 768) toggleSidebar();
+}
+
+async function loadFriends() {
+    try {
+        const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token));
+        const friends = await r.json();
+        document.getElementById('friendsTitle').textContent = 'Друзья — ' + friends.length;
+        const list = document.getElementById('friendsList');
+        list.innerHTML = '';
+        friends.forEach(f => {
+            const d = document.createElement('div');
+            d.className = 'friend-row';
+            const av = f.avatar ? '<img src="' + f.avatar + '">' : f.username.charAt(0).toUpperCase();
+            let actions = '';
+            if (f.status === 'pending') actions = '<button onclick="acceptFriend(' + f.id + ')" title="Принять">✓</button>';
+            d.innerHTML = '<div class="avatar">' + av + '</div><div><div class="friend-name">' + escapeHtml(f.username) + '</div><div class="friend-status">' + (f.status === 'accepted' ? 'в друзьях' : 'запрос') + '</div></div><div class="friend-actions">' + actions + '</div>';
+            list.appendChild(d);
+        });
+    } catch(e) {}
+}
+
+async function addFriend() {
+    const inp = document.getElementById('addFriendInput');
+    const username = inp.value.trim();
+    if (!username) return;
+    try {
+        const r = await fetch('/api/friends/request', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, username }) });
+        const d = await r.json();
+        if (r.ok) { alert('Запрос отправлен'); inp.value = ''; loadFriends(); }
+        else alert(d.detail || 'Ошибка');
+    } catch(e) { alert('Ошибка'); }
+}
+
+async function acceptFriend(id) {
+    try {
+        await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token, friend_id: id }) });
+        loadFriends();
+    } catch(e) {}
+}
+
+// ===== ЧАТ =====
+function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token));
+    ws.onmessage = (event) => {
+        let data; try { data = JSON.parse(event.data); } catch(e) { return; }
+        if (data.type === 'message' && data.channel_id === currentChannelId) {
+            addMessage(data.username, data.text, data.avatar, data.file_url, data.created_at);
+        } else if (data.type === 'call') {
+            showIncomingCall(data);
+        } else if (data.type === 'offer' || data.type === 'answer' || data.type === 'ice') {
+            handleSignal(data);
+        }
+    };
+    ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
+function addMessage(name, text, avatar, fileUrl, createdAt) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'message';
+    const t = createdAt ? new Date(createdAt).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+    let av = '<div class="avatar">' + name.charAt(0).toUpperCase() + '</div>';
+    if (avatar) av = '<div class="avatar"><img src="' + avatar + '"></div>';
+    let fileHTML = '';
+    if (fileUrl) {
+        const isVideo = /\.(mp4|webm|mov)$/i.test(fileUrl);
+        fileHTML = isVideo ? '<video class="msg-file" controls src="' + fileUrl + '"></video>' : '<img class="msg-file" src="' + fileUrl + '">';
+    }
+    div.innerHTML = av + '<div class="msg-content"><div class="msg-header"><span class="username">' + escapeHtml(name) + '</span><span class="timestamp">сегодня в ' + t + '</span></div><div class="msg-text">' + escapeHtml(text || '') + '</div>' + fileHTML + '</div>';
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function send() {
+    const inp = document.getElementById('inp');
+    const text = inp.value.trim();
+    if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text }));
+    inp.value = '';
+}
+document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+
+async function uploadFile(input) {
+    const file = input.files[0]; if (!file) return;
+    const fd = new FormData();
+    fd.append('token', token);
+    fd.append('file', file);
+    try {
+        const r = await fetch('/api/upload', { method:'POST', body: fd });
+        const d = await r.json();
+        if (d.url) {
+            ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text: '', file_url: d.url }));
+        }
+    } catch(e) { alert('Ошибка загрузки'); }
+    input.value = '';
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('backdrop').classList.toggle('open');
+}
+
+// ===== ЗВОНКИ =====
+let pc = null;
+let localStream = null;
+let callTarget = null;
+
+async function startCall() {
+    const username = prompt('Кому звонить? (ник)');
+    if (!username) return;
+    try {
+        const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token));
+        const friends = await r.json();
+        const friend = friends.find(f => f.username === username);
+        if (!friend) { alert('Друг не найден'); return; }
+        callTarget = friend.id;
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+        pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); };
+        pc.ontrack = e => { const audio = new Audio(); audio.srcObject = e.streams[0]; audio.play(); };
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        ws.send(JSON.stringify({ type:'call', target: callTarget, from_name: me.username }));
+        ws.send(JSON.stringify({ type:'offer', target: callTarget, sdp: offer }));
+        showCallModal(friend.username, 'Звоним...');
+    } catch(e) { alert('Ошибка звонка: ' + e.message); }
+}
+
+function showIncomingCall(data) {
+    showCallModal(data.from_name, 'Входящий звонок', true, data.from);
+}
+
+function showCallModal(name, status, incoming, fromId) {
+    document.getElementById('callModal').classList.add('open');
+    document.getElementById('callName').textContent = name;
+    document.getElementById('callStatus').textContent = status;
+    const actions = document.getElementById('callActions');
+    actions.innerHTML = '';
+    if (incoming) {
+        const accept = document.createElement('button');
+        accept.className = 'call-btn accept'; accept.textContent = '✓';
+        accept.onclick = () => acceptCall(fromId);
+        const decline = document.createElement('button');
+        decline.className = 'call-btn decline'; decline.textContent = '✕';
+        decline.onclick = () => { document.getElementById('callModal').classList.remove('open'); ws.send(JSON.stringify({ type:'call', target: fromId, action:'decline' })); };
+        actions.appendChild(accept); actions.appendChild(decline);
+    } else {
+        const decline = document.createElement('button');
+        decline.className = 'call-btn decline'; decline.textContent = '✕';
+        decline.onclick = () => { document.getElementById('callModal').classList.remove('open'); if (pc) pc.close(); };
+        actions.appendChild(decline);
+    }
+}
+
+async function acceptCall(fromId) {
+    callTarget = fromId;
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+        pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); };
+        pc.ontrack = e => { const audio = new Audio(); audio.srcObject = e.streams[0]; audio.play(); };
+        document.getElementById('callStatus').textContent = 'В разговоре';
+        document.getElementById('callActions').innerHTML = '<button class="call-btn decline" onclick="document.getElementById(\'callModal\').classList.remove(\'open\'); if(pc) pc.close();">✕</button>';
+    } catch(e) { alert('Ошибка микрофона'); }
+}
+
+async function handleSignal(data) {
+    if (!pc) return;
+    if (data.type === 'offer') {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        ws.send(JSON.stringify({ type:'answer', target: data.from, sdp: answer }));
+    } else if (data.type === 'answer') {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+    } else if (data.type === 'ice') {
+        try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
+    }
+}
+
+// ===== СТАРТ =====
+boot();
+</script>
+</body>
+</html>
