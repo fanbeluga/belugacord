@@ -10,7 +10,6 @@
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; font-family:'Segoe UI','Inter',Helvetica,Arial,sans-serif; }
 
-/* ===== ОСНОВНЫЕ ПЕРЕМЕННЫЕ (ТЕМЫ) ===== */
 :root {
     --bg-desktop: #0a0a12;
     --bg-window: rgba(20,15,35,0.85);
@@ -30,7 +29,6 @@ html, body { height:100%; overflow:hidden; font-family:'Segoe UI','Inter',Helvet
     --blur: blur(30px);
 }
 
-/* ===== ТЕМА: DARK (Windows 11) ===== */
 body.theme-dark {
     --bg-desktop: #1a1a1e;
     --bg-window: rgba(32,32,36,0.92);
@@ -48,7 +46,6 @@ body.theme-dark {
     --border: rgba(255,255,255,0.08);
 }
 
-/* ===== ТЕМА: WHITE (пустой сайт, обведённые иконки) ===== */
 body.theme-white {
     --bg-desktop: #ffffff;
     --bg-window: #ffffff;
@@ -79,7 +76,6 @@ body.theme-white .sidebar-header,
 body.theme-white .user-panel,
 body.theme-white .friends-topbar { border-bottom:1.5px solid #000 !important; background:#fff !important; }
 
-/* ===== ТЕМА: CYBERPUNK ===== */
 body.theme-cyber {
     --bg-desktop: #0a0a1a;
     --bg-window: rgba(10,5,30,0.95);
@@ -98,7 +94,6 @@ body.theme-cyber {
     --shadow: 0 20px 60px rgba(255,238,0,0.2), 0 0 40px rgba(0,255,255,0.15);
 }
 
-/* ===== ТЕМА: RETRO (Windows 95) ===== */
 body.theme-retro {
     --bg-desktop: #008080;
     --bg-window: #c0c0c0;
@@ -127,13 +122,9 @@ body.theme-retro .save-btn:active,
 body.theme-retro .file-btn:active { border-style:inset !important; }
 body.theme-retro .guild.active { border-style:inset !important; background:#ffffff !important; }
 
-/* ===== BODY ===== */
 body {
     background: var(--bg-desktop);
     color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     height: 100vh;
     transition: background 0.4s ease, color 0.4s ease;
     position: relative;
@@ -151,11 +142,9 @@ body::before {
 body.theme-white::before,
 body.theme-retro::before { display:none; }
 
-/* ===== ОКНО (общая рамка) ===== */
-.win-frame {
-    width: 96vw;
-    height: 94vh;
-    max-width: 1400px;
+/* ===== ОКНО-ПРИЛОЖЕНИЕ ===== */
+.win-window {
+    position: absolute;
     background: var(--bg-window);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -165,14 +154,24 @@ body.theme-retro::before { display:none; }
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    position: relative;
-    z-index: 1;
-    transition: all 0.4s ease;
+    z-index: 10;
+    transition: all 0.3s ease;
+    min-width: 400px;
+    min-height: 300px;
 }
-body.theme-retro .win-frame { border: 3px outset #c0c0c0; border-radius:0; }
-body.theme-white .win-frame { border:1.5px solid #000; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+body.theme-retro .win-window { border: 3px outset #c0c0c0; border-radius:0; }
+body.theme-white .win-window { border:1.5px solid #000; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
 
-/* ===== ЗАГОЛОВОК ОКНА (как в Windows) ===== */
+.win-window.maximized {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 48px !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 0;
+}
+
 .win-titlebar {
     height: 38px;
     background: var(--bg-header);
@@ -183,10 +182,10 @@ body.theme-white .win-frame { border:1.5px solid #000; box-shadow:0 8px 24px rgb
     flex-shrink: 0;
     gap: 10px;
     user-select: none;
+    cursor: move;
     transition: background 0.4s ease;
 }
 body.theme-retro .win-titlebar { background: linear-gradient(90deg, #000080, #1084d0); color:white; padding:0 4px; height:26px; }
-body.theme-retro .win-titlebar .win-title { color:white; font-weight:bold; }
 body.theme-white .win-titlebar { background:#fff; border-bottom:1.5px solid #000; }
 
 .win-title {
@@ -199,6 +198,7 @@ body.theme-white .win-titlebar { background:#fff; border-bottom:1.5px solid #000
     gap: 8px;
     transition: color 0.4s ease;
 }
+body.theme-retro .win-titlebar .win-title { color:white; font-weight:bold; }
 .win-title .win-icon { font-size: 18px; }
 .win-controls { display: flex; gap: 2px; }
 .win-btn {
@@ -223,7 +223,6 @@ body.theme-retro .win-btn.close { background:#c0c0c0; color:#000; }
 body.theme-white .win-btn { color:#000; }
 body.theme-white .win-btn:hover { background:#f0f0f0; }
 
-/* ===== ТЕЛО ОКНА (3 колонки) ===== */
 .win-body {
     flex: 1;
     display: flex;
@@ -232,20 +231,19 @@ body.theme-white .win-btn:hover { background:#f0f0f0; }
 }
 body.theme-retro .win-body { border: 2px inset #c0c0c0; }
 
-/* ===== КОЛОНКА 1: РАБОЧИЙ СТОЛ ===== */
+/* ===== КОЛОНКА 1: РАБОЧИЙ СТОЛ В ОКНЕ ===== */
 .desktop {
-    width: 260px;
+    width: 240px;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
-    padding: 20px 16px;
+    padding: 16px 12px;
     overflow-y: auto;
     flex-shrink: 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px 12px;
+    gap: 14px 10px;
     align-content: start;
     transition: background 0.4s ease;
-    position: relative;
 }
 body.theme-retro .desktop { background:#008080; }
 body.theme-white .desktop { border-right:1.5px solid #000; background:#fff; }
@@ -254,7 +252,7 @@ body.theme-white .desktop { border-right:1.5px solid #000; background:#fff; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     cursor: pointer;
     padding: 8px 4px;
     border-radius: 8px;
@@ -269,26 +267,26 @@ body.theme-retro .desktop-icon:hover { background:rgba(0,0,0,0.2); transform:non
 body.theme-white .desktop-icon:hover { background:#f5f5f5; transform:none; }
 
 .desktop-icon .d-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
+    font-size: 24px;
     box-shadow: 0 4px 12px rgba(217,70,239,0.3);
     transition: all 0.2s ease;
 }
-body.theme-retro .desktop-icon .d-icon { border:2px outset #c0c0c0; background:#c0c0c0; box-shadow:none; font-size:32px; }
+body.theme-retro .desktop-icon .d-icon { border:2px outset #c0c0c0; background:#c0c0c0; box-shadow:none; font-size:28px; }
 body.theme-white .desktop-icon .d-icon { background:transparent; border:1.5px solid #000; box-shadow:none; }
 body.theme-cyber .desktop-icon .d-icon { background:linear-gradient(135deg, #ffee00, #00ffff); box-shadow:0 0 20px rgba(255,238,0,0.5); }
 
 .desktop-icon .d-label {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-dim);
     font-weight: 600;
-    max-width: 76px;
+    max-width: 70px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -297,29 +295,9 @@ body.theme-cyber .desktop-icon .d-icon { background:linear-gradient(135deg, #ffe
 body.theme-retro .desktop-icon .d-label { color:#ffffff; text-shadow:1px 1px 0 #000; }
 body.theme-white .desktop-icon .d-label { color:#000; }
 
-/* ===== ПРОКРУТКА ===== */
-::-webkit-scrollbar { width:8px; height:8px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius:4px; }
-body.theme-retro ::-webkit-scrollbar-thumb { background:#c0c0c0; border:1px outset #c0c0c0; border-radius:0; }
-body.theme-white ::-webkit-scrollbar-thumb { background:#ccc; }
-
-/* ===== АНИМАЦИИ ===== */
-@keyframes windowPop {
-    from { opacity:0; transform:scale(0.95); }
-    to { opacity:1; transform:scale(1); }
-}
-@keyframes slideUp {
-    from { opacity:0; transform:translateY(20px); }
-    to { opacity:1; transform:translateY(0); }
-}
-@keyframes fadeIn {
-    from { opacity:0; }
-    to { opacity:1; }
-}
 /* ===== КОЛОНКА 2: СПИСОК ЧАТОВ ===== */
 .chat-list {
-    width: 280px;
+    width: 260px;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     display: flex;
@@ -331,15 +309,15 @@ body.theme-white .chat-list { border-right:1.5px solid #000; background:#fff; }
 body.theme-retro .chat-list { background:#c0c0c0; border-right:2px inset #c0c0c0; }
 
 .chat-list-header {
-    height: 50px;
-    padding: 0 16px;
+    height: 46px;
+    padding: 0 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text);
     transition: all 0.4s ease;
 }
@@ -347,7 +325,7 @@ body.theme-retro .chat-list-header { height:24px; background:linear-gradient(90d
 body.theme-white .chat-list-header { border-bottom:1.5px solid #000; }
 
 .chat-list-search {
-    padding: 8px 12px;
+    padding: 8px 10px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
 }
@@ -362,7 +340,6 @@ body.theme-retro .chat-list-search { padding:2px; background:#c0c0c0; }
     font-size: 13px;
     outline: none;
     font-family: inherit;
-    transition: all 0.2s ease;
 }
 .chat-list-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217,70,239,0.15); }
 body.theme-retro .chat-list-search input { border:2px inset #c0c0c0; border-radius:0; padding:2px 4px; font-size:11px; }
@@ -377,14 +354,13 @@ body.theme-white .chat-list-search input { border:1.5px solid #000; border-radiu
 .chat-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
+    gap: 10px;
+    padding: 9px 10px;
     border-radius: 10px;
     cursor: pointer;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     transition: all 0.2s ease;
     position: relative;
-    animation: slideUp 0.3s ease;
 }
 .chat-item:hover { background: rgba(217,70,239,0.1); transform: translateX(2px); }
 .chat-item.active { background: linear-gradient(90deg, rgba(217,70,239,0.25), rgba(139,92,246,0.1)); border-left: 3px solid var(--accent); }
@@ -395,89 +371,9 @@ body.theme-white .chat-item:hover { background:#f5f5f5; transform:none; }
 body.theme-white .chat-item.active { background:#f0f0f0; border-left:none; }
 
 .chat-item .avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    color: white;
-    font-size: 16px;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.4s ease;
-}
-.chat-item .avatar img { width:100%; height:100%; object-fit:cover; }
-body.theme-white .chat-item .avatar { border:1.5px solid #000; }
-body.theme-retro .chat-item .avatar { border:2px outset #c0c0c0; border-radius:0; }
-.avatar-online-dot { position:absolute; bottom:-2px; right:-2px; width:12px; height:12px; border-radius:50%; background:#22d3ee; border:2px solid var(--bg-sidebar); box-shadow:0 0 8px #22d3ee; }
-.avatar-online-dot.offline { display:none; }
-
-.chat-item-info { flex:1; min-width:0; }
-.chat-item-name { color: var(--text); font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-.chat-item-preview { color: var(--text-mute); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat-item-time { color: var(--text-mute); font-size: 10px; flex-shrink: 0; }
-.chat-item .unread-badge { position:absolute; top:6px; right:8px; background:linear-gradient(135deg, #f43f5e, #ec4899); color:white; font-size:10px; font-weight:800; border-radius:12px; min-width:20px; height:20px; display:flex; align-items:center; justify-content:center; padding:0 6px; box-shadow:0 0 12px rgba(244,63,94,0.6); }
-
-/* ===== КОЛОНКА 3: ОКНО ЧАТА ===== */
-.chat-window {
-    flex: 1;
-    background: var(--bg-chat);
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    transition: background 0.4s ease;
-    position: relative;
-}
-body.theme-white .chat-window { background:#fff; }
-body.theme-retro .chat-window { background:#ffffff; }
-
-.chat-window-header {
-    height: 50px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    transition: all 0.4s ease;
-}
-body.theme-white .chat-window-header { border-bottom:1.5px solid #000; }
-body.theme-retro .chat-window-header { height:26px; background:linear-gradient(90deg, #000080, #1084d0); color:white; padding:0 4px; border-bottom:none; }
-
-.chat-window-title { font-weight: 700; font-size: 15px; color: var(--text); flex: 1; }
-body.theme-retro .chat-window-title { font-size:11px; font-weight:bold; color:white; }
-
-.chat-window-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.msg-row {
-    display: flex;
-    gap: 12px;
-    padding: 6px 10px;
-    border-radius: 10px;
-    position: relative;
-    animation: slideUp 0.3s ease;
-    transition: background 0.2s;
-}
-.msg-row:hover { background: rgba(217,70,239,0.05); }
-body.theme-white .msg-row:hover { background:#f5f5f5; }
-body.theme-retro .msg-row { border-radius:0; padding:2px 4px; }
-body.theme-retro .msg-row:hover { background:#ffffcc; }
-
-.msg-row .avatar {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: 12px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     flex-shrink: 0;
     display: flex;
@@ -487,31 +383,105 @@ body.theme-retro .msg-row:hover { background:#ffffcc; }
     color: white;
     font-size: 15px;
     overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.2s;
+    position: relative;
 }
-.msg-row .avatar:hover { transform: scale(1.08); }
+.chat-item .avatar img { width:100%; height:100%; object-fit:cover; }
+body.theme-white .chat-item .avatar { border:1.5px solid #000; }
+body.theme-retro .chat-item .avatar { border:2px outset #c0c0c0; border-radius:0; }
+.avatar-online-dot { position:absolute; bottom:-2px; right:-2px; width:11px; height:11px; border-radius:50%; background:#22d3ee; border:2px solid var(--bg-sidebar); box-shadow:0 0 8px #22d3ee; }
+.avatar-online-dot.offline { display:none; }
+
+.chat-item-info { flex:1; min-width:0; }
+.chat-item-name { color: var(--text); font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.chat-item-preview { color: var(--text-mute); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-item-time { color: var(--text-mute); font-size: 10px; flex-shrink: 0; }
+.chat-item .unread-badge { position:absolute; top:5px; right:7px; background:linear-gradient(135deg, #f43f5e, #ec4899); color:white; font-size:10px; font-weight:800; border-radius:12px; min-width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0 5px; box-shadow:0 0 12px rgba(244,63,94,0.6); }
+
+/* ===== КОЛОНКА 3: ОКНО ЧАТА ===== */
+.chat-window {
+    flex: 1;
+    background: var(--bg-chat);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition: background 0.4s ease;
+}
+body.theme-white .chat-window { background:#fff; }
+body.theme-retro .chat-window { background:#ffffff; }
+
+.chat-window-header {
+    height: 46px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    transition: all 0.4s ease;
+}
+body.theme-white .chat-window-header { border-bottom:1.5px solid #000; }
+body.theme-retro .chat-window-header { height:26px; background:linear-gradient(90deg, #000080, #1084d0); color:white; padding:0 4px; border-bottom:none; }
+
+.chat-window-title { font-weight: 700; font-size: 14px; color: var(--text); flex: 1; }
+body.theme-retro .chat-window-title { font-size:11px; font-weight:bold; color:white; }
+
+.chat-window-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.msg-row {
+    display: flex;
+    gap: 10px;
+    padding: 5px 8px;
+    border-radius: 10px;
+    position: relative;
+    transition: background 0.2s;
+}
+.msg-row:hover { background: rgba(217,70,239,0.05); }
+body.theme-white .msg-row:hover { background:#f5f5f5; }
+body.theme-retro .msg-row { border-radius:0; padding:2px 4px; }
+body.theme-retro .msg-row:hover { background:#ffffcc; }
+
+.msg-row .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: white;
+    font-size: 14px;
+    overflow: hidden;
+    cursor: pointer;
+}
 .msg-row .avatar img { width:100%; height:100%; object-fit:cover; }
 body.theme-white .msg-row .avatar { border:1.5px solid #000; }
 body.theme-retro .msg-row .avatar { border:2px outset #c0c0c0; border-radius:0; }
 
 .msg-body { flex: 1; min-width: 0; }
-.msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
-.msg-author { font-weight: 800; color: var(--text); font-size: 14px; cursor: pointer; }
+.msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.msg-author { font-weight: 800; color: var(--text); font-size: 13px; cursor: pointer; }
 .msg-author:hover { text-decoration: underline; }
 body.theme-retro .msg-author { color:#000080; }
-.msg-time { font-size: 11px; color: var(--text-mute); }
+.msg-time { font-size: 10px; color: var(--text-mute); }
 .msg-content {
     color: var(--text);
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
     word-wrap: break-word;
     background: rgba(255,255,255,0.04);
-    padding: 8px 12px;
+    padding: 7px 11px;
     border-radius: 12px;
     display: inline-block;
     max-width: 100%;
-    transition: all 0.4s ease;
 }
 body.theme-white .msg-content { background:#f5f5f5; color:#000; }
 body.theme-retro .msg-content { background:transparent; padding:0; border-radius:0; color:#000; }
@@ -519,9 +489,8 @@ body.theme-retro .msg-content { background:transparent; padding:0; border-radius
 .msg-content a:hover { text-decoration: underline; }
 
 .chat-window-input-area {
-    padding: 12px 16px 16px;
+    padding: 10px 14px 14px;
     flex-shrink: 0;
-    transition: all 0.4s ease;
 }
 body.theme-retro .chat-window-input-area { padding:4px; }
 .chat-window-input-box {
@@ -530,9 +499,8 @@ body.theme-retro .chat-window-input-area { padding:4px; }
     border-radius: 14px;
     display: flex;
     align-items: center;
-    padding: 0 14px;
+    padding: 0 12px;
     gap: 8px;
-    transition: all 0.2s ease;
 }
 .chat-window-input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 20px rgba(217,70,239,0.25); }
 body.theme-retro .chat-window-input-box { border:2px inset #c0c0c0; border-radius:0; }
@@ -543,8 +511,8 @@ body.theme-white .chat-window-input-box { border:1.5px solid #000; background:#f
     border: none;
     outline: none;
     color: var(--text);
-    font-size: 14px;
-    padding: 12px 0;
+    font-size: 13px;
+    padding: 11px 0;
     font-family: inherit;
 }
 body.theme-retro .chat-window-input-box input { padding:2px 4px; font-size:11px; }
@@ -555,8 +523,8 @@ body.theme-retro .chat-window-input-box input { padding:2px 4px; font-size:11px;
     border: none;
     color: var(--text-dim);
     cursor: pointer;
-    font-size: 20px;
-    padding: 6px 8px;
+    font-size: 19px;
+    padding: 5px 7px;
     border-radius: 8px;
     transition: all 0.2s ease;
     display: flex;
@@ -570,6 +538,10 @@ body.theme-white .file-btn { border:1.5px solid #000; }
 
 /* ===== ПАНЕЛЬ ЗАДАЧ (снизу) ===== */
 .taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 48px;
     background: var(--bg-taskbar);
     border-top: 1px solid var(--border);
@@ -577,7 +549,7 @@ body.theme-white .file-btn { border:1.5px solid #000; }
     align-items: center;
     padding: 0 12px;
     gap: 6px;
-    flex-shrink: 0;
+    z-index: 100;
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
     transition: all 0.4s ease;
@@ -600,7 +572,6 @@ body.theme-white .taskbar { border-top:1.5px solid #000; background:#fff; }
     gap: 8px;
     transition: all 0.2s ease;
     font-family: inherit;
-    position: relative;
     white-space: nowrap;
 }
 .tb-btn:hover { background: rgba(217,70,239,0.15); transform: translateY(-1px); }
@@ -615,16 +586,9 @@ body.theme-white .tb-btn.active { background:#000; color:#fff; }
 
 .tb-btn .tb-icon { font-size: 18px; }
 body.theme-retro .tb-btn .tb-icon { font-size:14px; }
-
-.tb-start {
-    font-weight: 800;
-    font-size: 14px;
-    padding: 0 18px;
-}
+.tb-start { font-weight: 800; font-size: 14px; padding: 0 18px; }
 body.theme-retro .tb-start { font-weight:bold; font-size:11px; }
-
 .tb-spacer { flex: 1; }
-
 .tb-clock {
     height: 36px;
     padding: 0 14px;
@@ -635,19 +599,47 @@ body.theme-retro .tb-start { font-weight:bold; font-size:11px; }
     font-size: 12px;
     font-weight: 600;
     border-radius: 8px;
-    transition: all 0.2s;
 }
 .tb-clock:hover { background: rgba(217,70,239,0.1); }
 body.theme-retro .tb-clock { border:2px inset #c0c0c0; border-radius:0; padding:0 6px; font-size:11px; height:24px; }
 body.theme-white .tb-clock { border:1.5px solid #000; }
 
+/* ===== ИКОНКИ ОТКРЫТЫХ ОКОН В ПАНЕЛИ ЗАДАЧ ===== */
+.tb-open-windows {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.tb-window-item {
+    height: 36px;
+    padding: 0 12px;
+    background: rgba(217,70,239,0.1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    max-width: 160px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.tb-window-item:hover { background: rgba(217,70,239,0.25); }
+.tb-window-item.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; }
+body.theme-retro .tb-window-item { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; height:24px; padding:0 6px; font-size:11px; border-radius:0; }
+body.theme-retro .tb-window-item.active { border-style:inset; background:#e0e0e0; }
+
 /* ===== ПУСК-МЕНЮ ===== */
 .start-menu {
     position: fixed;
     bottom: 58px;
-    left: 50%;
-    transform: translateX(-50%) scale(0.95);
-    width: 380px;
+    left: 12px;
+    width: 360px;
     max-width: 90vw;
     background: var(--bg-window);
     border: 1px solid var(--border);
@@ -655,18 +647,18 @@ body.theme-white .tb-clock { border:1.5px solid #000; }
     box-shadow: var(--shadow);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
-    padding: 16px;
+    padding: 14px;
     display: none;
     flex-direction: column;
-    gap: 8px;
-    z-index: 500;
+    gap: 6px;
+    z-index: 200;
     opacity: 0;
+    transform: scale(0.95) translateY(10px);
     transition: all 0.25s ease;
 }
-.start-menu.open { display: flex; opacity: 1; transform: translateX(-50%) scale(1); }
+.start-menu.open { display: flex; opacity: 1; transform: scale(1) translateY(0); }
 body.theme-retro .start-menu { border:3px outset #c0c0c0; border-radius:0; background:#c0c0c0; }
 body.theme-white .start-menu { border:1.5px solid #000; }
-
 .start-menu-title {
     font-size: 11px;
     color: var(--text-mute);
@@ -676,7 +668,6 @@ body.theme-white .start-menu { border:1.5px solid #000; }
     padding: 4px 8px;
 }
 body.theme-retro .start-menu-title { color:#000080; font-size:10px; }
-
 .start-menu-item {
     display: flex;
     align-items: center;
@@ -690,26 +681,24 @@ body.theme-retro .start-menu-title { color:#000080; font-size:10px; }
     font-weight: 600;
 }
 .start-menu-item:hover { background: rgba(217,70,239,0.15); transform: translateX(4px); }
-.start-menu-item:active { transform: translateX(4px) scale(0.98); }
 body.theme-retro .start-menu-item { border-radius:0; padding:6px 8px; font-size:12px; }
 body.theme-retro .start-menu-item:hover { background:#000080; color:white; transform:none; }
 body.theme-white .start-menu-item:hover { background:#f5f5f5; transform:none; }
-
 .start-menu-item .sm-icon {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 17px;
     flex-shrink: 0;
 }
 body.theme-retro .start-menu-item .sm-icon { border:2px outset #c0c0c0; background:#c0c0c0; border-radius:0; }
 body.theme-white .start-menu-item .sm-icon { background:transparent; border:1.5px solid #000; }
 
-/* ===== АВТОРИЗАЦИЯ (Windows Login Style) ===== */
+/* ===== АВТОРИЗАЦИЯ ===== */
 .win-login {
     position: fixed;
     inset: 0;
@@ -718,8 +707,6 @@ body.theme-white .start-menu-item .sm-icon { background:transparent; border:1.5p
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-size: cover;
-    background-position: center;
     transition: opacity 0.5s ease;
     overflow: hidden;
 }
@@ -752,19 +739,18 @@ body.theme-white .win-login-clock { color:#000; text-shadow:none; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 18px;
     padding: 30px;
-    animation: windowPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .win-login-avatar {
-    width: 120px;
-    height: 120px;
+    width: 110px;
+    height: 110px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 60px;
+    font-size: 56px;
     color: white;
     font-weight: 800;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
@@ -773,14 +759,14 @@ body.theme-white .win-login-clock { color:#000; text-shadow:none; }
 body.theme-white .win-login-avatar { border:3px solid #000; box-shadow:0 8px 24px rgba(0,0,0,0.15); }
 body.theme-retro .win-login-avatar { border:3px outset #c0c0c0; border-radius:0; background:#c0c0c0; color:#000; box-shadow:none; }
 
-.win-login-name { color: white; font-size: 28px; font-weight: 700; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.win-login-name { color: white; font-size: 26px; font-weight: 700; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
 body.theme-white .win-login-name { color:#000; text-shadow:none; }
 body.theme-retro .win-login-name { color:white; font-size:22px; }
 
 .win-login-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     width: 320px;
     max-width: 90vw;
 }
@@ -793,7 +779,6 @@ body.theme-retro .win-login-name { color:white; font-size:22px; }
     font-size: 15px;
     outline: none;
     font-family: inherit;
-    transition: all 0.2s;
     backdrop-filter: blur(20px);
 }
 .win-login-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(217,70,239,0.25); }
@@ -802,9 +787,8 @@ body.theme-white .win-login-input { background:#fff; border:1.5px solid #000; co
 body.theme-white .win-login-input::placeholder { color:#999; }
 body.theme-retro .win-login-input { background:#fff; border:2px inset #c0c0c0; border-radius:0; color:#000; }
 
-.win-login-row { display: flex; gap: 10px; }
 .win-login-btn {
-    flex: 1;
+    width: 100%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
     border: none;
@@ -813,20 +797,16 @@ body.theme-retro .win-login-input { background:#fff; border:2px inset #c0c0c0; b
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
     font-family: inherit;
     box-shadow: 0 8px 24px rgba(217,70,239,0.4);
+    transition: transform 0.2s;
 }
-.win-login-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(217,70,239,0.6); }
-.win-login-btn:active { transform: translateY(0) scale(0.97); }
-.win-login-btn.secondary { background: rgba(255,255,255,0.1); box-shadow:none; }
+.win-login-btn:active { transform: scale(0.97); }
 body.theme-white .win-login-btn { background:#000; color:#fff; box-shadow:none; }
-body.theme-white .win-login-btn.secondary { background:#f5f5f5; color:#000; border:1.5px solid #000; }
 body.theme-retro .win-login-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; box-shadow:none; border-radius:0; }
-body.theme-retro .win-login-btn:active { border-style:inset; }
 
-.win-login-tabs { display:flex; gap:8px; width:100%; margin-bottom:8px; }
-.win-login-tab { flex:1; padding:10px; background:rgba(255,255,255,0.08); border:none; border-radius:8px; color:rgba(255,255,255,0.7); cursor:pointer; font-weight:700; font-size:14px; transition:all 0.2s; font-family:inherit; }
+.win-login-tabs { display:flex; gap:8px; width:100%; }
+.win-login-tab { flex:1; padding:10px; background:rgba(255,255,255,0.08); border:none; border-radius:8px; color:rgba(255,255,255,0.7); cursor:pointer; font-weight:700; font-size:14px; font-family:inherit; transition:all 0.2s; }
 .win-login-tab.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; }
 body.theme-white .win-login-tab { background:#f5f5f5; color:#000; }
 body.theme-white .win-login-tab.active { background:#000; color:#fff; }
@@ -834,7 +814,7 @@ body.theme-retro .win-login-tab { border:2px outset #c0c0c0; background:#c0c0c0;
 body.theme-retro .win-login-tab.active { border-style:inset; background:#e0e0e0; }
 
 .win-login-error { color: #f43f5e; font-size: 13px; text-align: center; min-height: 18px; font-weight: 600; }
-.win-login-status { font-size:12px; margin-top:4px; min-height:16px; }
+.win-login-status { font-size:12px; min-height:16px; }
 .win-login-status.ok { color:#22d3ee; } .win-login-status.bad { color:#f43f5e; }
 
 .win-login-footer {
@@ -852,26 +832,225 @@ body.theme-retro .win-login-footer { color:white; }
 .win-login-footer span { cursor:pointer; transition:all 0.2s; }
 .win-login-footer span:hover { transform: scale(1.2); color:white; }
 
-/* ===== АДАПТИВ ===== */
-.mobile-tabs { display:none; }
+/* ===== СКРОЛЛ ===== */
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius:4px; }
+body.theme-retro ::-webkit-scrollbar-thumb { background:#c0c0c0; border:1px outset #c0c0c0; border-radius:0; }
+body.theme-white ::-webkit-scrollbar-thumb { background:#ccc; }
+/* ===== МОДАЛКИ ===== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,0,15,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1500;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+    transition: opacity 0.3s ease;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+    background: var(--bg-window);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    animation: modalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalPop {
+    from { opacity:0; transform:scale(0.9) translateY(20px); }
+    to { opacity:1; transform:scale(1) translateY(0); }
+}
+body.theme-retro .modal { border:3px outset #c0c0c0; border-radius:0; background:#c0c0c0; }
+body.theme-white .modal { border:1.5px solid #000; }
 
-@media (max-width: 1024px) {
-    .win-frame { width: 98vw; height: 96vh; }
-    .desktop { width: 220px; padding: 16px 12px; grid-template-columns: repeat(2, 1fr); }
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 15px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.close-btn:hover { background: rgba(244,63,94,0.7); }
+body.theme-retro .close-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; border-radius:0; }
+
+.banner {
+    height: 140px;
+    background: linear-gradient(135deg, #d946ef, #8b5cf6, #22d3ee);
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    border-radius: 16px 16px 0 0;
+}
+body.theme-retro .banner { border-radius:0; }
+.banner img { width:100%; height:100%; object-fit:cover; pointer-events:none; user-select:none; }
+.banner-edit {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: 1px solid rgba(217,70,239,0.5);
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+}
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #d946ef, #8b5cf6);
+    border: 4px solid var(--bg-window);
+    position: absolute;
+    top: 90px;
+    left: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: 800;
+    color: white;
+    overflow: hidden;
+    cursor: grab;
+    box-shadow: 0 0 30px rgba(217,70,239,0.5);
+}
+body.theme-retro .profile-avatar { border:3px outset #c0c0c0; border-radius:0; background:#c0c0c0; color:#000; box-shadow:none; }
+.profile-avatar img { width:100%; height:100%; object-fit:cover; pointer-events:none; user-select:none; }
+
+.save-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    box-shadow: 0 8px 20px rgba(217,70,239,0.35);
+    transition: transform 0.2s;
+    font-family: inherit;
+}
+.save-btn:active { transform: scale(0.97); }
+.save-btn.green { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0f0520; }
+.save-btn.red { background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; }
+.save-btn.gold { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a0a2e; }
+.save-btn.gray { background: var(--bg-input); color: var(--text); box-shadow:none; }
+body.theme-retro .save-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; box-shadow:none; border-radius:0; }
+body.theme-retro .save-btn:active { border-style:inset; }
+
+.settings-tab {
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.settings-tab.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    border-color: transparent;
+}
+body.theme-retro .settings-tab { border:2px outset #c0c0c0; border-radius:0; }
+body.theme-retro .settings-tab.active { border-style:inset; background:#e0e0e0; color:#000; }
+
+/* ===== ADMIN TABS ===== */
+.admin-tab {
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.admin-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ===== ЧАТ-ЛИСТ ЗАГОЛОВОК ===== */
+.typing-indicator {
+    padding: 4px 20px;
+    height: 22px;
+    font-size: 12px;
+    color: var(--text-mute);
+    font-style: italic;
+}
+
+/* ===== АДАПТИВ ===== */
+@media (max-width: 1200px) {
+    .desktop { width: 200px; padding: 14px 10px; grid-template-columns: repeat(3, 1fr); }
     .chat-list { width: 240px; }
 }
 
+@media (max-width: 900px) {
+    .desktop { width: 180px; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
+    .chat-list { width: 220px; }
+    .desktop-icon .d-icon { width: 40px; height: 40px; font-size: 22px; }
+    .desktop-icon .d-label { font-size: 10px; }
+}
+
 @media (max-width: 768px) {
-    body { padding: 0; }
-    .win-frame { width: 100vw; height: 100vh; border-radius: 0; border: none; }
-    body.theme-retro .win-frame { border: none; }
-    body.theme-white .win-frame { border: none; }
-
-    .win-titlebar { height: 32px; padding: 0 6px 0 12px; }
-    .win-title { font-size: 12px; }
-    .win-title .win-icon { font-size: 16px; }
-    .win-btn { width: 36px; height: 26px; font-size: 13px; }
-
+    body { display: block; padding: 0; }
+    
+    .win-window {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 52px !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 0;
+        min-height: 0;
+        border-radius: 0;
+        border: none;
+    }
+    .win-window.maximized { bottom: 52px !important; }
+    
+    .win-titlebar { height: 36px; padding: 0 8px 0 14px; }
+    .win-btn { width: 36px; height: 28px; font-size: 13px; }
+    
+    .win-body { flex-direction: column; position: relative; }
+    
     .mobile-tabs {
         display: flex;
         gap: 4px;
@@ -880,8 +1059,6 @@ body.theme-retro .win-login-footer { color:white; }
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
     }
-    body.theme-white .mobile-tabs { background:#fff; border-bottom:1.5px solid #000; }
-    body.theme-retro .mobile-tabs { background:#c0c0c0; border-bottom:2px outset #c0c0c0; }
     .mobile-tab {
         flex: 1;
         padding: 9px;
@@ -892,57 +1069,55 @@ body.theme-retro .win-login-footer { color:white; }
         font-size: 13px;
         font-weight: 700;
         border-radius: 8px;
-        transition: all 0.2s;
         font-family: inherit;
+        transition: all 0.2s;
     }
     .mobile-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
     body.theme-retro .mobile-tab { border:2px outset #c0c0c0; border-radius:0; padding:4px; font-size:11px; }
     body.theme-retro .mobile-tab.active { border-style:inset; background:#e0e0e0; color:#000; }
-    body.theme-white .mobile-tab { color:#666; }
     body.theme-white .mobile-tab.active { background:#000; color:#fff; }
-
-    .win-body { flex-direction: column; position: relative; }
-
+    
     .desktop, .chat-list, .chat-window {
         position: absolute;
         inset: 0;
         width: 100% !important;
         border-right: none;
         display: none;
-        padding: 16px;
+        padding: 14px;
     }
-    body.theme-retro .desktop { background:#008080; }
-    body.theme-retro .chat-list { background:#c0c0c0; }
-    body.theme-retro .chat-window { background:#ffffff; }
-
     .desktop.mobile-active,
     .chat-list.mobile-active,
     .chat-window.mobile-active { display: flex; }
-
+    
     .desktop { grid-template-columns: repeat(4, 1fr); gap: 12px 8px; }
-    .desktop-icon .d-icon { width: 42px; height: 42px; font-size: 22px; }
-    .desktop-icon .d-label { font-size: 10px; max-width: 64px; }
-
+    .desktop-icon .d-icon { width: 44px; height: 44px; font-size: 24px; }
+    .desktop-icon .d-label { font-size: 10px; max-width: 68px; }
+    
     .chat-list-body { padding: 6px; }
     .chat-item { padding: 10px; }
-    .chat-item .avatar { width: 40px; height: 40px; }
-
+    .chat-item .avatar { width: 42px; height: 42px; font-size: 15px; }
+    
     .chat-window-messages { padding: 12px; }
-    .msg-row .avatar { width: 36px; height: 36px; }
-    .msg-content { font-size: 14px; }
+    .msg-row .avatar { width: 36px; height: 36px; font-size: 13px; }
+    .msg-content { font-size: 13px; }
     .chat-window-input-area { padding: 8px 12px 12px; }
-
-    .taskbar { height: 52px; padding: 0 8px; gap: 4px; }
-    .tb-btn { height: 40px; padding: 0 10px; font-size: 12px; }
+    
+    .taskbar {
+        height: 52px;
+        padding: 0 6px;
+        gap: 3px;
+        overflow-x: auto;
+    }
+    .tb-btn { height: 40px; padding: 0 10px; font-size: 12px; flex-shrink: 0; }
     .tb-btn .tb-label { display: none; }
     .tb-btn .tb-icon { font-size: 20px; }
-    .tb-start .tb-label { display: inline !important; }
     .tb-start { padding: 0 12px; }
-    .tb-clock { padding: 0 10px; font-size: 11px; }
+    .tb-start .tb-label { display: inline !important; }
+    .tb-clock { padding: 0 8px; font-size: 11px; flex-shrink: 0; }
     .tb-clock .tb-clock-date { display: none; }
-
-    .start-menu { bottom: 62px; width: 92vw; }
-
+    
+    .start-menu { bottom: 62px; left: 8px; right: 8px; width: auto; max-width: none; }
+    
     .win-login-time { font-size: 52px; }
     .win-login-date { font-size: 16px; }
     .win-login-clock { top: 40px; left: 30px; }
@@ -954,7 +1129,7 @@ body.theme-retro .win-login-footer { color:white; }
 
 @media (max-width: 480px) {
     .desktop { grid-template-columns: repeat(3, 1fr); }
-    .chat-item .avatar { width: 38px; height: 38px; }
+    .chat-item .avatar { width: 40px; height: 40px; }
     .chat-item-name { font-size: 13px; }
     .chat-item-preview { font-size: 11px; }
     .win-login-time { font-size: 42px; }
@@ -992,30 +1167,32 @@ body.theme-retro .win-login-footer { color:white; }
     </div>
 </div>
 
-<!-- ===== ОСНОВНОЕ ОКНО ===== -->
-<div class="win-frame" id="app" style="display:none;">
+<!-- ===== ОСНОВНОЙ ИНТЕРФЕЙС (РАБОЧИЙ СТОЛ + ПАНЕЛЬ ЗАДАЧ) ===== -->
+<div id="app" style="display:none;">
 
+<!-- ОКНО ЧАТА (как приложение Windows) -->
+<div class="win-window" id="mainWindow" style="top:30px;left:30px;width:1100px;height:calc(100vh - 110px);">
     <!-- ЗАГОЛОВОК ОКНА -->
-    <div class="win-titlebar">
+    <div class="win-titlebar" id="mainTitlebar">
         <div class="win-title">
             <span class="win-icon">🐱</span>
-            <span>Belugacord — Beta 0.4 Patch 3</span>
+            <span id="mainWindowTitle">Belugacord — Beta 0.4 Patch 3</span>
         </div>
         <div class="win-controls">
             <button class="win-btn" title="Свернуть">─</button>
-            <button class="win-btn" title="Развернуть">□</button>
-            <button class="win-btn close" title="Закрыть" onclick="logout()">✕</button>
+            <button class="win-btn" title="Развернуть" onclick="toggleMaximize('mainWindow')">□</button>
+            <button class="win-btn close" title="Закрыть" onclick="closeMainWindow()">✕</button>
         </div>
     </div>
 
-    <!-- МОБИЛЬНЫЕ ТАБЫ (видны только на телефоне) -->
+    <!-- МОБИЛЬНЫЕ ТАБЫ -->
     <div class="mobile-tabs" id="mobileTabs">
         <button class="mobile-tab active" onclick="mobileShow('desktop')">🖥️ Стол</button>
         <button class="mobile-tab" onclick="mobileShow('chats')">💬 Чаты</button>
         <button class="mobile-tab" onclick="mobileShow('chat')">📨 Чат</button>
     </div>
 
-    <!-- ТЕЛО ОКНА (3 колонки) -->
+    <!-- ТЕЛО ОКНА -->
     <div class="win-body">
 
         <!-- КОЛОНКА 1: РАБОЧИЙ СТОЛ -->
@@ -1056,7 +1233,7 @@ body.theme-retro .win-login-footer { color:white; }
                 <div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div>
                 <div class="d-label">Админка</div>
             </div>
-            <div id="serverList"></div>
+            <div id="serverList" style="display:contents;"></div>
         </div>
 
         <!-- КОЛОНКА 2: СПИСОК ЧАТОВ -->
@@ -1076,7 +1253,7 @@ body.theme-retro .win-login-footer { color:white; }
         <!-- КОЛОНКА 3: ОКНО ЧАТА -->
         <div class="chat-window mobile-active" id="chatWindowCol">
             <div class="chat-window-header">
-                <div class="avatar" id="chatWindowAvatar" style="width:32px;height:32px;font-size:13px;">#</div>
+                <div class="avatar" id="chatWindowAvatar" style="width:32px;height:32px;font-size:13px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;">#</div>
                 <div class="chat-window-title" id="chatWindowTitle">Выбери чат</div>
                 <button class="file-btn" id="chatSearchBtn" onclick="openSearch()" title="Поиск">🔍</button>
                 <button class="file-btn" onclick="exportChat()" title="Экспорт">💾</button>
@@ -1089,7 +1266,7 @@ body.theme-retro .win-login-footer { color:white; }
                     <div>Выбери чат или сервер<br>чтобы начать общение</div>
                 </div>
             </div>
-            <div class="typing-indicator" id="typingIndicator" style="padding:4px 20px;height:22px;font-size:12px;color:var(--text-mute);font-style:italic;"></div>
+            <div class="typing-indicator" id="typingIndicator"></div>
             <div class="chat-window-input-area">
                 <div class="reply-box" id="replyBox" style="display:none;background:rgba(217,70,239,0.15);border-left:3px solid var(--accent);padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;color:var(--text-dim);justify-content:space-between;align-items:center;margin-bottom:-1px;">
                     <span>Ответ <b id="replyToName"></b></span>
@@ -1104,108 +1281,96 @@ body.theme-retro .win-login-footer { color:white; }
             </div>
         </div>
     </div>
+</div>
 
-    <!-- ПАНЕЛЬ ЗАДАЧ -->
-    <div class="taskbar">
-        <button class="tb-btn tb-start" onclick="toggleStartMenu()">
-            <span class="tb-icon">⊞</span>
-            <span class="tb-label">Пуск</span>
-        </button>
-        <button class="tb-btn" onclick="showFriends()">
-            <span class="tb-icon">👥</span>
-            <span class="tb-label">Друзья</span>
-        </button>
-        <button class="tb-btn" onclick="showVote()">
-            <span class="tb-icon">🗳️</span>
-            <span class="tb-label">Голосование</span>
-        </button>
-        <button class="tb-btn" onclick="openGamesMenu()">
-            <span class="tb-icon">🎮</span>
-            <span class="tb-label">Игры</span>
-        </button>
-        <button class="tb-btn" onclick="openProfile()">
-            <span class="tb-icon">👤</span>
-            <span class="tb-label">Профиль</span>
-        </button>
-        <div class="tb-spacer"></div>
-        <div class="tb-clock">
-            <span id="taskbarTime">00:00</span>
-            <span class="tb-clock-date" id="taskbarDate">01.01</span>
-        </div>
-    </div>
-
-    <!-- МЕНЮ ПУСК -->
-    <div class="start-menu" id="startMenu">
-        <div class="start-menu-title">Профиль</div>
-        <div class="start-menu-item" onclick="openProfile(); toggleStartMenu();">
-            <div class="sm-icon">👤</div>
-            <div>Мой профиль</div>
-        </div>
-        <div class="start-menu-item" onclick="openSettings(); toggleStartMenu();">
-            <div class="sm-icon">⚙️</div>
-            <div>Настройки</div>
-        </div>
-        <div class="start-menu-item" onclick="openNickChange(); toggleStartMenu();">
-            <div class="sm-icon">✏️</div>
-            <div>Сменить ник</div>
-        </div>
-        <div class="start-menu-title" style="margin-top:8px;">Развлечения</div>
-        <div class="start-menu-item" onclick="openGamesMenu(); toggleStartMenu();">
-            <div class="sm-icon">🎮</div>
-            <div>Игры</div>
-        </div>
-        <div class="start-menu-item" onclick="openShop(); toggleStartMenu();">
-            <div class="sm-icon">🛒</div>
-            <div>Магазин</div>
-        </div>
-        <div class="start-menu-item" onclick="openLeaders(); toggleStartMenu();">
-            <div class="sm-icon">🏆</div>
-            <div>Топ богачей</div>
-        </div>
-        <div class="start-menu-item" onclick="shareProfile(); toggleStartMenu();">
-            <div class="sm-icon">📤</div>
-            <div>Поделиться</div>
-        </div>
-        <div class="start-menu-item" id="adminStartItem" onclick="openAdminLogin(); toggleStartMenu();" style="display:none;">
-            <div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div>
-            <div>Админ-панель</div>
-        </div>
-        <div class="start-menu-title" style="margin-top:8px;">Система</div>
-        <div class="start-menu-item" onclick="logout()">
-            <div class="sm-icon" style="background:linear-gradient(135deg,#f43f5e,#ec4899);">⏻</div>
-            <div>Выйти из аккаунта</div>
-        </div>
+<!-- ПАНЕЛЬ ЗАДАЧ -->
+<div class="taskbar">
+    <button class="tb-btn tb-start" onclick="toggleStartMenu()">
+        <span class="tb-icon">⊞</span>
+        <span class="tb-label">Пуск</span>
+    </button>
+    <div class="tb-open-windows" id="tbOpenWindows"></div>
+    <div class="tb-spacer"></div>
+    <div class="tb-clock">
+        <span id="taskbarTime">00:00</span>
+        <span class="tb-clock-date" id="taskbarDate">01.01</span>
     </div>
 </div>
 
+<!-- МЕНЮ ПУСК -->
+<div class="start-menu" id="startMenu">
+    <div class="start-menu-title">Профиль</div>
+    <div class="start-menu-item" onclick="openProfile(); toggleStartMenu();">
+        <div class="sm-icon">👤</div>
+        <div>Мой профиль</div>
+    </div>
+    <div class="start-menu-item" onclick="openSettings(); toggleStartMenu();">
+        <div class="sm-icon">⚙️</div>
+        <div>Настройки</div>
+    </div>
+    <div class="start-menu-item" onclick="openNickChange(); toggleStartMenu();">
+        <div class="sm-icon">✏️</div>
+        <div>Сменить ник</div>
+    </div>
+    <div class="start-menu-title" style="margin-top:8px;">Развлечения</div>
+    <div class="start-menu-item" onclick="openGamesMenu(); toggleStartMenu();">
+        <div class="sm-icon">🎮</div>
+        <div>Игры</div>
+    </div>
+    <div class="start-menu-item" onclick="openShop(); toggleStartMenu();">
+        <div class="sm-icon">🛒</div>
+        <div>Магазин</div>
+    </div>
+    <div class="start-menu-item" onclick="openLeaders(); toggleStartMenu();">
+        <div class="sm-icon">🏆</div>
+        <div>Топ богачей</div>
+    </div>
+    <div class="start-menu-item" onclick="shareProfile(); toggleStartMenu();">
+        <div class="sm-icon">📤</div>
+        <div>Поделиться</div>
+    </div>
+    <div class="start-menu-item" id="adminStartItem" onclick="openAdminLogin(); toggleStartMenu();" style="display:none;">
+        <div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div>
+        <div>Админ-панель</div>
+    </div>
+    <div class="start-menu-title" style="margin-top:8px;">Система</div>
+    <div class="start-menu-item" onclick="logout()">
+        <div class="sm-icon" style="background:linear-gradient(135deg,#f43f5e,#ec4899);">⏻</div>
+        <div>Выйти из аккаунта</div>
+    </div>
+</div>
+
+</div>
 <!-- ===== МОДАЛКА: ПРОФИЛЬ ===== -->
 <div class="modal-overlay" id="profileModal">
-    <div class="modal" style="max-width:560px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;position:relative;overflow:hidden;">
-        <button class="close-btn" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);color:white;border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;z-index:10;" onclick="closeProfile()">✕</button>
-        <div class="banner" id="bannerPreview" style="height:140px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);position:relative;overflow:hidden;cursor:grab;">
-            <button class="banner-edit" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);color:white;border:1px solid rgba(217,70,239,0.5);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;" onclick="document.getElementById('bannerInput').click()">Изменить</button>
+    <div class="modal" style="max-width:560px;overflow:hidden;">
+        <button class="close-btn" onclick="closeProfile()">✕</button>
+        <div class="banner" id="bannerPreview">
+            <button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить</button>
         </div>
-        <div class="profile-avatar" id="avatarPreview" style="width:90px;height:90px;border-radius:16px;background:linear-gradient(135deg,#d946ef,#8b5cf6);border:4px solid var(--bg-window);position:absolute;top:90px;left:22px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:white;overflow:hidden;cursor:grab;box-shadow:0 0 30px rgba(217,70,239,0.5);" onclick="document.getElementById('avatarInput').click()">?</div>
+        <div class="profile-avatar" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">?</div>
         <div style="padding:60px 26px 26px;">
             <h2 id="profileName" style="font-size:22px;margin-bottom:18px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Профиль</h2>
             <p style="color:var(--text-mute);font-size:12px;margin-bottom:10px;">Перетаскивай аву и баннер пальцем/мышкой</p>
             <div id="premiumSettings"></div>
-            <button class="save-btn green" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:12px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="saveProfile()">Сохранить</button>
-            <button class="save-btn" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:var(--bg-input);color:var(--text);" onclick="openSettings()">⚙️ Настройки</button>
-            <button class="save-btn" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:var(--bg-input);color:var(--text);" onclick="openNickChange()">✏️ Сменить ник</button>
+            <button class="save-btn green" onclick="saveProfile()">Сохранить</button>
+            <button class="save-btn gray" onclick="openSettings()">⚙️ Настройки</button>
+            <button class="save-btn gray" onclick="openNickChange()">✏️ Сменить ник</button>
+            <button class="save-btn red" onclick="logout()">Выйти</button>
+            <button class="save-btn gold" id="adminBtn" style="display:none;" onclick="openAdminLogin()">🛡️ Админ-панель</button>
         </div>
     </div>
 </div>
 
 <!-- ===== МОДАЛКА: ПРОСМОТР ЧУЖОГО ПРОФИЛЯ ===== -->
 <div class="modal-overlay" id="viewProfileModal">
-    <div class="modal" style="max-width:520px;">
+    <div class="modal" style="max-width:520px;overflow:hidden;">
         <button class="close-btn" onclick="document.getElementById('viewProfileModal').classList.remove('open')">✕</button>
-        <div class="banner" id="viewBanner" style="height:130px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);position:relative;overflow:hidden;"></div>
-        <div class="profile-avatar" id="viewAvatar" style="width:90px;height:90px;border-radius:16px;background:linear-gradient(135deg,#d946ef,#8b5cf6);border:4px solid var(--bg-window);position:absolute;top:82px;left:22px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:white;overflow:hidden;">?</div>
+        <div class="banner" id="viewBanner"></div>
+        <div class="profile-avatar" id="viewAvatar">?</div>
         <div style="padding:56px 26px 26px;">
             <h2 id="viewName" style="font-size:22px;margin-bottom:14px;">Юзер</h2>
-            <div id="viewBadges" style="margin-bottom:14px;"></div>
+            <div id="viewBadges" style="margin-bottom:14px;display:flex;gap:4px;flex-wrap:wrap;"></div>
             <div id="viewInfo"></div>
             <div id="viewActions" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;"></div>
         </div>
@@ -1219,6 +1384,7 @@ body.theme-retro .win-login-footer { color:white; }
         <div style="padding:28px 24px;">
             <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:20px;">⚙️ Настройки</h2>
             <button class="settings-tab active" onclick="showSettingsTab('theme',event)">🎨 Тема</button>
+            <button class="settings-tab" onclick="showSettingsTab('interface',event)">🖥️ Интерфейс</button>
             <button class="settings-tab" onclick="showSettingsTab('notifications',event)">🔔 Уведомления</button>
             <button class="settings-tab" onclick="showSettingsTab('privacy',event)">🔒 Приватность</button>
             <div id="settingsContent" style="margin-top:16px;"></div>
@@ -1234,7 +1400,7 @@ body.theme-retro .win-login-footer { color:white; }
             <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;margin-bottom:18px;">✏️ Сменить ник</h2>
             <input type="text" id="newNickInput" maxlength="32" placeholder="Новый ник" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
             <div id="nickStatus" style="font-size:12px;margin-top:8px;min-height:16px;"></div>
-            <button class="save-btn green" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:12px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="changeNick()">Сменить</button>
+            <button class="save-btn green" onclick="changeNick()">Сменить</button>
         </div>
     </div>
 </div>
@@ -1245,17 +1411,17 @@ body.theme-retro .win-login-footer { color:white; }
         <button class="close-btn" onclick="document.getElementById('createMenuModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
             <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:20px;">➕ Создать</h2>
-            <button class="create-option" onclick="chooseCreate('server')" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px;text-align:left;color:var(--text);">
-                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏠</div>
-                <div><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Сервер</div><div style="font-size:12px;color:var(--text-mute);">Место для друзей и каналов</div></div>
+            <button class="create-option" onclick="chooseCreate('server')">
+                <div class="d-icon" style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏠</div>
+                <div style="text-align:left;"><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Сервер</div><div style="font-size:12px;color:var(--text-mute);">Место для друзей и каналов</div></div>
             </button>
-            <button class="create-option" onclick="chooseCreate('channel')" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px;text-align:left;color:var(--text);">
-                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💬</div>
-                <div><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Канал</div><div style="font-size:12px;color:var(--text-mute);">Текстовый канал в сервере</div></div>
+            <button class="create-option" onclick="chooseCreate('channel')">
+                <div class="d-icon" style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💬</div>
+                <div style="text-align:left;"><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Канал</div><div style="font-size:12px;color:var(--text-mute);">Текстовый канал в сервере</div></div>
             </button>
-            <button class="create-option" onclick="chooseCreate('voice')" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left;color:var(--text);">
-                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ffd700,#ff8c00);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔊</div>
-                <div><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Голосовой канал</div><div style="font-size:12px;color:var(--text-mute);">Канал для звонков</div></div>
+            <button class="create-option" onclick="chooseCreate('voice')">
+                <div class="d-icon" style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ffd700,#ff8c00);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔊</div>
+                <div style="text-align:left;"><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Голосовой канал</div><div style="font-size:12px;color:var(--text-mute);">Канал для звонков</div></div>
             </button>
         </div>
     </div>
@@ -1263,12 +1429,12 @@ body.theme-retro .win-login-footer { color:white; }
 
 <!-- ===== МОДАЛКА: НАСТРОЙКИ СЕРВЕРА ===== -->
 <div class="modal-overlay" id="serverSettingsModal">
-    <div class="modal" style="max-width:520px;">
+    <div class="modal" style="max-width:520px;overflow:hidden;">
         <button class="close-btn" onclick="document.getElementById('serverSettingsModal').classList.remove('open')">✕</button>
-        <div class="banner" id="serverBannerPreview" style="height:130px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);position:relative;overflow:hidden;">
-            <button class="banner-edit" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);color:white;border:none;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:11px;" onclick="document.getElementById('serverBannerInput').click()">Баннер</button>
+        <div class="banner" id="serverBannerPreview">
+            <button class="banner-edit" onclick="document.getElementById('serverBannerInput').click()">Баннер</button>
         </div>
-        <div class="profile-avatar" id="serverAvatarPreview" style="width:90px;height:90px;border-radius:16px;background:linear-gradient(135deg,#d946ef,#8b5cf6);border:4px solid var(--bg-window);position:absolute;top:82px;left:22px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:white;overflow:hidden;cursor:pointer;" onclick="document.getElementById('serverAvatarInput').click()">?</div>
+        <div class="profile-avatar" id="serverAvatarPreview" onclick="document.getElementById('serverAvatarInput').click()">?</div>
         <div style="padding:56px 26px 26px;">
             <h2 style="font-size:20px;margin-bottom:16px;">Настройки сервера</h2>
             <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin:14px 0 6px;">Название</label>
@@ -1278,11 +1444,11 @@ body.theme-retro .win-login-footer { color:white; }
             <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin:14px 0 6px;">Код приглашения</label>
             <div style="display:flex;gap:8px;">
                 <input type="text" id="serverInviteInput" readonly style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:13px;">
-                <button class="save-btn" style="width:auto;margin:0;padding:0 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:var(--accent);color:white;" onclick="copyInvite()">Копировать</button>
+                <button class="save-btn" style="width:auto;margin:0;padding:0 16px;" onclick="copyInvite()">Копировать</button>
             </div>
-            <button class="save-btn green" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:16px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="saveServerSettings()">Сохранить</button>
-            <button class="save-btn red" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:linear-gradient(135deg,#f43f5e,#ec4899);color:white;" onclick="deleteServer()">Удалить сервер</button>
-            <button class="save-btn gray" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:var(--bg-input);color:var(--text);" onclick="leaveServer()">Выйти из сервера</button>
+            <button class="save-btn green" onclick="saveServerSettings()">Сохранить</button>
+            <button class="save-btn red" onclick="deleteServer()">Удалить сервер</button>
+            <button class="save-btn gray" onclick="leaveServer()">Выйти из сервера</button>
         </div>
     </div>
 </div>
@@ -1305,15 +1471,15 @@ body.theme-retro .win-login-footer { color:white; }
         <div style="padding:28px 24px;">
             <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:20px;">🎮 Игры</h2>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:14px;padding:20px 10px;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="openMinesweeper()">
+                <div class="game-tile" onclick="openMinesweeper()">
                     <div style="font-size:40px;margin-bottom:8px;">💣</div>
                     <div style="font-size:13px;font-weight:700;color:var(--text);">Сапёр</div>
                 </div>
-                <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:14px;padding:20px 10px;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="openSnake()">
+                <div class="game-tile" onclick="openSnake()">
                     <div style="font-size:40px;margin-bottom:8px;">🐍</div>
                     <div style="font-size:13px;font-weight:700;color:var(--text);">Змейка</div>
                 </div>
-                <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:14px;padding:20px 10px;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="open2048()">
+                <div class="game-tile" onclick="open2048()">
                     <div style="font-size:40px;margin-bottom:8px;">🔢</div>
                     <div style="font-size:13px;font-weight:700;color:var(--text);">2048</div>
                 </div>
@@ -1333,7 +1499,7 @@ body.theme-retro .win-login-footer { color:white; }
                 <span style="margin-left:20px;font-size:14px;color:var(--text-dim);">Флаги: </span><span id="flagCounter" style="font-weight:800;color:#ffd700;">0</span>
             </div>
             <div id="minesweeperGrid" style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:340px;margin:0 auto;"></div>
-            <button class="save-btn green" style="width:100%;padding:10px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:16px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="resetMinesweeper()">Новая игра</button>
+            <button class="save-btn green" onclick="resetMinesweeper()">Новая игра</button>
         </div>
     </div>
 </div>
@@ -1347,15 +1513,15 @@ body.theme-retro .win-login-footer { color:white; }
             <div style="font-size:16px;color:var(--text-dim);margin-bottom:10px;">Счёт: <span id="snakeScore" style="font-weight:800;color:var(--accent);">0</span></div>
             <canvas id="snakeCanvas" width="320" height="320" style="background:#000;border-radius:12px;max-width:100%;"></canvas>
             <div style="margin-top:12px;color:var(--text-mute);font-size:12px;">Стрелки / свайпы для движения</div>
-            <div id="snakeControls" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:200px;margin:14px auto 0;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:200px;margin:14px auto 0;">
                 <div></div>
-                <button class="save-btn" style="padding:10px;border-radius:10px;border:none;cursor:pointer;background:var(--bg-input);color:var(--text);" onclick="snakeDir('up')">↑</button>
+                <button class="save-btn gray" style="margin:0;" onclick="snakeDir('up')">↑</button>
                 <div></div>
-                <button class="save-btn" style="padding:10px;border-radius:10px;border:none;cursor:pointer;background:var(--bg-input);color:var(--text);" onclick="snakeDir('left')">←</button>
-                <button class="save-btn" style="padding:10px;border-radius:10px;border:none;cursor:pointer;background:var(--bg-input);color:var(--text);" onclick="snakeDir('down')">↓</button>
-                <button class="save-btn" style="padding:10px;border-radius:10px;border:none;cursor:pointer;background:var(--bg-input);color:var(--text);" onclick="snakeDir('right')">→</button>
+                <button class="save-btn gray" style="margin:0;" onclick="snakeDir('left')">←</button>
+                <button class="save-btn gray" style="margin:0;" onclick="snakeDir('down')">↓</button>
+                <button class="save-btn gray" style="margin:0;" onclick="snakeDir('right')">→</button>
             </div>
-            <button class="save-btn green" style="width:100%;padding:10px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:14px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="resetSnake()">Новая игра</button>
+            <button class="save-btn green" onclick="resetSnake()">Новая игра</button>
         </div>
     </div>
 </div>
@@ -1368,7 +1534,7 @@ body.theme-retro .win-login-footer { color:white; }
             <h2 style="font-size:20px;margin-bottom:14px;">🔢 2048</h2>
             <div style="font-size:16px;color:var(--text-dim);margin-bottom:10px;">Счёт: <span id="score2048" style="font-weight:800;color:var(--accent);">0</span></div>
             <div id="grid2048" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:320px;margin:0 auto;"></div>
-            <button class="save-btn green" style="width:100%;padding:10px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:14px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="reset2048()">Новая игра</button>
+            <button class="save-btn green" onclick="reset2048()">Новая игра</button>
         </div>
     </div>
 </div>
@@ -1381,7 +1547,7 @@ body.theme-retro .win-login-footer { color:white; }
             <h2 style="text-align:center;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:16px;">🛡️ Админ-панель</h2>
             <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin-bottom:6px;">Пароль администратора</label>
             <input type="password" id="adminPassword" placeholder="Пароль" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
-            <button class="save-btn gold" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:14px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a0a2e;" onclick="verifyAdmin()">Войти</button>
+            <button class="save-btn gold" onclick="verifyAdmin()">Войти</button>
             <div id="adminError" style="color:#f43f5e;font-size:13px;text-align:center;min-height:18px;margin-top:10px;"></div>
         </div>
     </div>
@@ -1419,9 +1585,9 @@ body.theme-retro .win-login-footer { color:white; }
                 <div id="shopBalance" style="font-size:32px;font-weight:900;color:#ffd700;">0</div>
                 <div style="color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;">🏅 Бекоинов</div>
             </div>
-            <button class="save-btn gold" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:14px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a0a2e;" onclick="buyCoins(100)">💳 200 🏅 за 100₽</button>
-            <button class="save-btn gold" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a0a2e;" onclick="buyCoins(500)">💳 1100 🏅 за 500₽</button>
-            <button class="save-btn gold" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a0a2e;" onclick="buyCoins(1000)">💳 2500 🏅 за 1000₽</button>
+            <button class="save-btn gold" onclick="buyCoins(100)">💳 200 🏅 за 100₽</button>
+            <button class="save-btn gold" onclick="buyCoins(500)">💳 1100 🏅 за 500₽</button>
+            <button class="save-btn gold" onclick="buyCoins(1000)">💳 2500 🏅 за 1000₽</button>
         </div>
     </div>
 </div>
@@ -1445,9 +1611,9 @@ body.theme-retro .win-login-footer { color:white; }
             <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;margin-bottom:18px;">📸 Новая история</h2>
             <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin-bottom:6px;">Текст</label>
             <input type="text" id="storyTextInput" maxlength="128" placeholder="Что у тебя нового?" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:14px;">
-            <button class="save-btn" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:var(--bg-input);color:var(--text);" onclick="document.getElementById('storyFileInput').click()">📁 Загрузить файл</button>
+            <button class="save-btn gray" onclick="document.getElementById('storyFileInput').click()">📁 Загрузить файл</button>
             <div id="storyPreview" style="margin-top:12px;"></div>
-            <button class="save-btn green" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:14px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="publishStory()">Опубликовать (24ч)</button>
+            <button class="save-btn green" onclick="publishStory()">Опубликовать (24ч)</button>
         </div>
     </div>
 </div>
@@ -1461,11 +1627,13 @@ body.theme-retro .win-login-footer { color:white; }
 </div>
 
 <!-- ===== МОДАЛКА: ЗВОНОК ===== -->
-<div class="call-modal" id="callModal" style="display:none;position:fixed;inset:0;background:radial-gradient(ellipse at center, rgba(45,10,80,0.99), rgba(5,0,15,0.99));z-index:2500;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
-    <div class="call-avatar" id="callAvatar" style="width:140px;height:140px;border-radius:24px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:56px;color:white;font-weight:800;overflow:hidden;box-shadow:0 0 70px rgba(217,70,239,0.8);">?</div>
-    <div class="call-name" id="callName" style="color:white;font-size:24px;font-weight:800;">...</div>
-    <div class="call-status" id="callStatus" style="color:#9d8fc4;font-size:14px;">...</div>
-    <div class="call-actions" id="callActions" style="display:flex;gap:20px;margin-top:20px;"></div>
+<div class="modal-overlay" id="callModal" style="background:radial-gradient(ellipse at center, rgba(45,10,80,0.99), rgba(5,0,15,0.99));">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+        <div id="callAvatar" style="width:140px;height:140px;border-radius:24px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:56px;color:white;font-weight:800;overflow:hidden;box-shadow:0 0 70px rgba(217,70,239,0.8);">?</div>
+        <div id="callName" style="color:white;font-size:24px;font-weight:800;">...</div>
+        <div id="callStatus" style="color:#9d8fc4;font-size:14px;">...</div>
+        <div id="callActions" style="display:flex;gap:20px;margin-top:20px;"></div>
+    </div>
 </div>
 
 <!-- ===== МОДАЛКА: ЧТО НОВОГО ===== -->
@@ -1475,8 +1643,8 @@ body.theme-retro .win-login-footer { color:white; }
             <h2 style="font-size:26px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">🐱 Belugacord</h2>
             <div style="color:var(--accent);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:2px;">Beta 0.4 Patch 3</div>
         </div>
-        <div class="changelog-body" id="changelogBody" style="padding:0 26px 18px;max-height:400px;overflow-y:auto;"></div>
-        <button class="save-btn green" style="width:calc(100% - 52px);margin:0 26px 26px;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="closeChangelog()">Понятно</button>
+        <div id="changelogBody" style="padding:0 26px 18px;max-height:400px;overflow-y:auto;"></div>
+        <button class="save-btn green" style="width:calc(100% - 52px);margin:0 26px 26px;" onclick="closeChangelog()">Понятно</button>
     </div>
 </div>
 
@@ -1489,8 +1657,8 @@ body.theme-retro .win-login-footer { color:white; }
             <p style="color:var(--text-mute);font-size:13px;line-height:1.5;">Добавь иконку на рабочий стол — открывается как приложение</p>
         </div>
         <div style="padding:0 26px 26px;display:flex;flex-direction:column;gap:10px;">
-            <button class="save-btn green" style="width:100%;padding:14px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="acceptInstall()">✅ Да, установить</button>
-            <button class="save-btn gray" style="width:100%;padding:14px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:var(--bg-input);color:var(--text);" onclick="declineInstall()">❌ Нет, спасибо</button>
+            <button class="save-btn green" onclick="acceptInstall()">✅ Да, установить</button>
+            <button class="save-btn gray" onclick="declineInstall()">❌ Нет, спасибо</button>
         </div>
     </div>
 </div>
@@ -1503,8 +1671,8 @@ body.theme-retro .win-login-footer { color:white; }
             <div style="font-size:24px;font-weight:900;color:#f43f5e;margin-bottom:10px;">Вы забанены</div>
             <div style="color:var(--text-dim);font-size:14px;margin-bottom:20px;" id="bannedReason">Причина: нарушение правил</div>
             <textarea id="appealText" placeholder="Опишите, почему вас стоит разбанить..." style="width:100%;min-height:110px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:13px;resize:vertical;font-family:inherit;margin-bottom:12px;"></textarea>
-            <button class="save-btn green" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="submitAppeal()">📩 Отправить обжалование</button>
-            <button class="save-btn gray" style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;margin-top:8px;background:var(--bg-input);color:var(--text);" onclick="logout()">Выйти из аккаунта</button>
+            <button class="save-btn green" onclick="submitAppeal()">📩 Отправить обжалование</button>
+            <button class="save-btn gray" onclick="logout()">Выйти из аккаунта</button>
             <div id="appealStatus" style="color:#f43f5e;font-size:13px;margin-top:12px;min-height:18px;"></div>
         </div>
     </div>
@@ -1560,36 +1728,29 @@ let easterEggFound = false;
 const CHANGELOG = {
     version: '0.4.3',
     added: [
-        '🖥️ Новый интерфейс — эмулятор Windows',
-        '🖱️ Рабочий стол с иконками серверов',
-        '⊞ Панель задач с Пуском',
-        '🎨 5 тем: тёмная, белая, неон, киберпанк, ретро Windows 95',
+        '🖥️ Эмулятор Windows — рабочий стол, окна, панель задач',
+        '🎨 5 тем: Beluga, тёмная, белая, киберпанк, ретро 95',
         '🎮 Мини-игры: Сапёр, Змейка, 2048',
-        '👥 Вкладка "Друзья" в панели задач',
-        '🗳️ Вкладка "Голосование" в панели задач',
-        '📱 Адаптив под телефон/планшет/ПК (мобильные табы)',
+        '🗳️ Вкладка "Голосование"',
+        '📱 Адаптив — мобильные табы',
         '✨ Плавность интерфейса',
         '🕵️ Пасхалка',
-        '🔍 Поиск по чатам',
         '💾 Экспорт чата',
         '✏️ Смена ника',
         '🏅 Валюта Бекоины',
         '🛒 Магазин',
         '🏆 Топ богачей',
-        '📸 Истории (24ч)',
         '📩 Обжалования банов'
     ],
     removed: [
         'Ежедневный бонус',
         'Серый кружок у офлайн-юзеров',
-        'Значок подписки на аватарке',
-        'Белый фон у кнопки звонка'
+        'Значок подписки на аватарке'
     ],
     fixed: [
-        'Вкладки "Все/В сети/В ожидании"',
-        'Запросы в друзья (всплывашка)',
-        'Клики на телефоне',
-        'Профили открываются'
+        'Профили открываются на телефоне',
+        'Меньше лагов',
+        'Ссылки в чате кликабельны'
     ]
 };
 
@@ -1684,15 +1845,17 @@ async function boot() {
 }
 function enterApp() {
     document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
+    document.getElementById('app').style.display = 'block';
     if (me.avatar) { const la = document.getElementById('loginAvatar'); if (la) la.innerHTML = '<img src="' + me.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
     avatarPos = parsePos(me.avatar_pos); bannerPos = parsePos(me.banner_pos);
     nicknameColor = me.nickname_color; nicknameGradient = me.nickname_gradient;
     customStatus = me.custom_status; avatarFrame = me.avatar_frame;
     msgSound = me.msg_sound; callSound = me.call_sound; hiddenOnline = me.hidden_online;
     renderProfile(); loadServers(); connectWS(); showFriends();
-    if (me.is_admin) { const ai = document.getElementById('adminDeskIcon'); if (ai) ai.style.display = 'flex'; const si = document.getElementById('adminStartItem'); if (si) si.style.display = 'flex'; }
+    if (me.is_admin) { const ai = document.getElementById('adminDeskIcon'); if (ai) ai.style.display = 'flex'; const si = document.getElementById('adminStartItem'); if (si) si.style.display = 'flex'; const ab = document.getElementById('adminBtn'); if (ab) ab.style.display = 'block'; }
     renderPremiumSettings(); requestNotifications(); loadCoins();
+    makeDraggable('mainWindow', 'mainTitlebar');
+    renderTaskbarWindows();
 }
 function parsePos(s) { if (!s) return {x:50,y:50}; const p = s.split(' '); return {x:parseFloat(p[0])||50,y:parseFloat(p[1])||50}; }
 function tierIcon(t) { return t && TIERS[t] ? TIERS[t].icon : ''; }
@@ -1732,7 +1895,10 @@ function showSettingsTab(tab, ev) {
             { id:'cyber', name:'🤖 Киберпанк', desc:'Жёлтый + циан', preview:'linear-gradient(135deg,#ffee00,#00ffff)' },
             { id:'retro', name:'📺 Ретро 95', desc:'Windows 95', preview:'linear-gradient(135deg,#c0c0c0,#000080)' }
         ];
-        c.innerHTML = themes.map(t => '<div style="display:flex;gap:12px;padding:14px;border-radius:12px;border:2px solid ' + (cur===t.id ? 'var(--accent)' : 'var(--border)') + ';background:var(--bg-input);cursor:pointer;margin-bottom:10px;transition:all 0.2s;" onclick="setTheme(\'' + t.id + '\')"><div style="width:56px;height:56px;border-radius:10px;background:' + t.preview + ';flex-shrink:0;"></div><div style="flex:1;"><div style="color:var(--text);font-weight:800;font-size:14px;margin-bottom:3px;">' + t.name + '</div><div style="color:var(--text-mute);font-size:12px;">' + t.desc + '</div></div></div>').join('');
+        c.innerHTML = themes.map(t => '<div style="display:flex;gap:12px;padding:14px;border-radius:12px;border:2px solid ' + (cur===t.id ? 'var(--accent)' : 'var(--border)') + ';background:var(--bg-input);cursor:pointer;margin-bottom:10px;" onclick="setTheme(\'' + t.id + '\')"><div style="width:56px;height:56px;border-radius:10px;background:' + t.preview + ';flex-shrink:0;"></div><div style="flex:1;"><div style="color:var(--text);font-weight:800;font-size:14px;margin-bottom:3px;">' + t.name + '</div><div style="color:var(--text-mute);font-size:12px;">' + t.desc + '</div></div></div>').join('');
+    }
+    else if (tab === 'interface') {
+        c.innerHTML = '<div style="color:var(--text-dim);font-size:13px;line-height:1.6;">Интерфейс — эмулятор Windows. Сейчас всё работает в одном стиле. В следующем патче добавим переключатель "Обычный / Windows".</div>';
     }
     else if (tab === 'notifications') { c.innerHTML = '<label style="display:flex;gap:10px;color:var(--text-dim);margin-bottom:12px;font-size:14px;"><input type="checkbox" checked> Сообщения</label><label style="display:flex;gap:10px;color:var(--text-dim);margin-bottom:12px;font-size:14px;"><input type="checkbox" checked> Звонки</label><label style="display:flex;gap:10px;color:var(--text-dim);font-size:14px;"><input type="checkbox" checked> Друзья</label>'; }
     else { c.innerHTML = '<label style="display:flex;gap:10px;color:var(--text-dim);margin-bottom:12px;font-size:14px;"><input type="checkbox"> Скрыть онлайн</label><label style="display:flex;gap:10px;color:var(--text-dim);font-size:14px;"><input type="checkbox"> Скрыть дату</label>'; }
@@ -1753,16 +1919,58 @@ function mobileShow(view) {
 function toggleStartMenu() { document.getElementById('startMenu').classList.toggle('open'); }
 document.addEventListener('click', (e) => { const sm = document.getElementById('startMenu'); const tb = e.target.closest('.tb-start'); if (!tb && !sm.contains(e.target) && sm.classList.contains('open')) sm.classList.remove('open'); });
 
+// ===== ПЕРЕТАСКИВАНИЕ ОКНА =====
+function makeDraggable(winId, handleId) {
+    const win = document.getElementById(winId);
+    const handle = document.getElementById(handleId);
+    if (!win || !handle) return;
+    let isDown = false, offsetX = 0, offsetY = 0;
+    handle.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.win-btn')) return;
+        if (win.classList.contains('maximized')) return;
+        isDown = true;
+        offsetX = e.clientX - win.offsetLeft;
+        offsetY = e.clientY - win.offsetTop;
+        e.preventDefault();
+    });
+    handle.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.win-btn')) return;
+        if (win.classList.contains('maximized')) return;
+        isDown = true;
+        const t = e.touches[0];
+        offsetX = t.clientX - win.offsetLeft;
+        offsetY = t.clientY - win.offsetTop;
+    }, { passive: true });
+    document.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        win.style.left = (e.clientX - offsetX) + 'px';
+        win.style.top = Math.max(0, e.clientY - offsetY) + 'px';
+    });
+    document.addEventListener('touchmove', (e) => {
+        if (!isDown) return;
+        const t = e.touches[0];
+        win.style.left = (t.clientX - offsetX) + 'px';
+        win.style.top = Math.max(0, t.clientY - offsetY) + 'px';
+    }, { passive: true });
+    document.addEventListener('mouseup', () => { isDown = false; });
+    document.addEventListener('touchend', () => { isDown = false; });
+}
+function toggleMaximize(winId) {
+    const w = document.getElementById(winId);
+    if (w) w.classList.toggle('maximized');
+    renderTaskbarWindows();
+}
+function closeMainWindow() { logout(); }
+function renderTaskbarWindows() { /* заглушка для будущих окон */ }
+
 // ===== ПРОФИЛЬ =====
 function renderProfile() {
-    const av = document.getElementById('userAvatarSmall');
-    if (av) { if (me.avatar) av.innerHTML = '<img src="' + me.avatar + '" style="object-position:' + avatarPos.x + '% ' + avatarPos.y + '%">'; else av.textContent = me.username.charAt(0).toUpperCase(); }
     const pn = document.getElementById('profileName'); if (pn) pn.textContent = me.username;
     avatarData = me.avatar; bannerData = me.banner;
     const bigAv = document.getElementById('avatarPreview');
     if (bigAv) { if (avatarData) bigAv.innerHTML = '<img src="' + avatarData + '" style="object-position:' + avatarPos.x + '% ' + avatarPos.y + '%">'; else bigAv.textContent = me.username.charAt(0).toUpperCase(); }
     const bn = document.getElementById('bannerPreview');
-    if (bn) { const oi = bn.querySelector('img'); if (oi) oi.remove(); if (bannerData) { const img = document.createElement('img'); img.src = bannerData; img.style.objectPosition = bannerPos.x + '% ' + bannerPos.y + '%'; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; bn.insertBefore(img, bn.firstChild); } }
+    if (bn) { const oi = bn.querySelector('img'); if (oi) oi.remove(); if (bannerData) { const img = document.createElement('img'); img.src = bannerData; img.style.objectPosition = bannerPos.x + '% ' + bannerPos.y + '%'; bn.insertBefore(img, bn.firstChild); } }
 }
 function openProfile() { renderProfile(); renderPremiumSettings(); document.getElementById('profileModal').classList.add('open'); }
 function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
@@ -1931,7 +2139,7 @@ function showEasterEgg() {
     playBeep(1500, 0.1, 0.3); setTimeout(() => playBeep(1000, 0.1, 0.3), 100); setTimeout(() => playBeep(2000, 0.2, 0.4), 200);
     const modal = document.createElement('div');
     modal.className = 'modal-overlay open'; modal.id = 'easterEggModal'; modal.style.zIndex = '9999';
-    modal.innerHTML = '<div class="modal" style="max-width:480px;text-align:center;padding:50px 30px;"><div style="font-size:80px;margin-bottom:20px;">🕵️</div><h2 style="background:linear-gradient(135deg,#d946ef,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:26px;margin-bottom:16px;">Вы нашли посхалку</h2><p style="color:var(--text-dim);font-size:15px;line-height:1.6;margin-bottom:20px;">Мы не увидим этот мессенджер — он анонимный.<br><span style="color:var(--text-mute);font-size:12px;">Belugacord — для своих 🐱</span></p><button style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="document.getElementById(\'easterEggModal\').remove()">Понятно</button></div>';
+    modal.innerHTML = '<div class="modal" style="max-width:480px;text-align:center;padding:50px 30px;"><div style="font-size:80px;margin-bottom:20px;">🕵️</div><h2 style="background:linear-gradient(135deg,#d946ef,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:26px;margin-bottom:16px;">Вы нашли посхалку</h2><p style="color:var(--text-dim);font-size:15px;line-height:1.6;margin-bottom:20px;">Мы не увидим этот мессенджер — он анонимный.<br><span style="color:var(--text-mute);font-size:12px;">Belugacord — для своих 🐱</span></p><button class="save-btn green" onclick="document.getElementById(\'easterEggModal\').remove()">Понятно</button></div>';
     document.body.appendChild(modal);
     setTimeout(() => { const el = document.getElementById('easterEggModal'); if (el) el.remove(); }, 20000);
 }
@@ -1979,10 +2187,10 @@ async function viewProfile(userId) {
         if (u.nickname_gradient) { n.style.background = u.nickname_gradient; n.style.webkitBackgroundClip = 'text'; n.style.webkitTextFillColor = 'transparent'; }
         else if (u.nickname_color) n.style.color = u.nickname_color;
         let badges = '';
-        if (u.role === 'admin') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#d946ef,#8b5cf6);color:white;margin-right:4px;">ADMIN</span>';
-        if (u.role === 'moderator') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;margin-right:4px;">MOD</span>';
-        if (u.premium_tier === 'premium') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;margin-right:4px;">💰 PREMIUM</span>';
-        if (u.premium_tier === 'pro') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#ffd700,#d946ef);color:white;margin-right:4px;">🏆 PRO</span>';
+        if (u.role === 'admin') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#d946ef,#8b5cf6);color:white;">ADMIN</span>';
+        if (u.role === 'moderator') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;">MOD</span>';
+        if (u.premium_tier === 'premium') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;">💰 PREMIUM</span>';
+        if (u.premium_tier === 'pro') badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#ffd700,#d946ef);color:white;">🏆 PRO</span>';
         if (u.online) badges += '<span style="padding:3px 10px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;">● ОНЛАЙН</span>';
         document.getElementById('viewBadges').innerHTML = badges;
         let info = '';
@@ -1991,11 +2199,11 @@ async function viewProfile(userId) {
         document.getElementById('viewInfo').innerHTML = info;
         const actions = document.getElementById('viewActions'); actions.innerHTML = '';
         if (userId !== me.id) {
-            const mb = document.createElement('button'); mb.style.cssText = 'flex:1;min-width:120px;padding:11px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;'; mb.textContent = '💬 Написать'; mb.onclick = () => { document.getElementById('viewProfileModal').classList.remove('open'); openDM(userId, u.username, u.avatar, u.premium_tier); }; actions.appendChild(mb);
+            const mb = document.createElement('button'); mb.className = 'save-btn green'; mb.style.cssText = 'flex:1;min-width:120px;'; mb.textContent = '💬 Написать'; mb.onclick = () => { document.getElementById('viewProfileModal').classList.remove('open'); openDM(userId, u.username, u.avatar, u.premium_tier); }; actions.appendChild(mb);
             const fr = await fetch('/api/friends/check/' + userId + '?token=' + encodeURIComponent(token)); const fd = await fr.json();
-            if (fd.status === 'accepted') { const btn = document.createElement('button'); btn.style.cssText = 'flex:1;min-width:120px;padding:11px;border-radius:10px;border:none;font-weight:700;background:var(--bg-input);color:var(--text-mute);'; btn.textContent = '✓ В друзьях'; btn.disabled = true; actions.appendChild(btn); }
-            else if (fd.status === 'pending') { const btn = document.createElement('button'); btn.style.cssText = 'flex:1;min-width:120px;padding:11px;border-radius:10px;border:none;font-weight:700;background:var(--bg-input);color:var(--text-mute);'; btn.textContent = '⏳ Запрос'; btn.disabled = true; actions.appendChild(btn); }
-            else { const btn = document.createElement('button'); btn.style.cssText = 'flex:1;min-width:120px;padding:11px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#d946ef,#8b5cf6);color:white;'; btn.textContent = '+ В друзья'; btn.onclick = () => addFriendById(userId); actions.appendChild(btn); }
+            if (fd.status === 'accepted') { const btn = document.createElement('button'); btn.className = 'save-btn gray'; btn.style.cssText = 'flex:1;min-width:120px;'; btn.textContent = '✓ В друзьях'; btn.disabled = true; actions.appendChild(btn); }
+            else if (fd.status === 'pending') { const btn = document.createElement('button'); btn.className = 'save-btn gray'; btn.style.cssText = 'flex:1;min-width:120px;'; btn.textContent = '⏳ Запрос'; btn.disabled = true; actions.appendChild(btn); }
+            else { const btn = document.createElement('button'); btn.className = 'save-btn'; btn.style.cssText = 'flex:1;min-width:120px;'; btn.textContent = '+ В друзья'; btn.onclick = () => addFriendById(userId); actions.appendChild(btn); }
         }
         document.getElementById('viewProfileModal').classList.add('open');
     } catch(e) {}
@@ -2018,19 +2226,18 @@ function connectWS() {
         else if (data.type === 'friend_accepted') { showToast(data.by + ' принял запрос', null, null, null); }
         else if (data.type === 'call') { playCallSound(); showIncomingCall(data); notify('Звонок', data.from_name); }
         else if (data.type === 'offer' || data.type === 'answer' || data.type === 'ice') { handleSignal(data); }
-        else if (data.type === 'call_decline') { document.getElementById('callModal').style.display = 'none'; if (pc) { pc.close(); pc = null; } }
+        else if (data.type === 'call_decline') { document.getElementById('callModal').classList.remove('open'); if (pc) { pc.close(); pc = null; } }
         else if (data.type === 'banned') { showBannedModal(data.reason); }
         else if (data.type === 'typing') { if (data.channel_id === currentChannelId) showTyping(data.username, 'typingIndicator'); }
         else if (data.type === 'typing_dm') { if (currentDMUser && data.from === currentDMUser.id) showTyping(data.username, 'typingIndicator'); }
-        else if (data.type === 'reaction_update') { /* updateReaction */ }
         else if (data.type === 'message_deleted') { const el = document.getElementById('msg-' + data.message_id); if (el) el.remove(); }
         else if (data.type === 'vote_started') { showToast('🗳️ Новое голосование!', null, null, null); }
     };
     ws.onclose = () => setTimeout(connectWS, 2000);
 }
 function showTyping(name, elId) { const el = document.getElementById(elId); if (!el) return; el.textContent = name + ' печатает...'; clearTimeout(currentTyping[elId]); currentTyping[elId] = setTimeout(() => { el.textContent = ''; }, 3000); }
-function showToast(title, avatar, btnText, btnAction) { const t = document.createElement('div'); t.style.cssText = 'position:fixed;bottom:70px;right:20px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 0 40px rgba(217,70,239,0.4);z-index:3000;display:flex;gap:12px;align-items:center;max-width:340px;'; let av = '<div class="avatar" style="width:40px;height:40px;">?</div>'; if (avatar) av = '<div class="avatar" style="width:40px;height:40px;"><img src="' + avatar + '" style="width:100%;height:100%;object-fit:cover;"></div>'; t.innerHTML = av + '<div style="flex:1;color:var(--text);font-size:13px;font-weight:600;">' + escapeHtml(title) + '</div>'; if (btnText && btnAction) { const b = document.createElement('button'); b.style.cssText = 'padding:8px 14px;border-radius:8px;border:none;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;'; b.textContent = btnText; b.onclick = () => { btnAction(); t.remove(); }; t.appendChild(b); } document.body.appendChild(t); setTimeout(() => t.remove(), 8000); }
-function showFriendRequestToast(data) { const t = document.createElement('div'); t.style.cssText = 'position:fixed;bottom:70px;right:20px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 0 40px rgba(217,70,239,0.5);z-index:3000;display:flex;gap:12px;align-items:center;max-width:360px;'; let av = '<div class="avatar" style="width:44px;height:44px;">' + data.from_name.charAt(0).toUpperCase() + '</div>'; if (data.from_avatar) av = '<div class="avatar" style="width:44px;height:44px;"><img src="' + data.from_avatar + '" style="width:100%;height:100%;object-fit:cover;"></div>'; t.innerHTML = av + '<div style="flex:1;color:var(--text);"><div style="font-weight:800;font-size:14px;">' + escapeHtml(data.from_name) + '</div><div style="color:var(--text-mute);font-size:12px;">хочет добавить в друзья</div></div>'; const a = document.createElement('button'); a.style.cssText = 'padding:8px 14px;border-radius:8px;border:none;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;'; a.textContent = 'Принять'; a.onclick = async () => { await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, friend_id: data.from_id }) }); showFriends(); renderChatList(); t.remove(); }; t.appendChild(a); document.body.appendChild(t); setTimeout(() => t.remove(), 15000); }
+function showToast(title, avatar, btnText, btnAction) { const t = document.createElement('div'); t.style.cssText = 'position:fixed;bottom:70px;right:20px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 0 40px rgba(217,70,239,0.4);z-index:3000;display:flex;gap:12px;align-items:center;max-width:340px;'; let av = '<div class="avatar" style="width:40px;height:40px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;">?</div>'; if (avatar) av = '<div style="width:40px;height:40px;border-radius:10px;overflow:hidden;flex-shrink:0;"><img src="' + avatar + '" style="width:100%;height:100%;object-fit:cover;"></div>'; t.innerHTML = av + '<div style="flex:1;color:var(--text);font-size:13px;font-weight:600;">' + escapeHtml(title) + '</div>'; if (btnText && btnAction) { const b = document.createElement('button'); b.style.cssText = 'padding:8px 14px;border-radius:8px;border:none;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;'; b.textContent = btnText; b.onclick = () => { btnAction(); t.remove(); }; t.appendChild(b); } document.body.appendChild(t); setTimeout(() => t.remove(), 8000); }
+function showFriendRequestToast(data) { const t = document.createElement('div'); t.style.cssText = 'position:fixed;bottom:70px;right:20px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 0 40px rgba(217,70,239,0.5);z-index:3000;display:flex;gap:12px;align-items:center;max-width:360px;'; let av = '<div style="width:44px;height:44px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px;">' + data.from_name.charAt(0).toUpperCase() + '</div>'; if (data.from_avatar) av = '<div style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;"><img src="' + data.from_avatar + '" style="width:100%;height:100%;object-fit:cover;"></div>'; t.innerHTML = av + '<div style="flex:1;color:var(--text);"><div style="font-weight:800;font-size:14px;">' + escapeHtml(data.from_name) + '</div><div style="color:var(--text-mute);font-size:12px;">хочет добавить в друзья</div></div>'; const a = document.createElement('button'); a.style.cssText = 'padding:8px 14px;border-radius:8px;border:none;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;'; a.textContent = 'Принять'; a.onclick = async () => { await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, friend_id: data.from_id }) }); showFriends(); renderChatList(); t.remove(); }; t.appendChild(a); document.body.appendChild(t); setTimeout(() => t.remove(), 15000); }
 function showBannedModal(reason) { document.getElementById('authScreen').style.display = 'none'; document.getElementById('app').style.display = 'none'; document.getElementById('bannedReason').textContent = reason ? 'Причина: ' + reason : 'Причина: нарушение правил'; document.getElementById('bannedModal').classList.add('open'); if (ws) ws.close(); token = ''; localStorage.removeItem('belugacord_token'); }
 async function submitAppeal() { const text = document.getElementById('appealText').value.trim(); const s = document.getElementById('appealStatus'); if (!text) { s.textContent = 'Напиши текст обжалования'; s.style.color = '#f43f5e'; return; } const nickname = prompt('Введи свой ник (для связи):', ''); if (!nickname) { s.textContent = 'Нужен ник'; return; } try { const r = await fetch('/api/appeal/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username: nickname, text}) }); if (r.ok) { s.textContent = '✓ Обжалование отправлено. Ожидай решения.'; s.style.color = '#22d3ee'; } else { const d = await r.json(); s.textContent = d.detail || 'Ошибка'; s.style.color = '#f43f5e'; } } catch(e) { s.textContent = 'Ошибка'; s.style.color = '#f43f5e'; } }
 
@@ -2038,9 +2245,9 @@ async function submitAppeal() { const text = document.getElementById('appealText
 async function startCallDM() { if (!currentDMUser) return; await initiateCall(currentDMUser.id, currentDMUser.username); }
 async function initiateCall(targetId, targetName) { callTarget = targetId; try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }); localStream.getTracks().forEach(t => pc.addTrack(t, localStream)); pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); }; pc.ontrack = e => { const a = new Audio(); a.srcObject = e.streams[0]; a.play(); }; const offer = await pc.createOffer(); await pc.setLocalDescription(offer); ws.send(JSON.stringify({ type:'call', target: callTarget })); ws.send(JSON.stringify({ type:'offer', target: callTarget, sdp: offer })); showCallModal(targetName, 'Звоним...', false); } catch(e) { alert('Ошибка: ' + e.message); } }
 function showIncomingCall(data) { showCallModal(data.from_name, 'Входящий звонок', true, data.from, data.from_avatar); }
-function showCallModal(name, status, incoming, fromId, fromAvatar) { const cm = document.getElementById('callModal'); cm.style.display = 'flex'; document.getElementById('callName').textContent = name; document.getElementById('callStatus').textContent = status; const av = document.getElementById('callAvatar'); if (fromAvatar) av.innerHTML = '<img src="' + fromAvatar + '" style="width:100%;height:100%;object-fit:cover;">'; else av.textContent = name.charAt(0).toUpperCase(); const a = document.getElementById('callActions'); a.innerHTML = ''; if (incoming) { const acc = document.createElement('button'); acc.style.cssText = 'width:60px;height:60px;border-radius:18px;border:none;cursor:pointer;font-size:24px;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;'; acc.textContent = '✓'; acc.onclick = () => acceptCall(fromId); const dec = document.createElement('button'); dec.style.cssText = 'width:60px;height:60px;border-radius:18px;border:none;cursor:pointer;font-size:24px;background:linear-gradient(135deg,#f43f5e,#ec4899);color:white;'; dec.textContent = '✕'; dec.onclick = () => { ws.send(JSON.stringify({ type:'call_decline', target: fromId })); cm.style.display = 'none'; }; a.appendChild(acc); a.appendChild(dec); } else { const dec = document.createElement('button'); dec.style.cssText = 'width:60px;height:60px;border-radius:18px;border:none;cursor:pointer;font-size:24px;background:linear-gradient(135deg,#f43f5e,#ec4899);color:white;'; dec.textContent = '✕'; dec.onclick = () => { if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget })); cm.style.display = 'none'; if (pc) { pc.close(); pc = null; } }; a.appendChild(dec); } }
-async function acceptCall(fromId) { callTarget = fromId; try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }); localStream.getTracks().forEach(t => pc.addTrack(t, localStream)); pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); }; pc.ontrack = e => { const a = new Audio(); a.srcObject = e.streams[0]; a.play(); }; document.getElementById('callStatus').textContent = 'В разговоре'; document.getElementById('callActions').innerHTML = '<button style="width:60px;height:60px;border-radius:18px;border:none;cursor:pointer;font-size:24px;background:linear-gradient(135deg,#f43f5e,#ec4899);color:white;" onclick="document.getElementById(\'callModal\').style.display=\'none\'; if(pc) pc.close();">✕</button>'; } catch(e) { alert('Ошибка микрофона'); } }
-async function handleSignal(data) { if (!pc) return; if (data.type === 'offer') { await pc.setRemoteDescription(new RTCSessionDescription(data.sdp)); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); ws.send(JSON.stringify({ type:'answer', target: data.from, sdp: answer })); } else if (data.type === 'answer') { await pc.setRemoteSessionDescription(new RTCSessionDescription(data.sdp)); } else if (data.type === 'ice') { try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {} } }
+function showCallModal(name, status, incoming, fromId, fromAvatar) { const cm = document.getElementById('callModal'); cm.classList.add('open'); document.getElementById('callName').textContent = name; document.getElementById('callStatus').textContent = status; const av = document.getElementById('callAvatar'); if (fromAvatar) av.innerHTML = '<img src="' + fromAvatar + '" style="width:100%;height:100%;object-fit:cover;">'; else av.textContent = name.charAt(0).toUpperCase(); const a = document.getElementById('callActions'); a.innerHTML = ''; if (incoming) { const acc = document.createElement('button'); acc.className = 'save-btn green'; acc.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;'; acc.textContent = '✓'; acc.onclick = () => acceptCall(fromId); const dec = document.createElement('button'); dec.className = 'save-btn red'; dec.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;'; dec.textContent = '✕'; dec.onclick = () => { ws.send(JSON.stringify({ type:'call_decline', target: fromId })); cm.classList.remove('open'); }; a.appendChild(acc); a.appendChild(dec); } else { const dec = document.createElement('button'); dec.className = 'save-btn red'; dec.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;'; dec.textContent = '✕'; dec.onclick = () => { if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget })); cm.classList.remove('open'); if (pc) { pc.close(); pc = null; } }; a.appendChild(dec); } }
+async function acceptCall(fromId) { callTarget = fromId; try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }); localStream.getTracks().forEach(t => pc.addTrack(t, localStream)); pc.onicecandidate = e => { if (e.candidate) ws.send(JSON.stringify({ type:'ice', target: callTarget, candidate: e.candidate })); }; pc.ontrack = e => { const a = new Audio(); a.srcObject = e.streams[0]; a.play(); }; document.getElementById('callStatus').textContent = 'В разговоре'; document.getElementById('callActions').innerHTML = '<button class="save-btn red" style="width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;" onclick="document.getElementById(\'callModal\').classList.remove(\'open\'); if(pc) pc.close();">✕</button>'; } catch(e) { alert('Ошибка микрофона'); } }
+async function handleSignal(data) { if (!pc) return; if (data.type === 'offer') { await pc.setRemoteDescription(new RTCSessionDescription(data.sdp)); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); ws.send(JSON.stringify({ type:'answer', target: data.from, sdp: answer })); } else if (data.type === 'answer') { await pc.setRemoteDescription(new RTCSessionDescription(data.sdp)); } else if (data.type === 'ice') { try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {} } }
 
 // ===== ИСТОРИИ =====
 async function loadStories() { /* placeholder */ }
@@ -2130,7 +2337,7 @@ function renderChannelList(channels) {
         const d = document.createElement('div');
         d.className = 'chat-item' + (ch.id === currentChannelId ? ' active' : '');
         const icon = ch.type === 'voice' ? '🔊' : '#';
-        d.innerHTML = '<div class="avatar">' + icon + '</div><div class="chat-item-info"><div class="chat-item-name">' + escapeHtml(ch.name) + '</div></div>';
+        d.innerHTML = '<div class="avatar" style="border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:15px;">' + icon + '</div><div class="chat-item-info"><div class="chat-item-name">' + escapeHtml(ch.name) + '</div></div>';
         d.onclick = () => openChannel(ch.id, ch.name);
         c.appendChild(d);
     });
@@ -2145,7 +2352,7 @@ async function openChannel(id, name) {
         const msgs = await r.json();
         msgs.forEach(m => addMessage(m));
     } catch(e) {}
-    renderChannelList((await (await fetch('/api/servers/' + currentServerId + '/channels?token=' + encodeURIComponent(token))).json()));
+    if (currentServerId) renderChannelList((await (await fetch('/api/servers/' + currentServerId + '/channels?token=' + encodeURIComponent(token))).json()));
 }
 
 function openServerSettings() {
@@ -2186,9 +2393,9 @@ async function openMembers() {
         members.forEach(m => {
             const row = document.createElement('div');
             row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;';
-            const av = m.avatar ? '<img src="' + m.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">' : m.username.charAt(0).toUpperCase();
+            const av = m.avatar ? '<img src="' + m.avatar + '" style="width:100%;height:100%;object-fit:cover;">' : m.username.charAt(0).toUpperCase();
             const dot = m.online ? '<div style="position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:#22d3ee;border:2px solid var(--bg-sidebar);box-shadow:0 0 8px #22d3ee;"></div>' : '';
-            row.innerHTML = '<div class="avatar" style="position:relative;width:38px;height:38px;">' + av + dot + '</div><div><div style="color:var(--text);font-weight:700;font-size:13px;">' + escapeHtml(m.username) + '</div><div style="color:var(--text-mute);font-size:11px;">' + (m.role === 'admin' ? 'Администратор' : (m.role === 'moderator' ? 'Модератор' : 'Участник')) + '</div></div>';
+            row.innerHTML = '<div style="position:relative;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;overflow:hidden;">' + av + dot + '</div><div><div style="color:var(--text);font-weight:700;font-size:13px;">' + escapeHtml(m.username) + '</div><div style="color:var(--text-mute);font-size:11px;">' + (m.role === 'admin' ? 'Администратор' : (m.role === 'moderator' ? 'Модератор' : 'Участник')) + '</div></div>';
             row.onclick = () => { document.getElementById('membersModal').classList.remove('open'); viewProfile(m.id); };
             list.appendChild(row);
         });
@@ -2262,7 +2469,7 @@ function filterAdminUsers(q) { const l = q.toLowerCase(); document.querySelector
 function renderAdminVote() {
     const b = document.getElementById('adminBody');
     const inpCss = 'width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);margin-bottom:10px;font-size:14px;outline:none;';
-    b.innerHTML = '<h3 style="color:var(--text);margin-bottom:14px;">🗳️ Запуск голосования</h3><input type="text" id="voteQuestion" placeholder="Вопрос" style="' + inpCss + '"><input type="text" id="voteOpt1" placeholder="Вариант 1" style="' + inpCss + '"><input type="text" id="voteOpt2" placeholder="Вариант 2" style="' + inpCss + '"><input type="text" id="voteOpt3" placeholder="Вариант 3 (необязательно)" style="' + inpCss + '"><button style="width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a0a2e;" onclick="startVote()">Запустить</button>';
+    b.innerHTML = '<h3 style="color:var(--text);margin-bottom:14px;">🗳️ Запуск голосования</h3><input type="text" id="voteQuestion" placeholder="Вопрос" style="' + inpCss + '"><input type="text" id="voteOpt1" placeholder="Вариант 1" style="' + inpCss + '"><input type="text" id="voteOpt2" placeholder="Вариант 2" style="' + inpCss + '"><input type="text" id="voteOpt3" placeholder="Вариант 3 (необязательно)" style="' + inpCss + '"><button class="save-btn gold" onclick="startVote()">Запустить</button>';
 }
 async function startVote() {
     const q = document.getElementById('voteQuestion').value.trim();
@@ -2281,7 +2488,7 @@ async function renderAdminAppeals() {
         appeals.forEach(a => {
             const row = document.createElement('div');
             row.style.cssText = 'padding:14px;border-radius:12px;margin-bottom:10px;background:var(--bg-input);border:1px solid rgba(244,63,94,0.3);';
-            row.innerHTML = '<div style="color:var(--text);font-weight:800;font-size:15px;margin-bottom:6px;">👤 ' + escapeHtml(a.username) + '</div><div style="color:var(--text-dim);font-size:13px;line-height:1.5;background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;">' + escapeHtml(a.text) + '</div><div style="color:var(--text-mute);font-size:11px;margin-top:6px;">' + new Date(a.created_at).toLocaleString('ru-RU') + '</div><div style="display:flex;gap:8px;margin-top:8px;"><button style="flex:1;padding:10px;border-radius:8px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="resolveAppeal(' + a.id + ',\'unban\')">✓ Разбанить</button><button style="flex:1;padding:10px;border-radius:8px;border:none;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#f43f5e,#ec4899);color:white;" onclick="resolveAppeal(' + a.id + ',\'reject\')">✕ Отклонить</button></div>';
+            row.innerHTML = '<div style="color:var(--text);font-weight:800;font-size:15px;margin-bottom:6px;">👤 ' + escapeHtml(a.username) + '</div><div style="color:var(--text-dim);font-size:13px;line-height:1.5;background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;">' + escapeHtml(a.text) + '</div><div style="color:var(--text-mute);font-size:11px;margin-top:6px;">' + new Date(a.created_at).toLocaleString('ru-RU') + '</div><div style="display:flex;gap:8px;margin-top:8px;"><button class="save-btn green" style="margin:0;flex:1;" onclick="resolveAppeal(' + a.id + ',\'unban\')">✓ Разбанить</button><button class="save-btn red" style="margin:0;flex:1;" onclick="resolveAppeal(' + a.id + ',\'reject\')">✕ Отклонить</button></div>';
             b.appendChild(row);
         });
     } catch(e) { b.innerHTML = '<div style="color:#f43f5e;">Ошибка</div>'; }
