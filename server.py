@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import asyncio
 import secrets
 import hashlib
 from typing import Optional
@@ -29,7 +30,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 pool: Optional[asyncpg.Pool] = None
-online_users = set()  # user_id -> online
+online_users = set()
 
 async def get_pool():
     global pool
@@ -100,8 +101,8 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS messages (
             id SERIAL PRIMARY KEY, channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            text TEXT, file_url TEXT,
-            reply_to INTEGER, reactions TEXT DEFAULT '{}',
+            text TEXT, file_url TEXT, reply_to INTEGER,
+            reactions TEXT DEFAULT '{}',
             created_at TIMESTAMP DEFAULT NOW())""")
         for col, typ in [("reply_to", "INTEGER"), ("reactions", "TEXT DEFAULT '{}'")]:
             try:
@@ -125,6 +126,16 @@ async def init_db():
             id SERIAL PRIMARY KEY, admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             action VARCHAR(32), target_id INTEGER, details TEXT,
             created_at TIMESTAMP DEFAULT NOW())""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS stories (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            text VARCHAR(256), file TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            expires_at TIMESTAMP DEFAULT (NOW() + INTERVAL '24 hours'))""")
+        try:
+            await conn.execute("DELETE FROM stories WHERE expires_at < NOW()")
+        except Exception:
+            pass
 
 @app.on_event("startup")
 async def startup():
@@ -133,6 +144,16 @@ async def startup():
             await init_db()
         except Exception as e:
             print(f"DB init error: {e}")
+    async def cleanup_loop():
+        while True:
+            try:
+                p = await get_pool()
+                async with p.acquire() as conn:
+                    await conn.execute("DELETE FROM stories WHERE expires_at < NOW()")
+            except Exception as e:
+                print(f"Story cleanup error: {e}")
+            await asyncio.sleep(3600)
+    asyncio.create_task(cleanup_loop())
 
 def hash_password(password: str) -> str:
     salt = secrets.token_hex(16)
@@ -300,9 +321,61 @@ async def get_user(user_id: int):
     d["online"] = user_id in online_users
     return d
 
-@app.get("/api/online")
-async def get_online():
-    return {"users": list(online_users)}
+# ===== ИСТОРИИ =====
+@app.post("/api/stories/create")
+async def create_story(data: dict):
+    token = data.get("token")
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    text = (data.get("text") or "").strip()[:256]
+    file_data = data.get("file")
+    if not text and not file_data:
+        raise HTTPException(400, "Пустая история")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM stories WHERE user_id = $1", user["id"])
+        row = await conn.fetchrow(
+            "INSERT INTO stories (user_id, text, file) VALUES ($1, $2, $3) RETURNING id, expires_at",
+            user["id"], text or None, file_data)
+    return {"id": row["id"], "expires_at": row["expires_at"].isoformat()}
+
+@app.get("/api/stories/list")
+async def stories_list(token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM stories WHERE expires_at < NOW()")
+        rows = await conn.fetch("""
+            SELECT s.id, s.text, s.file, s.created_at, s.expires_at,
+                   u.id AS user_id, u.username, u.avatar, u.premium_tier
+            FROM stories s
+            JOIN users u ON u.id = s.user_id
+            WHERE s.user_id = $1
+               OR s.user_id IN (
+                   SELECT CASE WHEN from_user = $1 THEN to_user ELSE from_user END
+                   FROM friendships
+                   WHERE (from_user = $1 OR to_user = $1) AND status = 'accepted'
+               )
+            ORDER BY s.created_at DESC
+        """, user["id"])
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["created_at"] = d["created_at"].isoformat() if d.get("created_at") else None
+        d["expires_at"] = d["expires_at"].isoformat() if d.get("expires_at") else None
+        result.append(d)
+    return result
+
+@app.post("/api/stories/delete")
+async def delete_story(data: dict):
+    token = data.get("token")
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM stories WHERE user_id = $1", user["id"])
+    return {"ok": True}
 
 # ===== СЕРВЕРА =====
 @app.post("/api/servers/create")
@@ -769,7 +842,7 @@ async def ws_endpoint(websocket: WebSocket):
                         else:
                             reactions[emoji].append(user["username"])
                         await conn.execute("UPDATE messages SET reactions = $1 WHERE id = $2", json.dumps(reactions), message_id)
-                        await manager.broadcast({"type":"reaction_update","message_id":message_id,"emoji":emoji,"reactions":reactions})
+                        await manager.broadcast({"type":"reaction_update","message_id":message_id,"reactions":reactions})
             elif t == "delete_message":
                 message_id = data.get("message_id"); is_dm = data.get("is_dm")
                 p = await get_pool()
