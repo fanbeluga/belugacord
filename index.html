@@ -10,100 +10,32 @@
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; font-family:'Segoe UI','Inter',Helvetica,Arial,sans-serif; }
 
-/* ============================================
-   ПЕРЕМЕННЫЕ ТЕМ
-   ============================================ */
 :root {
-    --bg-desktop: #0a0a12;
-    --bg-window: rgba(20,15,35,0.85);
-    --bg-header: rgba(30,20,50,0.9);
-    --bg-sidebar: rgba(25,15,45,0.8);
-    --bg-chat: rgba(15,8,28,0.85);
-    --bg-taskbar: rgba(10,5,20,0.95);
-    --bg-input: rgba(35,20,60,0.7);
-    --accent: #d946ef;
-    --accent-2: #8b5cf6;
-    --accent-3: #22d3ee;
-    --gold: #ffd700;
-    --text: #e8e0ff;
-    --text-dim: #9d8fc4;
-    --text-mute: #6b5f8a;
-    --border: rgba(200,80,255,0.15);
-    --shadow: 0 20px 60px rgba(0,0,0,0.6);
-    --blur: blur(30px);
+    --bg-desktop: #0a0a12; --bg-window: rgba(20,15,35,0.85); --bg-header: rgba(30,20,50,0.9);
+    --bg-sidebar: rgba(25,15,45,0.8); --bg-chat: rgba(15,8,28,0.85); --bg-taskbar: rgba(10,5,20,0.95);
+    --bg-input: rgba(35,20,60,0.7); --accent: #d946ef; --accent-2: #8b5cf6; --accent-3: #22d3ee;
+    --gold: #ffd700; --text: #e8e0ff; --text-dim: #9d8fc4; --text-mute: #6b5f8a;
+    --border: rgba(200,80,255,0.15); --shadow: 0 20px 60px rgba(0,0,0,0.6); --blur: blur(30px);
 }
-
-/* ТЕМА DISCORD (виндовый вид) */
-body.theme-discord {
-    --bg-desktop: #1e1f22; --bg-window: rgba(49,51,56,0.92); --bg-header: rgba(30,31,34,0.98);
-    --bg-sidebar: #2b2d31; --bg-chat: #313338; --bg-taskbar: #1e1f22; --bg-input: #383a40;
-    --accent: #5865f2; --accent-2: #4752c4; --accent-3: #00a8fc;
-    --text: #dbdee1; --text-dim: #b5bac1; --text-mute: #80848e;
-    --border: rgba(0,0,0,0.3); --blur: none; --shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
-
-/* ТЕМА БЕЛАЯ */
-body.theme-white {
-    --bg-desktop: #ffffff; --bg-window: #ffffff; --bg-header: #ffffff; --bg-sidebar: #ffffff;
-    --bg-chat: #ffffff; --bg-taskbar: #ffffff; --bg-input: #f8f8f8;
-    --accent: #000000; --accent-2: #333333; --accent-3: #666666;
-    --text: #000000; --text-dim: #666666; --text-mute: #999999; --border: #e5e5e5;
-    --shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-/* ТЕМА КИБЕРПАНК */
-body.theme-cyber {
-    --bg-desktop: #0a0a1a; --bg-window: rgba(10,5,30,0.95); --bg-header: rgba(20,10,40,0.98);
-    --bg-sidebar: rgba(15,5,35,0.95); --bg-chat: rgba(5,0,20,0.95); --bg-taskbar: rgba(10,5,25,0.98);
-    --bg-input: rgba(20,10,40,0.9); --accent: #ffee00; --accent-2: #00ffff; --accent-3: #ff00ff;
-    --text: #ffee00; --text-dim: #00ffff; --text-mute: #aa00ff; --border: rgba(255,238,0,0.3);
-    --shadow: 0 0 40px rgba(255,238,0,0.3), 0 0 80px rgba(0,255,255,0.2);
-}
-
-/* ТЕМА РЕТРО 95 */
-body.theme-retro {
-    --bg-desktop: #008080; --bg-window: #c0c0c0; --bg-header: linear-gradient(90deg, #000080, #1084d0);
-    --bg-sidebar: #c0c0c0; --bg-chat: #ffffff; --bg-taskbar: #c0c0c0; --bg-input: #ffffff;
-    --accent: #000080; --accent-2: #1084d0; --accent-3: #008080;
-    --text: #000000; --text-dim: #404040; --text-mute: #808080; --border: #808080;
-    --shadow: 2px 2px 0 #000; --blur: none;
-}
+body.theme-discord { --bg-desktop: #1e1f22; --bg-window: rgba(49,51,56,0.92); --bg-header: rgba(30,31,34,0.98); --bg-sidebar: #2b2d31; --bg-chat: #313338; --bg-taskbar: #1e1f22; --bg-input: #383a40; --accent: #5865f2; --accent-2: #4752c4; --accent-3: #00a8fc; --text: #dbdee1; --text-dim: #b5bac1; --text-mute: #80848e; --border: rgba(0,0,0,0.3); --blur: none; --shadow: 0 8px 24px rgba(0,0,0,0.4); }
+body.theme-white { --bg-desktop: #ffffff; --bg-window: #ffffff; --bg-header: #ffffff; --bg-sidebar: #ffffff; --bg-chat: #ffffff; --bg-taskbar: #ffffff; --bg-input: #f8f8f8; --accent: #000000; --accent-2: #333333; --accent-3: #666666; --text: #000000; --text-dim: #666666; --text-mute: #999999; --border: #e5e5e5; --shadow: 0 2px 8px rgba(0,0,0,0.06); }
+body.theme-cyber { --bg-desktop: #0a0a1a; --bg-window: rgba(10,5,30,0.95); --bg-header: rgba(20,10,40,0.98); --bg-sidebar: rgba(15,5,35,0.95); --bg-chat: rgba(5,0,20,0.95); --bg-taskbar: rgba(10,5,25,0.98); --bg-input: rgba(20,10,40,0.9); --accent: #ffee00; --accent-2: #00ffff; --accent-3: #ff00ff; --text: #ffee00; --text-dim: #00ffff; --text-mute: #aa00ff; --border: rgba(255,238,0,0.3); --shadow: 0 0 40px rgba(255,238,0,0.3), 0 0 80px rgba(0,255,255,0.2); }
+body.theme-retro { --bg-desktop: #008080; --bg-window: #c0c0c0; --bg-header: linear-gradient(90deg, #000080, #1084d0); --bg-sidebar: #c0c0c0; --bg-chat: #ffffff; --bg-taskbar: #c0c0c0; --bg-input: #ffffff; --accent: #000080; --accent-2: #1084d0; --accent-3: #008080; --text: #000000; --text-dim: #404040; --text-mute: #808080; --border: #808080; --shadow: 2px 2px 0 #000; --blur: none; }
 body.theme-retro * { border-radius:0 !important; font-family:'MS Sans Serif','Tahoma',sans-serif !important; }
-
-/* ТЕМА CS 1.6 */
-body.theme-cs16 {
-    --bg-desktop: #2a2a2a; --bg-window: #3d3d3d; --bg-header: #4a4a4a; --bg-sidebar: #333333;
-    --bg-chat: #2e2e2e; --bg-taskbar: #1f1f1f; --bg-input: #4a4a4a;
-    --accent: #ff9500; --accent-2: #e67e00; --accent-3: #ffcc00;
-    --text: #e0e0e0; --text-dim: #a0a0a0; --text-mute: #707070; --border: #5a5a5a;
-    --shadow: 0 4px 12px rgba(0,0,0,0.6);
-}
-
-/* ТЕМА MINECRAFT */
-body.theme-minecraft {
-    --bg-desktop: #1a2a1a; --bg-window: #2d3d2d; --bg-header: #3a4a3a; --bg-sidebar: #243024;
-    --bg-chat: #1f2a1f; --bg-taskbar: #151f15; --bg-input: #3a4a3a;
-    --accent: #7cb342; --accent-2: #558b2f; --accent-3: #aed581;
-    --text: #e8f5e9; --text-dim: #a5d6a7; --text-mute: #81c784; --border: #4a5a4a;
-    --shadow: 4px 4px 0 rgba(0,0,0,0.8);
-}
+body.theme-cs16 { --bg-desktop: #2a2a2a; --bg-window: #3d3d3d; --bg-header: #4a4a4a; --bg-sidebar: #333333; --bg-chat: #2e2e2e; --bg-taskbar: #1f1f1f; --bg-input: #4a4a4a; --accent: #ff9500; --accent-2: #e67e00; --accent-3: #ffcc00; --text: #e0e0e0; --text-dim: #a0a0a0; --text-mute: #707070; --border: #5a5a5a; --shadow: 0 4px 12px rgba(0,0,0,0.6); }
+body.theme-minecraft { --bg-desktop: #1a2a1a; --bg-window: #2d3d2d; --bg-header: #3a4a3a; --bg-sidebar: #243024; --bg-chat: #1f2a1f; --bg-taskbar: #151f15; --bg-input: #3a4a3a; --accent: #7cb342; --accent-2: #558b2f; --accent-3: #aed581; --text: #e8f5e9; --text-dim: #a5d6a7; --text-mute: #81c784; --border: #4a5a4a; --shadow: 4px 4px 0 rgba(0,0,0,0.8); }
 body.theme-minecraft * { border-radius: 0 !important; font-family: 'Courier New', monospace !important; }
 
-/* BODY */
 body { background: var(--bg-desktop); color: var(--text); height: 100vh; transition: background 0.4s, color 0.4s; position: relative; overflow: hidden; }
 body::before { content:''; position:fixed; inset:0; background: radial-gradient(ellipse at 20% 10%, rgba(217,70,239,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.1) 0%, transparent 50%); pointer-events:none; z-index:0; }
 body.theme-white::before, body.theme-retro::before, body.theme-discord::before, body.theme-cs16::before, body.theme-minecraft::before { display:none; }
 
-/* ============================================
-   ОКНО (Windows стиль)
-   ============================================ */
 .win-window { position: absolute; background: var(--bg-window); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; overflow: hidden; z-index: 10; min-width: 400px; min-height: 300px; }
 .win-window.maximized { top:0 !important; left:0 !important; right:0 !important; bottom:48px !important; width:auto !important; height:auto !important; border-radius:0; }
 body.theme-retro .win-window { border: 3px outset #c0c0c0; }
 body.theme-cs16 .win-window { border: 2px solid var(--accent); }
 body.theme-minecraft .win-window { border: 4px solid #151f15; }
 body.theme-cyber .win-window { border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(255,238,0,0.5); }
-
 .win-titlebar { height: 38px; background: var(--bg-header); display: flex; align-items: center; padding: 0 8px 0 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 10px; user-select: none; cursor: move; }
 body.theme-retro .win-titlebar { padding:0 4px; height:26px; }
 body.theme-retro .win-titlebar .win-title { color:white; font-weight:bold; }
@@ -115,16 +47,12 @@ body.theme-retro .win-titlebar .win-title { color:white; font-weight:bold; }
 body.theme-retro .win-btn { width:20px; height:20px; border:1px outset #c0c0c0; background:#c0c0c0; font-size:11px; font-weight:bold; color:#000; }
 .win-body { flex: 1; display: flex; min-height: 0; overflow: hidden; }
 
-/* ============================================
-   РАБОЧИЙ СТОЛ (иконки слева)
-   ============================================ */
 .desktop { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border); padding: 16px 12px; overflow-y: auto; flex-shrink: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; align-content: start; }
 body.theme-retro .desktop { background:#008080; }
 body.theme-white .desktop { background:#fff; }
 body.theme-discord .desktop { background:#2b2d31; }
 body.theme-cs16 .desktop { background:#333; }
 body.theme-minecraft .desktop { background:#243024; }
-
 .desktop-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; padding: 8px 4px; border-radius: 8px; user-select: none; text-align: center; transition: all 0.2s; }
 .desktop-icon:hover { background: rgba(217,70,239,0.12); transform: translateY(-2px); }
 .desktop-icon:active { transform: translateY(0) scale(0.96); }
@@ -138,16 +66,12 @@ body.theme-minecraft .desktop-icon .d-icon { border:2px solid #151f15; box-shado
 body.theme-retro .desktop-icon .d-label { color:white; text-shadow:1px 1px 0 #000; }
 body.theme-white .desktop-icon .d-label { color:#000; }
 
-/* ============================================
-   СПИСОК ЧАТОВ (средняя колонка)
-   ============================================ */
 .chat-list { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
 .chat-list-header { height: 46px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; font-weight: 700; font-size: 13px; color: var(--text); }
 .chat-list-search { padding: 8px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .chat-list-search input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; font-family: inherit; }
 .chat-list-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217,70,239,0.15); }
 .chat-list-body { flex: 1; overflow-y: auto; padding: 8px; }
-
 .chat-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; margin-bottom: 3px; position: relative; transition: all 0.2s; }
 .chat-item:hover { background: rgba(217,70,239,0.1); transform: translateX(2px); }
 .chat-item.active { background: linear-gradient(90deg, rgba(217,70,239,0.25), rgba(139,92,246,0.1)); border-left: 3px solid var(--accent); }
@@ -159,7 +83,6 @@ body.theme-white .chat-item.active { background:#f0f0f0; border-left:none; }
 body.theme-discord .chat-item.active { background:#404249; border-left:none; }
 body.theme-cs16 .chat-item.active { background:#4a4a4a; border-left:3px solid #ff9500; }
 body.theme-minecraft .chat-item.active { background:#3a4a3a; border-left:3px solid #7cb342; }
-
 .chat-item .avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 15px; overflow: hidden; position: relative; }
 .chat-item .avatar img { width: 100%; height: 100%; object-fit: cover; }
 body.theme-retro .chat-item .avatar { border:2px outset #c0c0c0; border-radius:0; }
@@ -172,14 +95,10 @@ body.theme-minecraft .chat-item .avatar { border:2px solid #151f15; }
 .chat-item-time { color: var(--text-mute); font-size: 10px; flex-shrink: 0; }
 .chat-item .unread-badge { position: absolute; top: 5px; right: 7px; background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; font-size: 10px; font-weight: 800; border-radius: 12px; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; padding: 0 5px; box-shadow: 0 0 12px rgba(244,63,94,0.6); }
 
-/* ============================================
-   ОКНО ЧАТА (правая колонка)
-   ============================================ */
 .chat-window { flex: 1; background: var(--bg-chat); display: flex; flex-direction: column; min-width: 0; }
 .chat-window-header { height: 46px; padding: 0 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .chat-window-title { font-weight: 700; font-size: 14px; color: var(--text); flex: 1; display: flex; align-items: center; gap: 6px; }
 .chat-window-messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
-
 .msg-row { display: flex; gap: 10px; padding: 5px 8px; border-radius: 10px; position: relative; transition: background 0.2s; }
 .msg-row:hover { background: rgba(217,70,239,0.05); }
 body.theme-retro .msg-row { border-radius:0; padding:2px 4px; }
@@ -214,9 +133,6 @@ body.theme-white .chat-window-input-box { border:1.5px solid #000; background:#f
 .file-btn:hover { background: rgba(217,70,239,0.15); color: var(--accent-3); }
 body.theme-retro .file-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; padding:1px 4px; font-size:14px; }
 
-/* ============================================
-   ПАНЕЛЬ ЗАДАЧ
-   ============================================ */
 .taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 48px; background: var(--bg-taskbar); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 6px; z-index: 100; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
 body.theme-retro .taskbar { background:#c0c0c0; border-top:2px outset #c0c0c0; height:32px; padding:0 4px; }
 body.theme-white .taskbar { border-top:1.5px solid #000; background:#fff; }
@@ -235,9 +151,6 @@ body.theme-discord .tb-btn.active { background:#5865f2; }
 body.theme-retro .tb-clock { border:2px inset #c0c0c0; padding:0 6px; font-size:11px; height:24px; }
 body.theme-white .tb-clock { border:1.5px solid #000; }
 
-/* ============================================
-   ПУСК-МЕНЮ
-   ============================================ */
 .start-menu { position: fixed; bottom: 58px; left: 12px; width: 360px; max-width: 90vw; background: var(--bg-window); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); padding: 14px; display: none; flex-direction: column; gap: 6px; z-index: 200; opacity: 0; transform: scale(0.95) translateY(10px); transition: all 0.25s; }
 .start-menu.open { display: flex; opacity: 1; transform: scale(1) translateY(0); }
 body.theme-retro .start-menu { border:3px outset #c0c0c0; background:#c0c0c0; }
@@ -251,9 +164,6 @@ body.theme-retro .start-menu-item:hover { background:#000080; color:white; trans
 body.theme-retro .start-menu-item .sm-icon { border:2px outset #c0c0c0; background:#c0c0c0; }
 body.theme-white .start-menu-item .sm-icon { background:transparent; border:1.5px solid #000; }
 
-/* ============================================
-   МОДАЛКИ (общий стиль)
-   ============================================ */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,0,15,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 1500; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
 .modal-overlay.open { display: flex; }
 .modal { background: var(--bg-window); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: var(--shadow); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); animation: modalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -265,9 +175,6 @@ body.theme-discord .modal { background:#313338; }
 .close-btn:hover { background: rgba(244,63,94,0.7); }
 body.theme-retro .close-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; }
 
-/* ============================================
-   ЛОГИН
-   ============================================ */
 .win-login { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
 .win-login::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(15,5,32,0.85), rgba(45,10,80,0.85)); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); }
 body.theme-white .win-login::before { background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,240,240,0.9)); }
@@ -308,266 +215,49 @@ body.theme-white .win-login-footer { color: #666; }
 body.theme-retro .win-login-footer { color: white; }
 .win-login-footer span { cursor: pointer; }
 .win-login-footer span:hover { transform: scale(1.2); color: white; }
-</style>
-/* ============================================
-   МАГАЗИН БЕКОИНОВ
-   ============================================ */
-.shop-header {
-    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(217,70,239,0.1));
-    border: 1px solid rgba(255,215,0,0.4);
-    border-radius: 14px;
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 16px;
-}
-.shop-header-balance {
-    font-size: 42px;
-    font-weight: 900;
-    color: var(--gold);
-    text-shadow: 0 0 20px rgba(255,215,0,0.5);
-    line-height: 1;
-}
-.shop-header-label {
-    color: var(--text-mute);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 6px;
-}
-.shop-header-name {
-    color: var(--text);
-    font-weight: 800;
-    font-size: 15px;
-    margin-bottom: 10px;
-}
 
-.shop-section-title {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--text-mute);
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    margin: 20px 0 10px;
-    text-align: left;
-}
-
-.shop-tile {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-}
-.shop-tile:hover {
-    border-color: var(--gold);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(255,215,0,0.3);
-}
+.shop-header { background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(217,70,239,0.1)); border: 1px solid rgba(255,215,0,0.4); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 16px; }
+.shop-header-balance { font-size: 42px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(255,215,0,0.5); line-height: 1; }
+.shop-header-label { color: var(--text-mute); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
+.shop-header-name { color: var(--text); font-weight: 800; font-size: 15px; margin-bottom: 10px; }
+.shop-section-title { font-size: 11px; text-transform: uppercase; color: var(--text-mute); font-weight: 800; letter-spacing: 1.5px; margin: 20px 0 10px; text-align: left; }
+.shop-tile { background: var(--bg-input); border: 1px solid var(--border); border-radius: 14px; padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+.shop-tile:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(255,215,0,0.3); }
 .shop-tile:active { transform: translateY(0) scale(0.97); }
-.shop-tile .st-icon {
-    font-size: 38px;
-    margin-bottom: 10px;
-    display: block;
-    filter: drop-shadow(0 0 12px rgba(255,215,0,0.5));
-}
-.shop-tile .st-name {
-    color: var(--text);
-    font-weight: 800;
-    font-size: 14px;
-    margin-bottom: 6px;
-}
-.shop-tile .st-price {
-    color: var(--gold);
-    font-weight: 900;
-    font-size: 16px;
-    margin-bottom: 10px;
-}
-.shop-tile .st-btn {
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #1a0a2e;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 800;
-    font-size: 12px;
-    cursor: pointer;
-    width: 100%;
-    font-family: inherit;
-}
+.shop-tile .st-icon { font-size: 38px; margin-bottom: 10px; display: block; filter: drop-shadow(0 0 12px rgba(255,215,0,0.5)); }
+.shop-tile .st-name { color: var(--text); font-weight: 800; font-size: 14px; margin-bottom: 6px; }
+.shop-tile .st-price { color: var(--gold); font-weight: 900; font-size: 16px; margin-bottom: 10px; }
+.shop-tile .st-btn { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a0a2e; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; width: 100%; font-family: inherit; }
 body.theme-retro .shop-tile { border:2px outset #c0c0c0; border-radius:0; }
 body.theme-retro .shop-tile .st-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; }
 body.theme-minecraft .shop-tile { border-radius:0; border:2px solid #151f15; }
 body.theme-minecraft .shop-tile .st-btn { border-radius:0; }
-
-/* Своё количество */
-.shop-custom {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-.shop-custom input {
-    flex: 1;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-    font-family: inherit;
-}
+.shop-custom { display: flex; gap: 8px; margin-top: 10px; }
+.shop-custom input { flex: 1; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: var(--text); font-size: 14px; outline: none; font-family: inherit; }
 .shop-custom input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,215,0,0.15); }
-.shop-custom button {
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #1a0a2e;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 10px;
-    font-weight: 800;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-    white-space: nowrap;
-}
-
-/* Уведомление магазина (плашка) */
-.shop-notice {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100px);
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    padding: 14px 24px;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 14px;
-    box-shadow: 0 8px 32px rgba(34,197,94,0.5);
-    z-index: 9999;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    max-width: 90vw;
-}
+.shop-custom button { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a0a2e; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.shop-notice { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 14px 24px; border-radius: 14px; font-weight: 700; font-size: 14px; box-shadow: 0 8px 32px rgba(34,197,94,0.5); z-index: 9999; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; gap: 10px; max-width: 90vw; }
 .shop-notice.show { transform: translateX(-50%) translateY(20px); }
 .shop-notice.error { background: linear-gradient(135deg, #f43f5e, #ec4899); }
 .shop-notice.warn { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a0a2e; }
 
-/* ============================================
-   ПЛАШКА "БЕТА ТЕСТЕР"
-   ============================================ */
-.badge-beta {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    box-shadow: 0 0 10px rgba(34,197,94,0.5);
-    letter-spacing: 0.5px;
-    vertical-align: middle;
-}
+.badge-beta { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; box-shadow: 0 0 10px rgba(34,197,94,0.5); letter-spacing: 0.5px; vertical-align: middle; }
 .badge-beta::before { content: '🧪'; font-size: 11px; }
 body.theme-retro .badge-beta { border-radius:0; }
-
-.badge-admin {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #d946ef, #8b5cf6);
-    color: white;
-    box-shadow: 0 0 10px rgba(217,70,239,0.5);
-}
+.badge-admin { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; background: linear-gradient(135deg, #d946ef, #8b5cf6); color: white; box-shadow: 0 0 10px rgba(217,70,239,0.5); }
 .badge-admin::before { content: '🛡️'; font-size: 11px; }
-
-.badge-mod {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #22d3ee, #06b6d4);
-    color: #0f0520;
-    box-shadow: 0 0 10px rgba(34,211,238,0.5);
-}
+.badge-mod { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0f0520; box-shadow: 0 0 10px rgba(34,211,238,0.5); }
 .badge-mod::before { content: '🔧'; font-size: 11px; }
 
-/* ============================================
-   ЗАЯВКИ В АДМИНКЕ
-   ============================================ */
-.shop-request-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    background: var(--bg-input);
-    border: 1px solid rgba(255,215,0,0.3);
-    flex-wrap: wrap;
-}
-.shop-request-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 800;
-    font-size: 16px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
+.shop-request-row { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; margin-bottom: 8px; background: var(--bg-input); border: 1px solid rgba(255,215,0,0.3); flex-wrap: wrap; }
+.shop-request-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 16px; overflow: hidden; flex-shrink: 0; }
 .shop-request-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.shop-request-name {
-    color: var(--text);
-    font-weight: 800;
-    font-size: 14px;
-    min-width: 100px;
-}
-.shop-request-amount {
-    color: var(--gold);
-    font-weight: 900;
-    font-size: 16px;
-    flex: 1;
-}
+.shop-request-name { color: var(--text); font-weight: 800; font-size: 14px; min-width: 100px; }
+.shop-request-amount { color: var(--gold); font-weight: 900; font-size: 16px; flex: 1; }
 .shop-request-amount::before { content: '🏅 '; }
-.shop-request-time {
-    color: var(--text-mute);
-    font-size: 11px;
-}
+.shop-request-time { color: var(--text-mute); font-size: 11px; }
 
-/* ============================================
-   ПОСХАЛКА — ПРЫГАЮЩИЙ КОТ
-   ============================================ */
-.cat-jump {
-    position: fixed;
-    bottom: -150px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 120px;
-    z-index: 10000;
-    pointer-events: none;
-    animation: catJump 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    filter: drop-shadow(0 0 40px rgba(217,70,239,1));
-}
+.cat-jump { position: fixed; bottom: -150px; left: 50%; transform: translateX(-50%); font-size: 120px; z-index: 10000; pointer-events: none; animation: catJump 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; filter: drop-shadow(0 0 40px rgba(217,70,239,1)); }
 @keyframes catJump {
     0% { bottom: -150px; transform: translateX(-50%) scale(0.5) rotate(0deg); }
     40% { bottom: 40vh; transform: translateX(-50%) scale(1.3) rotate(-10deg); }
@@ -575,83 +265,19 @@ body.theme-retro .badge-beta { border-radius:0; }
     80% { bottom: 40vh; transform: translateX(-50%) scale(1.2) rotate(-5deg); }
     100% { bottom: -150px; transform: translateX(-50%) scale(0.5) rotate(0deg); }
 }
-.whale-swim {
-    position: fixed;
-    left: -200px;
-    top: 50%;
-    font-size: 100px;
-    z-index: 10000;
-    pointer-events: none;
-    animation: whaleSwim 3s ease-in-out forwards;
-    filter: drop-shadow(0 0 30px rgba(34,211,238,0.8));
-}
+.whale-swim { position: fixed; left: -200px; top: 50%; font-size: 100px; z-index: 10000; pointer-events: none; animation: whaleSwim 3s ease-in-out forwards; filter: drop-shadow(0 0 30px rgba(34,211,238,0.8)); }
 @keyframes whaleSwim {
     0% { left: -200px; transform: translateY(-50%) scaleX(1); }
     50% { left: 50%; transform: translateY(-50%) translateX(-50%) scaleX(1); }
     100% { left: 110%; transform: translateY(-50%) scaleX(1); }
 }
 
-/* ============================================
-   ПРОЧЕЕ (профиль, баннер, аватар)
-   ============================================ */
-.banner {
-    height: 140px;
-    background: linear-gradient(135deg, #d946ef, #8b5cf6, #22d3ee);
-    position: relative;
-    overflow: hidden;
-    cursor: grab;
-    border-radius: 16px 16px 0 0;
-}
+.banner { height: 140px; background: linear-gradient(135deg, #d946ef, #8b5cf6, #22d3ee); position: relative; overflow: hidden; cursor: grab; border-radius: 16px 16px 0 0; }
 .banner img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; }
-.banner-edit {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: 1px solid rgba(217,70,239,0.5);
-    padding: 7px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 700;
-}
-.profile-avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #d946ef, #8b5cf6);
-    border: 4px solid var(--bg-window);
-    position: absolute;
-    top: 90px;
-    left: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    font-weight: 800;
-    color: white;
-    overflow: hidden;
-    cursor: grab;
-    box-shadow: 0 0 30px rgba(217,70,239,0.5);
-}
+.banner-edit { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: 1px solid rgba(217,70,239,0.5); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; }
+.profile-avatar { width: 90px; height: 90px; border-radius: 16px; background: linear-gradient(135deg, #d946ef, #8b5cf6); border: 4px solid var(--bg-window); position: absolute; top: 90px; left: 22px; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 800; color: white; overflow: hidden; cursor: grab; box-shadow: 0 0 30px rgba(217,70,239,0.5); }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; }
-
-.save-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 14px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: white;
-    box-shadow: 0 8px 20px rgba(217,70,239,0.35);
-    font-family: inherit;
-    transition: transform 0.2s;
-}
+.save-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; box-shadow: 0 8px 20px rgba(217,70,239,0.35); font-family: inherit; transition: transform 0.2s; }
 .save-btn:active { transform: scale(0.97); }
 .save-btn.green { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0f0520; }
 .save-btn.red { background: linear-gradient(135deg, #f43f5e, #ec4899); }
@@ -659,127 +285,39 @@ body.theme-retro .badge-beta { border-radius:0; }
 .save-btn.gray { background: var(--bg-input); color: var(--text); box-shadow:none; }
 body.theme-retro .save-btn { border:2px outset #c0c0c0; background:#c0c0c0; color:#000; box-shadow:none; }
 body.theme-minecraft .save-btn { border:2px solid #151f15; box-shadow:2px 2px 0 rgba(0,0,0,0.8); }
-
-.settings-tab {
-    padding: 12px 18px;
-    border-radius: 10px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 13px;
-    margin-bottom: 6px;
-    width: 100%;
-    text-align: left;
-    font-family: inherit;
-    transition: all 0.2s;
-}
-.settings-tab.active {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: white;
-    border-color: transparent;
-}
-
-.admin-tab {
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 800;
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
-    font-family: inherit;
-    transition: all 0.2s;
-}
-.admin-tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-}
-
+.settings-tab { padding: 12px 18px; border-radius: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; font-weight: 700; font-size: 13px; margin-bottom: 6px; width: 100%; text-align: left; font-family: inherit; transition: all 0.2s; }
+.settings-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border-color: transparent; }
+.admin-tab { padding: 10px 16px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; font-weight: 800; border-bottom: 3px solid transparent; white-space: nowrap; font-family: inherit; transition: all 0.2s; }
+.admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .typing-indicator { padding: 4px 20px; height: 22px; font-size: 12px; color: var(--text-mute); font-style: italic; }
 
-/* ============================================
-   СКРОЛЛ
-   ============================================ */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius: 4px; }
 body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px outset #c0c0c0; }
 
-/* ============================================
-   АДАПТИВ
-   ============================================ */
 .mobile-tabs { display: none; }
-
-@media (max-width: 1200px) {
-    .desktop { width: 200px; padding: 14px 10px; }
-    .chat-list { width: 240px; }
-}
-
-@media (max-width: 900px) {
-    .desktop { width: 180px; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
-    .chat-list { width: 220px; }
-    .desktop-icon .d-icon { width: 40px; height: 40px; font-size: 22px; }
-}
-
+@media (max-width: 1200px) { .desktop { width: 200px; padding: 14px 10px; } .chat-list { width: 240px; } }
+@media (max-width: 900px) { .desktop { width: 180px; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; } .chat-list { width: 220px; } .desktop-icon .d-icon { width: 40px; height: 40px; font-size: 22px; } }
 @media (max-width: 768px) {
     body { display: block; padding: 0; }
-    .win-window {
-        position: fixed !important;
-        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 52px !important;
-        width: auto !important; height: auto !important;
-        min-width: 0; min-height: 0;
-        border-radius: 0; border: none;
-    }
+    .win-window { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 52px !important; width: auto !important; height: auto !important; min-width: 0; min-height: 0; border-radius: 0; border: none; }
     .win-window.maximized { bottom: 52px !important; }
     .win-titlebar { height: 36px; padding: 0 8px 0 14px; }
     .win-btn { width: 36px; height: 28px; font-size: 13px; }
     .win-body { flex-direction: column; position: relative; }
-
-    .mobile-tabs {
-        display: flex;
-        gap: 4px;
-        padding: 6px 8px 0;
-        background: var(--bg-header);
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-    }
-    .mobile-tab {
-        flex: 1;
-        padding: 9px;
-        background: transparent;
-        border: none;
-        color: var(--text-dim);
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 700;
-        border-radius: 8px;
-        font-family: inherit;
-    }
+    .mobile-tabs { display: flex; gap: 4px; padding: 6px 8px 0; background: var(--bg-header); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .mobile-tab { flex: 1; padding: 9px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; font-weight: 700; border-radius: 8px; font-family: inherit; }
     .mobile-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
     body.theme-retro .mobile-tab { border:2px outset #c0c0c0; padding:4px; font-size:11px; }
     body.theme-retro .mobile-tab.active { border-style:inset; background:#e0e0e0; color:#000; }
-
-    .desktop, .chat-list, .chat-window {
-        position: absolute;
-        inset: 0;
-        width: 100% !important;
-        border-right: none;
-        display: none;
-        padding: 14px;
-    }
-    .desktop.mobile-active,
-    .chat-list.mobile-active,
-    .chat-window.mobile-active { display: flex; }
+    .desktop, .chat-list, .chat-window { position: absolute; inset: 0; width: 100% !important; border-right: none; display: none; padding: 14px; }
+    .desktop.mobile-active, .chat-list.mobile-active, .chat-window.mobile-active { display: flex; }
     .desktop { grid-template-columns: repeat(4, 1fr); gap: 12px 8px; }
     .chat-list-body { padding: 6px; }
     .chat-item { padding: 10px; }
     .chat-window-messages { padding: 12px; }
     .chat-window-input-area { padding: 8px 12px 12px; }
-
     .taskbar { height: 52px; padding: 0 6px; gap: 3px; overflow-x: auto; }
     .tb-btn { height: 40px; padding: 0 10px; font-size: 12px; flex-shrink: 0; }
     .tb-btn .tb-label { display: none; }
@@ -787,25 +325,18 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     .tb-start .tb-label { display: inline !important; }
     .tb-clock { padding: 0 8px; font-size: 11px; }
     .tb-clock .tb-clock-date { display: none; }
-
     .start-menu { bottom: 62px; left: 8px; right: 8px; width: auto; max-width: none; }
-
     .win-login-time { font-size: 52px; }
     .win-login-clock { top: 40px; left: 30px; }
     .win-login-avatar { width: 100px; height: 100px; font-size: 50px; }
     .win-login-form { width: 88vw; }
     .win-login-footer { bottom: 20px; right: 20px; gap: 14px; }
 }
-@media (max-width: 480px) {
-    .desktop { grid-template-columns: repeat(3, 1fr); }
-    .win-login-time { font-size: 42px; }
-}
+@media (max-width: 480px) { .desktop { grid-template-columns: repeat(3, 1fr); } .win-login-time { font-size: 42px; } }
+</style>
 </head>
 <body>
 
-<!-- ============================================
-     ЭКРАН ВХОДА
-     ============================================ -->
 <div class="win-login" id="authScreen">
     <div class="win-login-clock">
         <div class="win-login-time" id="loginTime">00:00</div>
@@ -828,104 +359,51 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
         </div>
     </div>
     <div class="win-login-footer">
-        <span title="Питание">⏻</span>
-        <span title="Язык">RU</span>
-        <span title="Спец. возможности">♿</span>
+        <span>⏻</span><span>RU</span><span>♿</span>
     </div>
 </div>
 
-<!-- ============================================
-     ОСНОВНОЙ ИНТЕРФЕЙС
-     ============================================ -->
 <div id="app" style="display:none;">
-
-<!-- ОКНО -->
 <div class="win-window" id="mainWindow" style="top:30px;left:30px;width:1100px;height:calc(100vh - 110px);">
     <div class="win-titlebar" id="mainTitlebar">
-        <div class="win-title">
-            <span class="win-icon">🐱</span>
-            <span id="mainWindowTitle">Belugacord — Beta 0.5</span>
-        </div>
+        <div class="win-title"><span class="win-icon">🐱</span><span id="mainWindowTitle">Belugacord — Beta 0.5</span></div>
         <div class="win-controls">
-            <button class="win-btn" title="Свернуть">─</button>
-            <button class="win-btn" title="Развернуть" onclick="toggleMaximize('mainWindow')">□</button>
-            <button class="win-btn close" title="Закрыть" onclick="logout()">✕</button>
+            <button class="win-btn">─</button>
+            <button class="win-btn" onclick="toggleMaximize('mainWindow')">□</button>
+            <button class="win-btn close" onclick="logout()">✕</button>
         </div>
     </div>
-
-    <!-- МОБИЛЬНЫЕ ТАБЫ -->
     <div class="mobile-tabs" id="mobileTabs">
         <button class="mobile-tab active" onclick="mobileShow('desktop')">🖥️ Стол</button>
         <button class="mobile-tab" onclick="mobileShow('chats')">💬 Чаты</button>
         <button class="mobile-tab" onclick="mobileShow('chat')">📨 Чат</button>
     </div>
-
     <div class="win-body">
-
-        <!-- КОЛОНКА 1: РАБОЧИЙ СТОЛ -->
         <div class="desktop mobile-active" id="desktopCol">
-            <div class="desktop-icon" onclick="showFriends()">
-                <div class="d-icon">👥</div>
-                <div class="d-label">Друзья</div>
-            </div>
-            <div class="desktop-icon" onclick="openCreateMenu()">
-                <div class="d-icon">➕</div>
-                <div class="d-label">Создать</div>
-            </div>
-            <div class="desktop-icon" onclick="openJoinServer()">
-                <div class="d-icon">🔗</div>
-                <div class="d-label">Войти</div>
-            </div>
-            <div class="desktop-icon" onclick="showVote()">
-                <div class="d-icon">🗳️</div>
-                <div class="d-label">Голосование</div>
-            </div>
-            <div class="desktop-icon" onclick="openGamesMenu()">
-                <div class="d-icon">🎮</div>
-                <div class="d-label">Игры</div>
-            </div>
-            <div class="desktop-icon" onclick="openShop()">
-                <div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛒</div>
-                <div class="d-label">Магазин</div>
-            </div>
-            <div class="desktop-icon" onclick="openLeaders()">
-                <div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#d946ef);">🏆</div>
-                <div class="d-label">Топ</div>
-            </div>
-            <div class="desktop-icon" onclick="openSettings()">
-                <div class="d-icon">⚙️</div>
-                <div class="d-label">Настройки</div>
-            </div>
-            <div class="desktop-icon" onclick="openAdminLogin()" id="adminDeskIcon" style="display:none;">
-                <div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div>
-                <div class="d-label">Админка</div>
-            </div>
+            <div class="desktop-icon" onclick="showFriends()"><div class="d-icon">👥</div><div class="d-label">Друзья</div></div>
+            <div class="desktop-icon" onclick="openCreateMenu()"><div class="d-icon">➕</div><div class="d-label">Создать</div></div>
+            <div class="desktop-icon" onclick="openJoinServer()"><div class="d-icon">🔗</div><div class="d-label">Войти</div></div>
+            <div class="desktop-icon" onclick="showVote()"><div class="d-icon">🗳️</div><div class="d-label">Голосование</div></div>
+            <div class="desktop-icon" onclick="openGamesMenu()"><div class="d-icon">🎮</div><div class="d-label">Игры</div></div>
+            <div class="desktop-icon" onclick="openShop()"><div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛒</div><div class="d-label">Магазин</div></div>
+            <div class="desktop-icon" onclick="openLeaders()"><div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#d946ef);">🏆</div><div class="d-label">Топ</div></div>
+            <div class="desktop-icon" onclick="openSettings()"><div class="d-icon">⚙️</div><div class="d-label">Настройки</div></div>
+            <div class="desktop-icon" onclick="openAdminLogin()" id="adminDeskIcon" style="display:none;"><div class="d-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div><div class="d-label">Админка</div></div>
             <div id="serverList" style="display:contents;"></div>
         </div>
-
-        <!-- КОЛОНКА 2: СПИСОК ЧАТОВ -->
         <div class="chat-list" id="chatListCol">
-            <div class="chat-list-header">
-                <span id="chatListTitle">💬 Чаты</span>
-                <span style="cursor:pointer;font-size:18px;" onclick="openSearch()">🔍</span>
-            </div>
-            <div class="chat-list-search">
-                <input type="text" id="chatListSearchInput" placeholder="Поиск по чатам..." oninput="filterChatList(this.value)">
-            </div>
-            <div class="chat-list-body" id="chatListBody">
-                <div style="padding:20px;text-align:center;color:var(--text-mute);font-size:13px;">Пока нет чатов</div>
-            </div>
+            <div class="chat-list-header"><span>💬 Чаты</span><span style="cursor:pointer;font-size:18px;" onclick="openSearch()">🔍</span></div>
+            <div class="chat-list-search"><input type="text" id="chatListSearchInput" placeholder="Поиск..." oninput="filterChatList(this.value)"></div>
+            <div class="chat-list-body" id="chatListBody"><div style="padding:20px;text-align:center;color:var(--text-mute);font-size:13px;">Пока нет чатов</div></div>
         </div>
-
-        <!-- КОЛОНКА 3: ОКНО ЧАТА -->
         <div class="chat-window mobile-active" id="chatWindowCol">
             <div class="chat-window-header">
                 <div id="chatWindowAvatar" style="width:32px;height:32px;font-size:13px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0;">#</div>
                 <div class="chat-window-title" id="chatWindowTitle">Выбери чат</div>
-                <button class="file-btn" id="chatSearchBtn" onclick="openSearch()" title="Поиск">🔍</button>
-                <button class="file-btn" onclick="exportChat()" title="Экспорт">💾</button>
-                <button class="file-btn" id="chatMembersBtn" onclick="openMembers()" title="Участники">👥</button>
-                <button class="file-btn" id="chatCallBtn" onclick="startCallDM()" title="Позвонить">📞</button>
+                <button class="file-btn" onclick="openSearch()">🔍</button>
+                <button class="file-btn" onclick="exportChat()">💾</button>
+                <button class="file-btn" id="chatMembersBtn" onclick="openMembers()">👥</button>
+                <button class="file-btn" id="chatCallBtn" onclick="startCallDM()">📞</button>
             </div>
             <div class="chat-window-messages" id="messagesBody">
                 <div style="text-align:center;color:var(--text-mute);padding:60px 20px;font-size:14px;">
@@ -936,8 +414,7 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
             <div class="typing-indicator" id="typingIndicator"></div>
             <div class="chat-window-input-area">
                 <div class="reply-box" id="replyBox" style="display:none;background:rgba(217,70,239,0.15);border-left:3px solid var(--accent);padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;color:var(--text-dim);justify-content:space-between;align-items:center;margin-bottom:-1px;">
-                    <span>Ответ <b id="replyToName"></b></span>
-                    <span style="cursor:pointer;" onclick="cancelReply()">✕</span>
+                    <span>Ответ <b id="replyToName"></b></span><span style="cursor:pointer;" onclick="cancelReply()">✕</span>
                 </div>
                 <div class="chat-window-input-box">
                     <label class="file-btn" for="fileInput">+</label>
@@ -950,71 +427,36 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     ПАНЕЛЬ ЗАДАЧ
-     ============================================ -->
 <div class="taskbar">
-    <button class="tb-btn tb-start" onclick="toggleStartMenu()">
-        <span class="tb-icon">⊞</span>
-        <span class="tb-label">Пуск</span>
-    </button>
+    <button class="tb-btn tb-start" onclick="toggleStartMenu()"><span class="tb-icon">⊞</span><span class="tb-label">Пуск</span></button>
     <div class="tb-spacer"></div>
-    <div class="tb-clock">
-        <span id="taskbarTime">00:00</span>
-        <span class="tb-clock-date" id="taskbarDate">01.01</span>
-    </div>
+    <div class="tb-clock"><span id="taskbarTime">00:00</span><span class="tb-clock-date" id="taskbarDate">01.01</span></div>
 </div>
 
-<!-- ПУСК-МЕНЮ -->
 <div class="start-menu" id="startMenu">
     <div class="start-menu-title">Профиль</div>
-    <div class="start-menu-item" onclick="openProfile(); toggleStartMenu();">
-        <div class="sm-icon">👤</div><div>Мой профиль</div>
-    </div>
-    <div class="start-menu-item" onclick="openSettings(); toggleStartMenu();">
-        <div class="sm-icon">⚙️</div><div>Настройки</div>
-    </div>
-    <div class="start-menu-item" onclick="openNickChange(); toggleStartMenu();">
-        <div class="sm-icon">✏️</div><div>Сменить ник</div>
-    </div>
+    <div class="start-menu-item" onclick="openProfile(); toggleStartMenu();"><div class="sm-icon">👤</div><div>Мой профиль</div></div>
+    <div class="start-menu-item" onclick="openSettings(); toggleStartMenu();"><div class="sm-icon">⚙️</div><div>Настройки</div></div>
+    <div class="start-menu-item" onclick="openNickChange(); toggleStartMenu();"><div class="sm-icon">✏️</div><div>Сменить ник</div></div>
     <div class="start-menu-title" style="margin-top:8px;">Развлечения</div>
-    <div class="start-menu-item" onclick="openGamesMenu(); toggleStartMenu();">
-        <div class="sm-icon">🎮</div><div>Игры</div>
-    </div>
-    <div class="start-menu-item" onclick="openShop(); toggleStartMenu();">
-        <div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛒</div><div>Магазин</div>
-    </div>
-    <div class="start-menu-item" onclick="openLeaders(); toggleStartMenu();">
-        <div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#d946ef);">🏆</div><div>Топ богачей</div>
-    </div>
-    <div class="start-menu-item" onclick="shareProfile(); toggleStartMenu();">
-        <div class="sm-icon">📤</div><div>Поделиться</div>
-    </div>
-    <div class="start-menu-item" id="adminStartItem" onclick="openAdminLogin(); toggleStartMenu();" style="display:none;">
-        <div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div><div>Админ-панель</div>
-    </div>
+    <div class="start-menu-item" onclick="openGamesMenu(); toggleStartMenu();"><div class="sm-icon">🎮</div><div>Игры</div></div>
+    <div class="start-menu-item" onclick="openShop(); toggleStartMenu();"><div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛒</div><div>Магазин</div></div>
+    <div class="start-menu-item" onclick="openLeaders(); toggleStartMenu();"><div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#d946ef);">🏆</div><div>Топ богачей</div></div>
+    <div class="start-menu-item" onclick="shareProfile(); toggleStartMenu();"><div class="sm-icon">📤</div><div>Поделиться</div></div>
+    <div class="start-menu-item" id="adminStartItem" onclick="openAdminLogin(); toggleStartMenu();" style="display:none;"><div class="sm-icon" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🛡️</div><div>Админ-панель</div></div>
     <div class="start-menu-title" style="margin-top:8px;">Система</div>
-    <div class="start-menu-item" onclick="logout()">
-        <div class="sm-icon" style="background:linear-gradient(135deg,#f43f5e,#ec4899);">⏻</div><div>Выйти из аккаунта</div>
-    </div>
+    <div class="start-menu-item" onclick="logout()"><div class="sm-icon" style="background:linear-gradient(135deg,#f43f5e,#ec4899);">⏻</div><div>Выйти</div></div>
+</div>
 </div>
 
-</div>
-<!-- конец #app -->
-
-<!-- ============================================
-     МОДАЛКА: ПРОФИЛЬ
-     ============================================ -->
 <div class="modal-overlay" id="profileModal">
     <div class="modal" style="max-width:560px;overflow:hidden;">
         <button class="close-btn" onclick="closeProfile()">✕</button>
-        <div class="banner" id="bannerPreview">
-            <button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить</button>
-        </div>
+        <div class="banner" id="bannerPreview"><button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить</button></div>
         <div class="profile-avatar" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">?</div>
         <div style="padding:60px 26px 26px;">
-            <h2 id="profileName" style="font-size:22px;margin-bottom:18px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Профиль</h2>
-            <p style="color:var(--text-mute);font-size:12px;margin-bottom:10px;">Перетаскивай аву и баннер пальцем/мышкой</p>
+            <h2 id="profileName" style="font-size:22px;margin-bottom:18px;">Профиль</h2>
+            <p style="color:var(--text-mute);font-size:12px;margin-bottom:10px;">Перетаскивай аву и баннер</p>
             <div id="premiumSettings"></div>
             <button class="save-btn green" onclick="saveProfile()">Сохранить</button>
             <button class="save-btn gray" onclick="openSettings()">⚙️ Настройки</button>
@@ -1025,9 +467,6 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: ЧУЖОЙ ПРОФИЛЬ
-     ============================================ -->
 <div class="modal-overlay" id="viewProfileModal">
     <div class="modal" style="max-width:520px;overflow:hidden;">
         <button class="close-btn" onclick="document.getElementById('viewProfileModal').classList.remove('open')">✕</button>
@@ -1042,14 +481,11 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: НАСТРОЙКИ
-     ============================================ -->
 <div class="modal-overlay" id="settingsModal">
     <div class="modal" style="max-width:520px;">
         <button class="close-btn" onclick="document.getElementById('settingsModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:20px;">⚙️ Настройки</h2>
+            <h2 style="text-align:center;font-size:22px;margin-bottom:20px;">⚙️ Настройки</h2>
             <button class="settings-tab active" onclick="showSettingsTab('theme',event)">🎨 Тема</button>
             <button class="settings-tab" onclick="showSettingsTab('interface',event)">🖥️ Интерфейс</button>
             <button class="settings-tab" onclick="showSettingsTab('notifications',event)">🔔 Уведомления</button>
@@ -1059,14 +495,11 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: СМЕНА НИКА
-     ============================================ -->
 <div class="modal-overlay" id="nickModal">
     <div class="modal" style="max-width:400px;">
         <button class="close-btn" onclick="document.getElementById('nickModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;margin-bottom:18px;">✏️ Сменить ник</h2>
+            <h2 style="text-align:center;font-size:20px;margin-bottom:18px;">✏️ Сменить ник</h2>
             <input type="text" id="newNickInput" maxlength="32" placeholder="Новый ник" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
             <div id="nickStatus" style="font-size:12px;margin-top:8px;min-height:16px;"></div>
             <button class="save-btn green" onclick="changeNick()">Сменить</button>
@@ -1074,47 +507,39 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: СОЗДАНИЕ (сервер/канал)
-     ============================================ -->
 <div class="modal-overlay" id="createMenuModal">
     <div class="modal" style="max-width:400px;">
         <button class="close-btn" onclick="document.getElementById('createMenuModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:20px;">➕ Создать</h2>
+            <h2 style="text-align:center;font-size:22px;margin-bottom:20px;">➕ Создать</h2>
             <div class="shop-tile" style="text-align:left;display:flex;gap:14px;align-items:center;margin-bottom:10px;" onclick="chooseCreate('server')">
                 <div class="d-icon" style="width:44px;height:44px;font-size:22px;flex-shrink:0;">🏠</div>
-                <div><div style="font-weight:800;font-size:14px;">Сервер</div><div style="font-size:12px;color:var(--text-mute);">Место для друзей и каналов</div></div>
+                <div><div style="font-weight:800;font-size:14px;">Сервер</div></div>
             </div>
             <div class="shop-tile" style="text-align:left;display:flex;gap:14px;align-items:center;margin-bottom:10px;" onclick="chooseCreate('channel')">
                 <div class="d-icon" style="width:44px;height:44px;font-size:22px;flex-shrink:0;background:linear-gradient(135deg,#22d3ee,#06b6d4);">💬</div>
-                <div><div style="font-weight:800;font-size:14px;">Канал</div><div style="font-size:12px;color:var(--text-mute);">Текстовый канал в сервере</div></div>
+                <div><div style="font-weight:800;font-size:14px;">Канал</div></div>
             </div>
             <div class="shop-tile" style="text-align:left;display:flex;gap:14px;align-items:center;" onclick="chooseCreate('voice')">
                 <div class="d-icon" style="width:44px;height:44px;font-size:22px;flex-shrink:0;background:linear-gradient(135deg,#ffd700,#ff8c00);">🔊</div>
-                <div><div style="font-weight:800;font-size:14px;">Голосовой</div><div style="font-size:12px;color:var(--text-mute);">Канал для звонков</div></div>
+                <div><div style="font-weight:800;font-size:14px;">Голосовой</div></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: НАСТРОЙКИ СЕРВЕРА
-     ============================================ -->
 <div class="modal-overlay" id="serverSettingsModal">
     <div class="modal" style="max-width:520px;overflow:hidden;">
         <button class="close-btn" onclick="document.getElementById('serverSettingsModal').classList.remove('open')">✕</button>
-        <div class="banner" id="serverBannerPreview">
-            <button class="banner-edit" onclick="document.getElementById('serverBannerInput').click()">Баннер</button>
-        </div>
+        <div class="banner" id="serverBannerPreview"><button class="banner-edit" onclick="document.getElementById('serverBannerInput').click()">Баннер</button></div>
         <div class="profile-avatar" id="serverAvatarPreview" onclick="document.getElementById('serverAvatarInput').click()">?</div>
         <div style="padding:56px 26px 26px;">
             <h2 style="font-size:20px;margin-bottom:16px;">Настройки сервера</h2>
-            <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin:14px 0 6px;">Название</label>
+            <label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px;">Название</label>
             <input type="text" id="serverNameInput" maxlength="64" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
-            <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin:14px 0 6px;">Описание</label>
+            <label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px;">Описание</label>
             <input type="text" id="serverDescInput" maxlength="256" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
-            <label style="display:block;color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:700;margin:14px 0 6px;">Код приглашения</label>
+            <label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px;">Код приглашения</label>
             <div style="display:flex;gap:8px;">
                 <input type="text" id="serverInviteInput" readonly style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:13px;">
                 <button class="save-btn" style="width:auto;margin:0;padding:0 16px;" onclick="copyInvite()">Копировать</button>
@@ -1126,27 +551,21 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: УЧАСТНИКИ
-     ============================================ -->
 <div class="modal-overlay" id="membersModal">
     <div class="modal" style="max-width:520px;">
         <button class="close-btn" onclick="document.getElementById('membersModal').classList.remove('open')">✕</button>
         <div style="padding:24px;">
-            <h2 style="background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:20px;margin-bottom:16px;">👥 Участники</h2>
+            <h2 style="font-size:20px;margin-bottom:16px;">👥 Участники</h2>
             <div id="membersList"></div>
         </div>
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: ИГРЫ
-     ============================================ -->
 <div class="modal-overlay" id="gamesMenuModal">
     <div class="modal" style="max-width:460px;">
         <button class="close-btn" onclick="document.getElementById('gamesMenuModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:20px;">🎮 Игры</h2>
+            <h2 style="text-align:center;font-size:22px;margin-bottom:20px;">🎮 Игры</h2>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
                 <div class="shop-tile" onclick="openMinesweeper()"><div class="st-icon">💣</div><div class="st-name">Сапёр</div></div>
                 <div class="shop-tile" onclick="openSnake()"><div class="st-icon">🐍</div><div class="st-name">Змейка</div></div>
@@ -1156,7 +575,6 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- САПЁР -->
 <div class="modal-overlay" id="minesweeperModal">
     <div class="modal" style="max-width:420px;">
         <button class="close-btn" onclick="closeMinesweeper()">✕</button>
@@ -1172,7 +590,6 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ЗМЕЙКА -->
 <div class="modal-overlay" id="snakeModal">
     <div class="modal" style="max-width:420px;">
         <button class="close-btn" onclick="closeSnake()">✕</button>
@@ -1182,9 +599,7 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
             <canvas id="snakeCanvas" width="320" height="320" style="background:#000;border-radius:12px;max-width:100%;"></canvas>
             <div style="margin-top:12px;color:var(--text-mute);font-size:12px;">Стрелки / свайпы</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:200px;margin:14px auto 0;">
-                <div></div>
-                <button class="save-btn gray" style="margin:0;" onclick="snakeDir('up')">↑</button>
-                <div></div>
+                <div></div><button class="save-btn gray" style="margin:0;" onclick="snakeDir('up')">↑</button><div></div>
                 <button class="save-btn gray" style="margin:0;" onclick="snakeDir('left')">←</button>
                 <button class="save-btn gray" style="margin:0;" onclick="snakeDir('down')">↓</button>
                 <button class="save-btn gray" style="margin:0;" onclick="snakeDir('right')">→</button>
@@ -1194,7 +609,6 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- 2048 -->
 <div class="modal-overlay" id="game2048Modal">
     <div class="modal" style="max-width:420px;">
         <button class="close-btn" onclick="close2048()">✕</button>
@@ -1207,30 +621,22 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: АДМИН — ВХОД
-     ============================================ -->
 <div class="modal-overlay" id="adminLoginModal">
     <div class="modal" style="max-width:400px;">
         <button class="close-btn" onclick="document.getElementById('adminLoginModal').classList.remove('open')">✕</button>
         <div style="padding:44px 26px 26px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:16px;">🛡️ Админ-панель</h2>
-            <input type="password" id="adminPassword" placeholder="Пароль администратора" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
+            <h2 style="text-align:center;font-size:22px;margin-bottom:16px;">🛡️ Админ-панель</h2>
+            <input type="password" id="adminPassword" placeholder="Пароль" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;">
             <button class="save-btn gold" onclick="verifyAdmin()">Войти</button>
             <div id="adminError" style="color:#f43f5e;font-size:13px;text-align:center;min-height:18px;margin-top:10px;"></div>
         </div>
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: АДМИН-ПАНЕЛЬ
-     ============================================ -->
 <div class="modal-overlay" id="adminModal">
     <div class="modal" style="max-width:920px;">
         <button class="close-btn" onclick="document.getElementById('adminModal').classList.remove('open')">✕</button>
-        <div style="padding:22px 24px 0;">
-            <h2 style="background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;">🛡️ Админ-панель</h2>
-        </div>
+        <div style="padding:22px 24px 0;"><h2 style="font-size:22px;">🛡️ Админ-панель</h2></div>
         <div id="adminStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px 0;"></div>
         <div class="admin-tabs" style="display:flex;gap:6px;padding:14px 24px 0;border-bottom:1px solid var(--border);overflow-x:auto;">
             <button class="admin-tab active" onclick="showAdminTab('users', this)">👥 Юзеры</button>
@@ -1248,78 +654,43 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: МАГАЗИН БЕКОИНОВ
-     ============================================ -->
 <div class="modal-overlay" id="shopModal">
     <div class="modal" style="max-width:520px;">
         <button class="close-btn" onclick="document.getElementById('shopModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#ffd700,#d946ef);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:24px;margin-bottom:18px;">🛒 Магазин Бекоинов</h2>
-
+            <h2 style="text-align:center;font-size:24px;margin-bottom:18px;">🛒 Магазин Бекоинов</h2>
             <div class="shop-header">
                 <div class="shop-header-name">💰 Твой баланс</div>
                 <div class="shop-header-balance" id="shopBalance">0</div>
                 <div class="shop-header-label">🏅 Бекоинов</div>
             </div>
-
             <div class="shop-section-title">📦 Готовые пакеты</div>
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-                <div class="shop-tile" onclick="requestCoins(200, 100)">
-                    <span class="st-icon">🏅</span>
-                    <div class="st-name">200 Бекоинов</div>
-                    <div class="st-price">100 ₽</div>
-                    <button class="st-btn">Купить</button>
-                </div>
-                <div class="shop-tile" onclick="requestCoins(1100, 500)">
-                    <span class="st-icon">💰</span>
-                    <div class="st-name">1100 Бекоинов</div>
-                    <div class="st-price">500 ₽</div>
-                    <button class="st-btn">Купить</button>
-                </div>
-                <div class="shop-tile" onclick="requestCoins(2500, 1000)">
-                    <span class="st-icon">💎</span>
-                    <div class="st-name">2500 Бекоинов</div>
-                    <div class="st-price">1000 ₽</div>
-                    <button class="st-btn">Купить</button>
-                </div>
-                <div class="shop-tile" onclick="requestCoins(15000, 5000)">
-                    <span class="st-icon">👑</span>
-                    <div class="st-name">15000 Бекоинов</div>
-                    <div class="st-price">5000 ₽</div>
-                    <button class="st-btn">Купить</button>
-                </div>
+                <div class="shop-tile" onclick="requestCoins(200, 100)"><span class="st-icon">🏅</span><div class="st-name">200 Бекоинов</div><div class="st-price">100 ₽</div><button class="st-btn">Купить</button></div>
+                <div class="shop-tile" onclick="requestCoins(1100, 500)"><span class="st-icon">💰</span><div class="st-name">1100 Бекоинов</div><div class="st-price">500 ₽</div><button class="st-btn">Купить</button></div>
+                <div class="shop-tile" onclick="requestCoins(2500, 1000)"><span class="st-icon">💎</span><div class="st-name">2500 Бекоинов</div><div class="st-price">1000 ₽</div><button class="st-btn">Купить</button></div>
+                <div class="shop-tile" onclick="requestCoins(15000, 5000)"><span class="st-icon">👑</span><div class="st-name">15000 Бекоинов</div><div class="st-price">5000 ₽</div><button class="st-btn">Купить</button></div>
             </div>
-
             <div class="shop-section-title">✏️ Своё количество</div>
             <div class="shop-custom">
                 <input type="number" id="customCoinsInput" placeholder="Сколько Бекоинов?" min="1" max="999999">
                 <button onclick="requestCustomCoins()">Заявка</button>
             </div>
-
-            <p style="color:var(--text-mute);font-size:11px;text-align:center;margin-top:16px;line-height:1.5;">
-                💡 После нажатия "Купить" заявка уйдёт админу.<br>Он одобрит — Бекоины начислятся автоматически.
-            </p>
+            <p style="color:var(--text-mute);font-size:11px;text-align:center;margin-top:16px;line-height:1.5;">💡 После нажатия "Купить" заявка уйдёт админу.</p>
         </div>
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: ТОП БОГАЧЕЙ
-     ============================================ -->
 <div class="modal-overlay" id="leadersModal">
     <div class="modal" style="max-width:480px;">
         <button class="close-btn" onclick="document.getElementById('leadersModal').classList.remove('open')">✕</button>
         <div style="padding:28px 24px;">
-            <h2 style="text-align:center;background:linear-gradient(135deg,#ffd700,#d946ef);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;margin-bottom:18px;">🏆 Топ богачей</h2>
+            <h2 style="text-align:center;font-size:22px;margin-bottom:18px;">🏆 Топ богачей</h2>
             <div id="leadersList"></div>
         </div>
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: ЗВОНОК
-     ============================================ -->
 <div class="modal-overlay" id="callModal" style="background:radial-gradient(ellipse at center, rgba(45,10,80,0.99), rgba(5,0,15,0.99));">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
         <div id="callAvatar" style="width:140px;height:140px;border-radius:24px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:56px;color:white;font-weight:800;overflow:hidden;box-shadow:0 0 70px rgba(217,70,239,0.8);">?</div>
@@ -1329,32 +700,27 @@ body.theme-retro ::-webkit-scrollbar-thumb { background: #c0c0c0; border:1px out
     </div>
 </div>
 
-<!-- ============================================
-     МОДАЛКА: ОБЖАЛОВАНИЕ БАНА
-     ============================================ -->
 <div class="modal-overlay" id="bannedModal">
     <div class="modal" style="max-width:460px;">
         <div style="padding:34px 26px;text-align:center;">
             <div style="font-size:80px;margin-bottom:16px;">😵</div>
             <div style="font-size:24px;font-weight:900;color:#f43f5e;margin-bottom:10px;">Вы забанены</div>
             <div style="color:var(--text-dim);font-size:14px;margin-bottom:20px;" id="bannedReason">Причина: нарушение правил</div>
-            <textarea id="appealText" placeholder="Опишите, почему вас стоит разбанить..." style="width:100%;min-height:110px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:13px;resize:vertical;font-family:inherit;margin-bottom:12px;"></textarea>
-            <button class="save-btn green" onclick="submitAppeal()">📩 Отправить обжалование</button>
-            <button class="save-btn gray" onclick="logout()">Выйти из аккаунта</button>
+            <textarea id="appealText" placeholder="Почему стоит разбанить..." style="width:100%;min-height:110px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:13px;resize:vertical;font-family:inherit;margin-bottom:12px;"></textarea>
+            <button class="save-btn green" onclick="submitAppeal()">📩 Отправить</button>
+            <button class="save-btn gray" onclick="logout()">Выйти</button>
             <div id="appealStatus" style="color:#f43f5e;font-size:13px;margin-top:12px;min-height:18px;"></div>
         </div>
     </div>
 </div>
 
-<!-- СКРЫТЫЕ INPUT -->
 <input type="file" id="avatarInput" accept="image/*" style="display:none">
 <input type="file" id="bannerInput" accept="image/*" style="display:none">
 <input type="file" id="serverAvatarInput" accept="image/*" style="display:none">
 <input type="file" id="serverBannerInput" accept="image/*" style="display:none">
-
 <script>
 // ============================================
-// ЧАСТЬ 3 — ЯДРО: авторизация, WS, профиль, темы
+// BELUGACORD BETA 0.5 — ВЕСЬ JS
 // ============================================
 
 let token = localStorage.getItem('belugacord_token') || '';
@@ -1390,8 +756,8 @@ function updateClock() {
     const date = now.toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
     const shortDate = now.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
     ['loginTime','taskbarTime'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = time; });
-    ['loginDate'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = date; });
-    ['taskbarDate'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = shortDate; });
+    const ld = document.getElementById('loginDate'); if (ld) ld.textContent = date;
+    const td = document.getElementById('taskbarDate'); if (td) td.textContent = shortDate;
 }
 setInterval(updateClock, 1000); updateClock();
 
@@ -1417,7 +783,6 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;'
 function linkify(t) { const e = escapeHtml(t || ''); return e.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
 function parsePos(s) { if (!s) return {x:50,y:50}; const p = String(s).split(' '); return {x:parseFloat(p[0])||50,y:parseFloat(p[1])||50}; }
 function formatUnread(n) { return n > 1500 ? '1500+' : String(n); }
-function tierIcon(t) { return t === 'premium' ? '💰' : (t === 'pro' ? '🏆' : ''); }
 
 // ===== АВТОРИЗАЦИЯ =====
 function switchTab(mode) {
@@ -1508,7 +873,6 @@ function enterApp() {
     }
     loadCoins();
     makeDraggable('mainWindow', 'mainTitlebar');
-    if (window.innerWidth > 768) mobileShowForce();
 }
 
 // ===== МОБИЛЬНЫЕ ТАБЫ =====
@@ -1528,15 +892,6 @@ function mobileShow(view) {
     if (view === 'desktop') desktop.classList.add('mobile-active');
     else if (view === 'chats') chats.classList.add('mobile-active');
     else chat.classList.add('mobile-active');
-}
-function mobileShowForce() {
-    document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
-    const d = document.getElementById('desktopCol');
-    const c = document.getElementById('chatListCol');
-    const ch = document.getElementById('chatWindowCol');
-    d.classList.remove('mobile-active');
-    c.classList.remove('mobile-active');
-    ch.classList.remove('mobile-active');
 }
 
 // ===== ПУСК-МЕНЮ =====
@@ -1607,22 +962,18 @@ function openSettings() {
 function showSettingsTab(tab, ev) {
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
     if (ev) ev.target.classList.add('active');
-    else {
-        const tabs = document.querySelectorAll('.settings-tab');
-        if (tabs[0]) tabs[0].classList.add('active');
-    }
+    else { const tabs = document.querySelectorAll('.settings-tab'); if (tabs[0]) tabs[0].classList.add('active'); }
     const c = document.getElementById('settingsContent');
     const cur = localStorage.getItem('belugacord_theme') || 'beluga';
-
     if (tab === 'theme') {
         const themes = [
-            { id:'beluga',    name:'🐱 Beluga',    desc:'Фиолетово-розовый неон',     preview:'linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee)' },
-            { id:'discord',   name:'💬 Discord',   desc:'Классический Discord',        preview:'linear-gradient(135deg,#5865f2,#2b2d31)' },
-            { id:'white',     name:'☀️ Белая',     desc:'Минимализм',                  preview:'linear-gradient(135deg,#fff,#000)' },
-            { id:'cyber',     name:'🤖 Киберпанк', desc:'Жёлтый + циан',               preview:'linear-gradient(135deg,#ffee00,#00ffff)' },
-            { id:'retro',     name:'📺 Ретро 95',  desc:'Windows 95',                  preview:'linear-gradient(135deg,#c0c0c0,#000080)' },
-            { id:'cs16',      name:'🎯 CS 1.6',    desc:'Оранжевый + серый',           preview:'linear-gradient(135deg,#ff9500,#4a4a4a)' },
-            { id:'minecraft', name:'⛏️ Minecraft', desc:'Зелёный пиксельный',          preview:'linear-gradient(135deg,#7cb342,#2d3d2d)' }
+            { id:'beluga', name:'🐱 Beluga', desc:'Фиолетово-розовый неон', preview:'linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee)' },
+            { id:'discord', name:'💬 Discord', desc:'Классический Discord', preview:'linear-gradient(135deg,#5865f2,#2b2d31)' },
+            { id:'white', name:'☀️ Белая', desc:'Минимализм', preview:'linear-gradient(135deg,#fff,#000)' },
+            { id:'cyber', name:'🤖 Киберпанк', desc:'Жёлтый + циан', preview:'linear-gradient(135deg,#ffee00,#00ffff)' },
+            { id:'retro', name:'📺 Ретро 95', desc:'Windows 95', preview:'linear-gradient(135deg,#c0c0c0,#000080)' },
+            { id:'cs16', name:'🎯 CS 1.6', desc:'Оранжевый + серый', preview:'linear-gradient(135deg,#ff9500,#4a4a4a)' },
+            { id:'minecraft', name:'⛏️ Minecraft', desc:'Зелёный пиксельный', preview:'linear-gradient(135deg,#7cb342,#2d3d2d)' }
         ];
         c.innerHTML = themes.map(t =>
             '<div style="display:flex;gap:12px;padding:14px;border-radius:12px;border:2px solid ' + (cur===t.id ? 'var(--accent)' : 'var(--border)') + ';background:var(--bg-input);cursor:pointer;margin-bottom:10px;" onclick="setTheme(\'' + t.id + '\')">' +
@@ -1632,7 +983,7 @@ function showSettingsTab(tab, ev) {
         ).join('');
     }
     else if (tab === 'interface') {
-        c.innerHTML = '<div style="color:var(--text-dim);font-size:13px;line-height:1.6;padding:12px;background:var(--bg-input);border-radius:12px;">🖥️ Сейчас активен <b>Windows-эмулятор</b>.<br><br>В Этапе 2 добавим: <b>Discord-интерфейс</b> и <b>интерфейс мессенджера (ТГ-стиль)</b>.</div>';
+        c.innerHTML = '<div style="color:var(--text-dim);font-size:13px;line-height:1.6;padding:12px;background:var(--bg-input);border-radius:12px;">🖥️ Сейчас активен <b>Windows-эмулятор</b>.</div>';
     }
     else if (tab === 'notifications') {
         c.innerHTML = '<label style="display:flex;gap:10px;color:var(--text-dim);margin-bottom:12px;font-size:14px;"><input type="checkbox" checked> Сообщения</label><label style="display:flex;gap:10px;color:var(--text-dim);margin-bottom:12px;font-size:14px;"><input type="checkbox" checked> Звонки</label><label style="display:flex;gap:10px;color:var(--text-dim);font-size:14px;"><input type="checkbox" checked> Друзья</label>';
@@ -1642,80 +993,13 @@ function showSettingsTab(tab, ev) {
     }
 }
 
-// ===== УВЕДОМЛЕНИЯ БРАУЗЕРА =====
-function requestNotifications() {
-    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-}
+// ===== УВЕДОМЛЕНИЯ =====
 function notify(title, body) {
     if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
         try { new Notification(title, { body }); } catch(e) {}
     }
 }
-
-// ===== ЗАГЛУШКИ (реализуем в ч.4 и ч.5) =====
-function openSearch() { alert('Поиск: Ctrl+F в чате'); }
-function exportChat() { alert('Экспорт: позже'); }
-function openMembers() {}
-function startCallDM() {}
-function openEmojiPicker() {}
-function uploadFile() {}
-function cancelReply() {}
-function send() {}
-function openGamesMenu() {}
-function openMinesweeper() {}
-function closeMinesweeper() {}
-function resetMinesweeper() {}
-function openSnake() {}
-function closeSnake() {}
-function resetSnake() {}
-function snakeDir() {}
-function open2048() {}
-function close2048() {}
-function reset2048() {}
-function openShop() {}
-function requestCoins() {}
-function requestCustomCoins() {}
-function openLeaders() {}
-function showVote() {}
-function openAdminLogin() {}
-function verifyAdmin() {}
-function showAdminTab() {}
-function closeProfile() {}
-function openProfile() {}
-function renderProfile() {}
-function saveProfile() {}
-function openNickChange() {}
-function changeNick() {}
-function openCreateMenu() {}
-function chooseCreate() {}
-function openServer() {}
-function openChannel() {}
-function openDM() {}
-function showFriends() {}
-function loadServers() {}
-function loadCoins() {}
-function renderPremiumSettings() {}
-function viewProfile() {}
-function addFriend() {}
-function addFriendById() {}
-function acceptFriend() {}
-function shareProfile() {}
-function filterChatList() {}
-function saveServerSettings() {}
-function deleteServer() {}
-function leaveServer() {}
-function copyInvite() {}
-function submitAppeal() {}
-function sendTyping() {}
-function sendDMTyping() {}
-function connectWS() {}
-
-// ===== СТАРТ =====
-boot();
-</script>
-// ============================================
-// ЧАСТЬ 4 — ПРОФИЛЬ, МАГАЗИН, ПОСХАЛКА, ЧАТЫ
-// ============================================
+if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
 // ===== ПРОФИЛЬ =====
 function renderProfile() {
@@ -1727,8 +1011,6 @@ function renderProfile() {
             pn.style.webkitBackgroundClip = 'text';
             pn.style.webkitTextFillColor = 'transparent';
         } else if (me.nickname_color) {
-            pn.style.background = 'none';
-            pn.style.webkitTextFillColor = me.nickname_color;
             pn.style.color = me.nickname_color;
         }
     }
@@ -1756,53 +1038,21 @@ function openProfile() {
     renderPremiumSettings();
     document.getElementById('profileModal').classList.add('open');
 }
-function closeProfile() {
-    document.getElementById('profileModal').classList.remove('open');
-}
+function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
 
-// Перетаскивание аватара/баннера
 const avatarEl = document.getElementById('avatarPreview');
 const bannerEl = document.getElementById('bannerPreview');
 let dragging = null, startX = 0, startY = 0, startPosX = 50, startPosY = 50;
-function startDragAvatar(e) {
-    if (!avatarData) return;
-    e.preventDefault();
-    dragging = 'avatar';
-    const t = e.touches ? e.touches[0] : e;
-    startX = t.clientX; startY = t.clientY;
-    startPosX = avatarPos.x; startPosY = avatarPos.y;
-    attachDrag();
-}
-function startDragBanner(e) {
-    if (!bannerData) return;
-    e.preventDefault();
-    dragging = 'banner';
-    const t = e.touches ? e.touches[0] : e;
-    startX = t.clientX; startY = t.clientY;
-    startPosX = bannerPos.x; startPosY = bannerPos.y;
-    attachDrag();
-}
-function attachDrag() {
-    document.addEventListener('mousemove', onDrag);
-    document.addEventListener('touchmove', onDrag, { passive: false });
-    document.addEventListener('mouseup', stopDrag);
-    document.addEventListener('touchend', stopDrag);
-}
-if (avatarEl) {
-    avatarEl.addEventListener('mousedown', startDragAvatar);
-    avatarEl.addEventListener('touchstart', startDragAvatar, { passive: true });
-}
-if (bannerEl) {
-    bannerEl.addEventListener('mousedown', startDragBanner);
-    bannerEl.addEventListener('touchstart', startDragBanner, { passive: true });
-}
+function startDragAvatar(e) { if (!avatarData) return; e.preventDefault(); dragging = 'avatar'; const t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY; startPosX = avatarPos.x; startPosY = avatarPos.y; attachDrag(); }
+function startDragBanner(e) { if (!bannerData) return; e.preventDefault(); dragging = 'banner'; const t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY; startPosX = bannerPos.x; startPosY = bannerPos.y; attachDrag(); }
+function attachDrag() { document.addEventListener('mousemove', onDrag); document.addEventListener('touchmove', onDrag, { passive: false }); document.addEventListener('mouseup', stopDrag); document.addEventListener('touchend', stopDrag); }
+if (avatarEl) { avatarEl.addEventListener('mousedown', startDragAvatar); avatarEl.addEventListener('touchstart', startDragAvatar, { passive: true }); }
+if (bannerEl) { bannerEl.addEventListener('mousedown', startDragBanner); bannerEl.addEventListener('touchstart', startDragBanner, { passive: true }); }
 function onDrag(e) {
     if (!dragging) return;
     e.preventDefault();
     const t = e.touches ? e.touches[0] : e;
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-    const s = 0.3;
+    const dx = t.clientX - startX, dy = t.clientY - startY, s = 0.3;
     if (dragging === 'avatar') {
         avatarPos.x = Math.max(0, Math.min(100, startPosX - dx * s));
         avatarPos.y = Math.max(0, Math.min(100, startPosY - dy * s));
@@ -1815,69 +1065,37 @@ function onDrag(e) {
         if (img) img.style.objectPosition = bannerPos.x + '% ' + bannerPos.y + '%';
     }
 }
-function stopDrag() {
-    dragging = null;
-    document.removeEventListener('mousemove', onDrag);
-    document.removeEventListener('touchmove', onDrag);
-    document.removeEventListener('mouseup', stopDrag);
-    document.removeEventListener('touchend', stopDrag);
-}
+function stopDrag() { dragging = null; document.removeEventListener('mousemove', onDrag); document.removeEventListener('touchmove', onDrag); document.removeEventListener('mouseup', stopDrag); document.removeEventListener('touchend', stopDrag); }
 
 document.getElementById('avatarInput').addEventListener('change', (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
+    const f = e.target.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = (ev) => {
-        pendingAvatar = ev.target.result;
-        avatarData = pendingAvatar;
-        avatarPos = {x:50,y:50};
-        renderProfile();
-        document.getElementById('profileModal').classList.add('open');
-    };
+    r.onload = (ev) => { pendingAvatar = ev.target.result; avatarData = pendingAvatar; avatarPos = {x:50,y:50}; renderProfile(); document.getElementById('profileModal').classList.add('open'); };
     r.readAsDataURL(f);
 });
 document.getElementById('bannerInput').addEventListener('change', (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
+    const f = e.target.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = (ev) => {
-        pendingBanner = ev.target.result;
-        bannerData = pendingBanner;
-        bannerPos = {x:50,y:50};
-        renderProfile();
-        document.getElementById('profileModal').classList.add('open');
-    };
+    r.onload = (ev) => { pendingBanner = ev.target.result; bannerData = pendingBanner; bannerPos = {x:50,y:50}; renderProfile(); document.getElementById('profileModal').classList.add('open'); };
     r.readAsDataURL(f);
 });
 
 async function saveProfile() {
     try {
         await fetch('/api/update_profile', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
+            method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({
-                token,
-                avatar: pendingAvatar,
-                banner: pendingBanner,
+                token, avatar: pendingAvatar, banner: pendingBanner,
                 avatar_pos: avatarPos.x + '% ' + avatarPos.y + '%',
                 banner_pos: bannerPos.x + '% ' + bannerPos.y + '%',
-                nickname_color: nicknameColor,
-                nickname_gradient: nicknameGradient,
-                custom_status: customStatus,
-                avatar_frame: avatarFrame,
-                msg_sound: msgSound,
-                call_sound: callSound,
-                hidden_online: hiddenOnline
+                nickname_color: nicknameColor, nickname_gradient: nicknameGradient,
+                custom_status: customStatus, avatar_frame: avatarFrame,
+                msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline
             })
         });
-        Object.assign(me, {
-            avatar: avatarData, banner: bannerData,
-            nickname_color: nicknameColor, nickname_gradient: nicknameGradient,
-            custom_status: customStatus, avatar_frame: avatarFrame,
-            msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline
-        });
+        Object.assign(me, { avatar: avatarData, banner: bannerData, nickname_color: nicknameColor, nickname_gradient: nicknameGradient, custom_status: customStatus, avatar_frame: avatarFrame, msg_sound: msgSound, call_sound: callSound, hidden_online: hiddenOnline });
         closeProfile();
-        showShopNotice('✅ Профиль сохранён', 'success');
+        showShopNotice('✅ Профиль сохранён');
     } catch(e) { showShopNotice('❌ Ошибка', 'error'); }
 }
 
@@ -1892,45 +1110,30 @@ function renderPremiumSettings() {
     }
     let html = '<div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:14px;margin-top:14px;"><div style="color:#ffd700;font-weight:800;font-size:13px;margin-bottom:10px;">💰 Premium</div>';
     html += '<div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Цвет ника</div><div style="display:flex;gap:8px;flex-wrap:wrap;">';
-    COLORS.forEach(cl => {
-        html += '<div style="width:30px;height:30px;border-radius:50%;cursor:pointer;background:' + cl + ';border:3px solid ' + (nicknameColor === cl ? 'white' : 'transparent') + ';" onclick="setNickColor(\'' + cl + '\')"></div>';
-    });
+    COLORS.forEach(cl => { html += '<div style="width:30px;height:30px;border-radius:50%;cursor:pointer;background:' + cl + ';border:3px solid ' + (nicknameColor === cl ? 'white' : 'transparent') + ';" onclick="setNickColor(\'' + cl + '\')"></div>'; });
     html += '</div></div>';
     c.innerHTML = html;
 }
-function setNickColor(c) {
-    nicknameColor = c;
-    nicknameGradient = null;
-    renderPremiumSettings();
-}
+function setNickColor(c) { nicknameColor = c; nicknameGradient = null; renderPremiumSettings(); }
 
 async function changeNick() {
     const n = document.getElementById('newNickInput').value.trim();
     const s = document.getElementById('nickStatus');
     if (n.length < 2) { s.textContent = 'Минимум 2 символа'; s.style.color = '#f43f5e'; return; }
     try {
-        const r = await fetch('/api/user/change_nick', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({token, new_nick: n})
-        });
+        const r = await fetch('/api/user/change_nick', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token, new_nick: n}) });
         const d = await r.json();
         if (r.ok) {
-            me.username = n;
-            token = d.token;
-            localStorage.setItem('belugacord_token', token);
-            s.textContent = '✓ Изменён';
-            s.style.color = '#22d3ee';
+            me.username = n; token = d.token; localStorage.setItem('belugacord_token', token);
+            s.textContent = '✓ Изменён'; s.style.color = '#22d3ee';
             renderProfile();
             setTimeout(() => document.getElementById('nickModal').classList.remove('open'), 1000);
         } else { s.textContent = d.detail || 'Ошибка'; s.style.color = '#f43f5e'; }
     } catch(e) { s.textContent = 'Ошибка'; s.style.color = '#f43f5e'; }
 }
-function openNickChange() {
-    document.getElementById('nickModal').classList.add('open');
-    document.getElementById('newNickInput').value = me.username;
-}
+function openNickChange() { document.getElementById('nickModal').classList.add('open'); document.getElementById('newNickInput').value = me.username; }
 
-// ===== МАГАЗИН БЕКОИНОВ =====
+// ===== УВЕДОМЛЕНИЯ МАГАЗИНА =====
 function showShopNotice(text, type) {
     document.querySelectorAll('.shop-notice').forEach(n => n.remove());
     const n = document.createElement('div');
@@ -1938,43 +1141,28 @@ function showShopNotice(text, type) {
     n.textContent = text;
     document.body.appendChild(n);
     setTimeout(() => n.classList.add('show'), 50);
-    setTimeout(() => {
-        n.classList.remove('show');
-        setTimeout(() => n.remove(), 500);
-    }, 3500);
+    setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 500); }, 3500);
 }
 
-function openShop() {
-    document.getElementById('shopModal').classList.add('open');
-    loadCoins();
-}
-
+// ===== МАГАЗИН =====
+function openShop() { document.getElementById('shopModal').classList.add('open'); loadCoins(); }
 async function loadCoins() {
     try {
         const r = await fetch('/api/coins/balance?token=' + encodeURIComponent(token));
         const d = await r.json();
         myCoins = d.coins || 0;
-        const el = document.getElementById('shopBalance');
-        if (el) el.textContent = myCoins;
+        const el = document.getElementById('shopBalance'); if (el) el.textContent = myCoins;
     } catch(e) {}
 }
-
 async function requestCoins(coins, price) {
     if (!confirm('Отправить заявку на покупку ' + coins + ' 🏅 за ' + price + ' ₽?')) return;
     try {
-        const r = await fetch('/api/coins/request', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, coins, price })
-        });
+        const r = await fetch('/api/coins/request', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, coins, price }) });
         const d = await r.json();
-        if (r.ok) {
-            showShopNotice('✅ Заявка на покупку Бекоинов отправлена админу, ждите одобрения');
-        } else {
-            showShopNotice('❌ ' + (d.detail || 'Ошибка'), 'error');
-        }
+        if (r.ok) showShopNotice('✅ Заявка на покупку Бекоинов отправлена админу, ждите одобрения');
+        else showShopNotice('❌ ' + (d.detail || 'Ошибка'), 'error');
     } catch(e) { showShopNotice('❌ Ошибка соединения', 'error'); }
 }
-
 async function requestCustomCoins() {
     const inp = document.getElementById('customCoinsInput');
     const amount = parseInt(inp.value);
@@ -1982,20 +1170,12 @@ async function requestCustomCoins() {
     if (amount > 999999) { showShopNotice('⚠️ Максимум 999999', 'warn'); return; }
     if (!confirm('Отправить заявку на покупку ' + amount + ' 🏅?')) return;
     try {
-        const r = await fetch('/api/coins/request', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, coins: amount, price: 0 })
-        });
+        const r = await fetch('/api/coins/request', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, coins: amount, price: 0 }) });
         const d = await r.json();
-        if (r.ok) {
-            showShopNotice('✅ Заявка на ' + amount + ' 🏅 отправлена админу, ждите одобрения');
-            inp.value = '';
-        } else {
-            showShopNotice('❌ ' + (d.detail || 'Ошибка'), 'error');
-        }
+        if (r.ok) { showShopNotice('✅ Заявка на ' + amount + ' 🏅 отправлена админу'); inp.value = ''; }
+        else showShopNotice('❌ ' + (d.detail || 'Ошибка'), 'error');
     } catch(e) { showShopNotice('❌ Ошибка соединения', 'error'); }
 }
-
 async function openLeaders() {
     document.getElementById('leadersModal').classList.add('open');
     try {
@@ -2003,10 +1183,7 @@ async function openLeaders() {
         const d = await r.json();
         const l = document.getElementById('leadersList');
         l.innerHTML = '';
-        if (!d.length) {
-            l.innerHTML = '<div style="color:var(--text-mute);text-align:center;padding:40px;">Пока никого</div>';
-            return;
-        }
+        if (!d.length) { l.innerHTML = '<div style="color:var(--text-mute);text-align:center;padding:40px;">Пока никого</div>'; return; }
         d.forEach((u, i) => {
             const row = document.createElement('div');
             row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg-input);border-radius:10px;margin-bottom:6px;';
@@ -2017,7 +1194,7 @@ async function openLeaders() {
     } catch(e) {}
 }
 
-// ===== ПОСХАЛКА КОТ / КИТ =====
+// ===== ПОСХАЛКА =====
 function catJump() {
     const cat = document.createElement('div');
     cat.className = 'cat-jump';
@@ -2035,18 +1212,6 @@ function whaleSwim() {
     setTimeout(() => playBeep(500, 0.3, 0.3), 200);
     setTimeout(() => w.remove(), 3500);
 }
-function showSecretBeluga() {
-    const m = document.createElement('div');
-    m.className = 'modal-overlay open';
-    m.style.zIndex = '9999';
-    m.innerHTML = '<div class="modal" style="max-width:460px;text-align:center;padding:50px 30px;">' +
-        '<div style="font-size:80px;margin-bottom:20px;">🐱</div>' +
-        '<h2 style="background:linear-gradient(135deg,#d946ef,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:26px;margin-bottom:16px;">Ты нашёл секрет!</h2>' +
-        '<p style="color:var(--text-dim);font-size:15px;line-height:1.6;margin-bottom:20px;">Спасибо что ты с нами 🐱<br><span style="color:var(--text-mute);font-size:12px;">Belugacord — для своих</span></p>' +
-        '<button class="save-btn green" onclick="this.closest(\'.modal-overlay\').remove()">Понятно</button></div>';
-    document.body.appendChild(m);
-    setTimeout(() => { if (m.parentNode) m.remove(); }, 20000);
-}
 function checkEasterEgg(text) {
     const lower = text.toLowerCase();
     if (EASTER_CAT.some(w => lower.includes(w))) { catJump(); return true; }
@@ -2054,7 +1219,7 @@ function checkEasterEgg(text) {
     return false;
 }
 
-// ===== ЗАГРУЗКА СЕРВЕРОВ =====
+// ===== СЕРВЕРА =====
 async function loadServers() {
     try {
         const r = await fetch('/api/servers/list?token=' + encodeURIComponent(token));
@@ -2073,47 +1238,28 @@ async function loadServers() {
         });
     } catch(e) {}
 }
-
 function openCreateMenu() { document.getElementById('createMenuModal').classList.add('open'); }
-
 function chooseCreate(type) {
     document.getElementById('createMenuModal').classList.remove('open');
     if (type === 'server') {
         const name = prompt('Название сервера:');
         if (!name) return;
-        fetch('/api/servers/create', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, name })
-        }).then(r => r.json()).then(d => {
-            if (d.id) { loadServers(); openServer(d.id, d.name); }
-            else alert(d.detail || 'Ошибка');
-        });
+        fetch('/api/servers/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, name }) })
+            .then(r => r.json()).then(d => { if (d.id) { loadServers(); openServer(d.id, d.name); } else alert(d.detail || 'Ошибка'); });
     } else {
         if (!currentServerId) { alert('Сначала зайди в сервер'); return; }
         const name = prompt(type === 'voice' ? 'Название голосового канала:' : 'Название канала:');
         if (!name) return;
-        fetch('/api/channels/create', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, server_id: currentServerId, name, type: type === 'voice' ? 'voice' : 'text' })
-        }).then(r => r.json()).then(d => {
-            if (d.id) openServer(currentServerId, currentServerData?.name || 'Сервер');
-            else alert(d.detail || 'Ошибка');
-        });
+        fetch('/api/channels/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, server_id: currentServerId, name, type: type === 'voice' ? 'voice' : 'text' }) })
+            .then(r => r.json()).then(d => { if (d.id) openServer(currentServerId, currentServerData?.name || 'Сервер'); else alert(d.detail || 'Ошибка'); });
     }
 }
-
 function openJoinServer() {
     const invite = prompt('Код приглашения:');
     if (!invite) return;
-    fetch('/api/servers/join', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token, invite })
-    }).then(r => r.json()).then(d => {
-        if (d.id) { loadServers(); openServer(d.id, d.name); }
-        else alert(d.detail || 'Ошибка');
-    });
+    fetch('/api/servers/join', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, invite }) })
+        .then(r => r.json()).then(d => { if (d.id) { loadServers(); openServer(d.id, d.name); } else alert(d.detail || 'Ошибка'); });
 }
-
 async function openServer(id, name) {
     currentServerId = id;
     currentChatType = 'channel';
@@ -2131,7 +1277,6 @@ async function openServer(id, name) {
     } catch(e) {}
     if (window.innerWidth <= 768) mobileShow('chat');
 }
-
 function renderChannelList(channels) {
     const c = document.getElementById('chatListBody');
     if (!c) return;
@@ -2145,7 +1290,6 @@ function renderChannelList(channels) {
         c.appendChild(d);
     });
 }
-
 async function openChannel(id, name) {
     currentChannelId = id;
     currentDMUser = null;
@@ -2178,10 +1322,7 @@ async function showFriends() {
         const r = await fetch('/api/friends/list?token=' + encodeURIComponent(token));
         const friends = await r.json();
         const list = document.getElementById('friendsBodyList');
-        if (!friends.length) {
-            list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-mute);font-size:13px;">Пока нет друзей</div>';
-            return;
-        }
+        if (!friends.length) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-mute);font-size:13px;">Пока нет друзей</div>'; return; }
         friends.forEach(f => {
             const row = document.createElement('div');
             row.className = 'chat-item';
@@ -2199,18 +1340,13 @@ async function showFriends() {
     } catch(e) {}
     if (window.innerWidth <= 768) mobileShow('chat');
 }
-
 async function acceptFriend(id) {
     try {
-        await fetch('/api/friends/accept', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, friend_id: id })
-        });
+        await fetch('/api/friends/accept', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, friend_id: id }) });
         showFriends();
         renderChatList();
     } catch(e) {}
 }
-
 async function openDM(userId, username, avatar, tier) {
     currentDMUser = { id: userId, username, avatar };
     currentChatType = 'dm';
@@ -2230,20 +1366,15 @@ async function openDM(userId, username, avatar, tier) {
     renderChatList();
     if (window.innerWidth <= 768) mobileShow('chat');
 }
-
 async function renderChatList() {
     try {
         const r = await fetch('/api/dm/list?token=' + encodeURIComponent(token));
         const dms = await r.json();
         const c = document.getElementById('chatListBody');
         if (!c) return;
-        // Не трогаем список каналов (если открыт сервер)
         if (currentServerId && currentChannelId) return;
         c.innerHTML = '';
-        if (!dms.length) {
-            c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-mute);font-size:13px;">Нет переписок</div>';
-            return;
-        }
+        if (!dms.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-mute);font-size:13px;">Нет переписок</div>'; return; }
         dms.forEach(d => {
             const item = document.createElement('div');
             item.className = 'chat-item' + (currentDMUser && currentDMUser.id === d.user_id ? ' active' : '');
@@ -2258,7 +1389,6 @@ async function renderChatList() {
         });
     } catch(e) {}
 }
-
 function filterChatList(q) {
     const items = document.querySelectorAll('.chat-item');
     q = q.toLowerCase();
@@ -2277,11 +1407,8 @@ function buildMessageHTML(m) {
     if (isBanned) {
         av = '<div class="avatar" style="cursor:default;opacity:0.5;"><div style="font-size:20px;">😵</div></div>';
     } else {
-        if (m.avatar) {
-            av = '<div class="avatar" onclick="viewProfile(' + uid + ')"><img src="' + m.avatar + '" style="object-position:' + pos.x + '% ' + pos.y + '%"></div>';
-        } else {
-            av = '<div class="avatar" onclick="viewProfile(' + uid + ')">' + (m.username || '?').charAt(0).toUpperCase() + '</div>';
-        }
+        if (m.avatar) av = '<div class="avatar" onclick="viewProfile(' + uid + ')"><img src="' + m.avatar + '" style="object-position:' + pos.x + '% ' + pos.y + '%"></div>';
+        else av = '<div class="avatar" onclick="viewProfile(' + uid + ')">' + (m.username || '?').charAt(0).toUpperCase() + '</div>';
     }
     let fileHTML = '';
     if (m.file_url) {
@@ -2292,9 +1419,7 @@ function buildMessageHTML(m) {
         else fileHTML = '<a href="' + m.file_url + '" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-top:8px;color:var(--accent);text-decoration:none;font-weight:700;font-size:12px;">📎 Скачать файл</a>';
     }
     let replyHTML = '';
-    if (m.reply_to_name) {
-        replyHTML = '<div style="background:rgba(217,70,239,0.1);border-left:3px solid var(--accent);padding:4px 8px;margin-bottom:4px;border-radius:6px;font-size:11px;color:var(--text-dim);"><b style="color:var(--accent);">@' + escapeHtml(m.reply_to_name) + '</b>: ' + escapeHtml(m.reply_to_text || '') + '</div>';
-    }
+    if (m.reply_to_name) replyHTML = '<div style="background:rgba(217,70,239,0.1);border-left:3px solid var(--accent);padding:4px 8px;margin-bottom:4px;border-radius:6px;font-size:11px;color:var(--text-dim);"><b style="color:var(--accent);">@' + escapeHtml(m.reply_to_name) + '</b>: ' + escapeHtml(m.reply_to_text || '') + '</div>';
     let reactionsHTML = '';
     if (m.reactions) {
         try {
@@ -2302,9 +1427,7 @@ function buildMessageHTML(m) {
             const keys = Object.keys(r);
             if (keys.length) {
                 reactionsHTML = '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">';
-                keys.forEach(k => {
-                    reactionsHTML += '<div style="background:rgba(217,70,239,0.15);border:1px solid rgba(217,70,239,0.3);border-radius:14px;padding:2px 8px;font-size:11px;">' + k + ' ' + r[k].length + '</div>';
-                });
+                keys.forEach(k => { reactionsHTML += '<div style="background:rgba(217,70,239,0.15);border:1px solid rgba(217,70,239,0.3);border-radius:14px;padding:2px 8px;font-size:11px;">' + k + ' ' + r[k].length + '</div>'; });
                 reactionsHTML += '</div>';
             }
         } catch(e) {}
@@ -2313,21 +1436,14 @@ function buildMessageHTML(m) {
     const betaBadge = m.is_beta_tester ? '<span class="badge-beta" style="margin-left:4px;"></span>' : '';
     const roleBadge = m.is_admin ? '<span class="badge-admin" style="margin-left:4px;"></span>' : (m.is_moderator ? '<span class="badge-mod" style="margin-left:4px;"></span>' : '');
     const nameHTML = isBanned
-        ? '<span class="msg-author" style="opacity:0.5;font-style:italic;text-decoration:line-through;">(пользователь в бане)</span>'
+        ? '<span class="msg-author" style="opacity:0.5;font-style:italic;text-decoration:line-through;">(в бане)</span>'
         : '<span class="msg-author" onclick="viewProfile(' + uid + ')">' + escapeHtml(m.username || '?') + '</span>' + betaBadge + roleBadge;
     return av + '<div class="msg-body"><div class="msg-head">' + nameHTML + '<span class="msg-time">' + t + '</span></div>' + replyHTML + '<div class="msg-content" style="' + (isBanned ? 'opacity:0.4;' : '') + '">' + linkify(m.text || '') + '</div>' + fileHTML + reactionsHTML + '</div>';
 }
-
 function renderUsernameColor(el, color, gradient) {
-    if (gradient) {
-        el.style.background = gradient;
-        el.style.webkitBackgroundClip = 'text';
-        el.style.webkitTextFillColor = 'transparent';
-    } else if (color) {
-        el.style.color = color;
-    }
+    if (gradient) { el.style.background = gradient; el.style.webkitBackgroundClip = 'text'; el.style.webkitTextFillColor = 'transparent'; }
+    else if (color) el.style.color = color;
 }
-
 function addMessage(m) {
     const chat = document.getElementById('messagesBody');
     if (!chat) return;
@@ -2347,59 +1463,29 @@ function send() {
     const t = inp.value.trim();
     if (!t || !ws || ws.readyState !== WebSocket.OPEN) return;
     checkEasterEgg(t);
-    if (currentChatType === 'dm' && currentDMUser) {
-        ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text: t }));
-    } else if (currentChannelId) {
-        const p = { type:'message', channel_id: currentChannelId, text: t };
-        if (replyTo) p.reply_to = replyTo.id;
-        ws.send(JSON.stringify(p));
-    }
+    if (currentChatType === 'dm' && currentDMUser) ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text: t }));
+    else if (currentChannelId) { const p = { type:'message', channel_id: currentChannelId, text: t }; if (replyTo) p.reply_to = replyTo.id; ws.send(JSON.stringify(p)); }
     inp.value = '';
     cancelReply();
 }
 document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-document.getElementById('inp').addEventListener('input', () => {
-    if (currentChatType === 'dm') sendDMTyping();
-    else sendTyping();
-});
-
-function sendTyping() {
-    if (ws && ws.readyState === WebSocket.OPEN && currentChannelId && !currentDMUser) {
-        ws.send(JSON.stringify({ type:'typing', channel_id: currentChannelId }));
-    }
-}
-function sendDMTyping() {
-    if (ws && ws.readyState === WebSocket.OPEN && currentDMUser) {
-        ws.send(JSON.stringify({ type:'typing_dm', to_user: currentDMUser.id }));
-    }
-}
-function cancelReply() {
-    replyTo = null;
-    const rb = document.getElementById('replyBox');
-    if (rb) rb.style.display = 'none';
-}
-
+document.getElementById('inp').addEventListener('input', () => { if (currentChatType === 'dm') sendDMTyping(); else sendTyping(); });
+function sendTyping() { if (ws && ws.readyState === WebSocket.OPEN && currentChannelId && !currentDMUser) ws.send(JSON.stringify({ type:'typing', channel_id: currentChannelId })); }
+function sendDMTyping() { if (ws && ws.readyState === WebSocket.OPEN && currentDMUser) ws.send(JSON.stringify({ type:'typing_dm', to_user: currentDMUser.id })); }
+function cancelReply() { replyTo = null; const rb = document.getElementById('replyBox'); if (rb) rb.style.display = 'none'; }
 async function uploadFile(input) {
-    const f = input.files[0];
-    if (!f) return;
-    const fd = new FormData();
-    fd.append('token', token);
-    fd.append('file', f);
+    const f = input.files[0]; if (!f) return;
+    const fd = new FormData(); fd.append('token', token); fd.append('file', f);
     try {
         const r = await fetch('/api/upload', { method:'POST', body: fd });
         const d = await r.json();
         if (d.url) {
-            if (currentChatType === 'dm' && currentDMUser) {
-                ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text:'', file_url: d.url }));
-            } else if (currentChannelId) {
-                ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text:'', file_url: d.url }));
-            }
+            if (currentChatType === 'dm' && currentDMUser) ws.send(JSON.stringify({ type:'dm', to_user: currentDMUser.id, text:'', file_url: d.url }));
+            else if (currentChannelId) ws.send(JSON.stringify({ type:'message', channel_id: currentChannelId, text:'', file_url: d.url }));
         } else alert(d.detail || 'Ошибка');
     } catch(e) {}
     input.value = '';
 }
-
-// ===== EMOJI PICKER =====
 function openEmojiPicker() {
     document.querySelectorAll('.emoji-picker').forEach(p => p.remove());
     const p = document.createElement('div');
@@ -2409,17 +1495,14 @@ function openEmojiPicker() {
         const s = document.createElement('span');
         s.textContent = e;
         s.style.cssText = 'font-size:22px;cursor:pointer;padding:6px;border-radius:8px;text-align:center;';
-        s.onclick = () => {
-            const inp = document.getElementById('inp');
-            if (inp) { inp.value += e; p.remove(); inp.focus(); }
-        };
+        s.onclick = () => { const inp = document.getElementById('inp'); if (inp) { inp.value += e; p.remove(); inp.focus(); } };
         p.appendChild(s);
     });
     document.body.appendChild(p);
     setTimeout(() => document.addEventListener('click', () => p.remove(), { once: true }), 100);
 }
 
-// ===== ПРОСМОТР ЧУЖОГО ПРОФИЛЯ =====
+// ===== ПРОСМОТР ПРОФИЛЯ =====
 async function viewProfile(userId) {
     if (!userId) return;
     try {
@@ -2430,31 +1513,17 @@ async function viewProfile(userId) {
         const pos = parsePos(u.avatar_pos);
         if (u.avatar) av.innerHTML = '<img src="' + u.avatar + '" style="width:100%;height:100%;object-fit:cover;object-position:' + pos.x + '% ' + pos.y + '%">';
         else av.textContent = u.username.charAt(0).toUpperCase();
-
         const b = document.getElementById('viewBanner');
-        const oi = b.querySelector('img');
-        if (oi) oi.remove();
+        const oi = b.querySelector('img'); if (oi) oi.remove();
         if (u.banner) {
             const img = document.createElement('img');
             const bp = parsePos(u.banner_pos);
-            img.src = u.banner;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.style.objectPosition = bp.x + '% ' + bp.y + '%';
+            img.src = u.banner; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; img.style.objectPosition = bp.x + '% ' + bp.y + '%';
             b.insertBefore(img, b.firstChild);
         }
-
-        const n = document.getElementById('viewName');
-        n.textContent = u.username;
-        if (u.nickname_gradient) {
-            n.style.background = u.nickname_gradient;
-            n.style.webkitBackgroundClip = 'text';
-            n.style.webkitTextFillColor = 'transparent';
-        } else if (u.nickname_color) {
-            n.style.color = u.nickname_color;
-        }
-
+        const n = document.getElementById('viewName'); n.textContent = u.username;
+        if (u.nickname_gradient) { n.style.background = u.nickname_gradient; n.style.webkitBackgroundClip = 'text'; n.style.webkitTextFillColor = 'transparent'; }
+        else if (u.nickname_color) n.style.color = u.nickname_color;
         let badges = '';
         if (u.role === 'admin') badges += '<span class="badge-admin"></span>';
         if (u.role === 'moderator') badges += '<span class="badge-mod"></span>';
@@ -2463,7 +1532,6 @@ async function viewProfile(userId) {
         if (u.premium_tier === 'pro') badges += '<span style="padding:2px 8px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#ffd700,#d946ef);color:white;">🏆 PRO</span>';
         if (u.online) badges += '<span style="padding:2px 8px;border-radius:8px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;">● ОНЛАЙН</span>';
         document.getElementById('viewBadges').innerHTML = badges;
-
         let info = '';
         if (u.custom_status) info += '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-mute);">Статус</span><span style="color:var(--text);font-weight:600;">' + escapeHtml(u.custom_status) + '</span></div>';
         if (u.created_at) {
@@ -2471,57 +1539,26 @@ async function viewProfile(userId) {
             info += '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-mute);">Регистрация</span><span style="color:var(--text);font-weight:600;">' + d + '</span></div>';
         }
         document.getElementById('viewInfo').innerHTML = info;
-
-        const actions = document.getElementById('viewActions');
-        actions.innerHTML = '';
+        const actions = document.getElementById('viewActions'); actions.innerHTML = '';
         if (userId !== me.id) {
-            const mb = document.createElement('button');
-            mb.className = 'save-btn green';
-            mb.style.cssText = 'flex:1;min-width:120px;';
-            mb.textContent = '💬 Написать';
+            const mb = document.createElement('button'); mb.className = 'save-btn green'; mb.style.cssText = 'flex:1;min-width:120px;'; mb.textContent = '💬 Написать';
             mb.onclick = () => { document.getElementById('viewProfileModal').classList.remove('open'); openDM(userId, u.username, u.avatar, u.premium_tier); };
             actions.appendChild(mb);
-
             const fr = await fetch('/api/friends/check/' + userId + '?token=' + encodeURIComponent(token));
             const fd = await fr.json();
-            if (fd.status === 'accepted') {
-                const btn = document.createElement('button');
-                btn.className = 'save-btn gray';
-                btn.style.cssText = 'flex:1;min-width:120px;';
-                btn.textContent = '✓ В друзьях';
-                btn.disabled = true;
-                actions.appendChild(btn);
-            } else if (fd.status === 'pending') {
-                const btn = document.createElement('button');
-                btn.className = 'save-btn gray';
-                btn.style.cssText = 'flex:1;min-width:120px;';
-                btn.textContent = '⏳ Запрос';
-                btn.disabled = true;
-                actions.appendChild(btn);
-            } else {
-                const btn = document.createElement('button');
-                btn.className = 'save-btn';
-                btn.style.cssText = 'flex:1;min-width:120px;';
-                btn.textContent = '+ В друзья';
-                btn.onclick = () => addFriendById(userId);
-                actions.appendChild(btn);
-            }
+            if (fd.status === 'accepted') { const btn = document.createElement('button'); btn.className = 'save-btn gray'; btn.style.cssText = 'flex:1;min-width:120px;'; btn.textContent = '✓ В друзьях'; btn.disabled = true; actions.appendChild(btn); }
+            else if (fd.status === 'pending') { const btn = document.createElement('button'); btn.className = 'save-btn gray'; btn.style.cssText = 'flex:1;min-width:120px;'; btn.textContent = '⏳ Запрос'; btn.disabled = true; actions.appendChild(btn); }
+            else { const btn = document.createElement('button'); btn.className = 'save-btn'; btn.style.cssText = 'flex:1;min-width:120px;'; btn.textContent = '+ В друзья'; btn.onclick = () => addFriendById(userId); actions.appendChild(btn); }
         }
         document.getElementById('viewProfileModal').classList.add('open');
     } catch(e) {}
 }
-
 async function addFriendById(userId) {
     try {
-        const r = await fetch('/api/friends/request_by_id', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, user_id: userId })
-        });
+        const r = await fetch('/api/friends/request_by_id', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, user_id: userId }) });
         const d = await r.json();
-        if (r.ok) {
-            alert('Запрос отправлен');
-            document.getElementById('viewProfileModal').classList.remove('open');
-        } else alert(d.detail || 'Ошибка');
+        if (r.ok) { alert('Запрос отправлен'); document.getElementById('viewProfileModal').classList.remove('open'); }
+        else alert(d.detail || 'Ошибка');
     } catch(e) {}
 }
 
@@ -2533,19 +1570,14 @@ function connectWS() {
         let data;
         try { data = JSON.parse(event.data); } catch(e) { return; }
         if (data.type === 'message') {
-            if (data.channel_id === currentChannelId) {
-                addMessage(data);
-                playMsgSound();
-            }
+            if (data.channel_id === currentChannelId) { addMessage(data); playMsgSound(); }
         }
         else if (data.type === 'dm') {
-            if (currentDMUser && (data.from_user === currentDMUser.id || data.to_user === currentDMUser.id)) {
-                addMessage(data);
-                if (data.from_user !== me.id) playMsgSound();
-            } else {
+            if (currentDMUser && (data.from_user === currentDMUser.id || data.to_user === currentDMUser.id)) { addMessage(data); if (data.from_user !== me.id) playMsgSound(); }
+            else {
                 if (data.from_user !== me.id) {
                     unreadCounts[data.from_user] = (unreadCounts[data.from_user] || 0) + 1;
-                    showShopNotice('💬 ' + data.username + ': ' + (data.text || '📎'), 'success');
+                    showShopNotice('💬 ' + data.username + ': ' + (data.text || '📎'));
                     notify(data.username, data.text || '📎');
                     playMsgSound();
                 }
@@ -2568,7 +1600,6 @@ function connectWS() {
     };
     ws.onclose = () => setTimeout(connectWS, 2000);
 }
-
 function showTyping(name) {
     const el = document.getElementById('typingIndicator');
     if (!el) return;
@@ -2576,10 +1607,6 @@ function showTyping(name) {
     clearTimeout(currentTyping.typingIndicator);
     currentTyping.typingIndicator = setTimeout(() => { el.textContent = ''; }, 3000);
 }
-
-// Заглушки для звонков/бана (реализуем в ч.5)
-function showIncomingCall() {}
-function handleSignal() {}
 function showBannedModal(reason) {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('app').style.display = 'none';
@@ -2593,25 +1620,138 @@ async function submitAppeal() {
     const text = document.getElementById('appealText').value.trim();
     const s = document.getElementById('appealStatus');
     if (!text) { s.textContent = 'Напиши текст обжалования'; s.style.color = '#f43f5e'; return; }
-    const nickname = prompt('Введи свой ник (для связи):', '');
+    const nickname = prompt('Введи свой ник:', '');
     if (!nickname) { s.textContent = 'Нужен ник'; return; }
     try {
-        const r = await fetch('/api/appeal/submit', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({username: nickname, text})
-        });
+        const r = await fetch('/api/appeal/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username: nickname, text}) });
         if (r.ok) { s.textContent = '✓ Обжалование отправлено'; s.style.color = '#22d3ee'; }
         else { const d = await r.json(); s.textContent = d.detail || 'Ошибка'; s.style.color = '#f43f5e'; }
     } catch(e) { s.textContent = 'Ошибка'; s.style.color = '#f43f5e'; }
 }
-
 function shareProfile() {
     const url = location.origin + '/?u=' + me.id;
     if (navigator.share) navigator.share({ title:'Belugacord', text:'Мой профиль', url });
     else { navigator.clipboard.writeText(url); showShopNotice('📋 Ссылка скопирована'); }
 }
+function openSearch() { alert('Поиск: Ctrl+F в чате'); }
 
-// ===== АДМИНКА-ЗАГЛУШКИ =====
+// ===== ЭКСПОРТ =====
+function exportChat() {
+    const msgs = [];
+    document.querySelectorAll('#messagesBody .msg-row').forEach(m => {
+        const n = m.querySelector('.msg-author');
+        const t = m.querySelector('.msg-content');
+        if (n && t) msgs.push('[' + (n.textContent || '?') + ']: ' + t.textContent);
+    });
+    if (!msgs.length) { showShopNotice('⚠️ Чат пустой', 'warn'); return; }
+    const blob = new Blob([msgs.join('\n')], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'belugacord_chat_' + Date.now() + '.txt';
+    a.click();
+    showShopNotice('💾 Чат экспортирован');
+}
+
+// ===== НАСТРОЙКИ СЕРВЕРА =====
+function openServerSettings() {
+    if (!currentServerData) return;
+    document.getElementById('serverNameInput').value = currentServerData.name || '';
+    document.getElementById('serverDescInput').value = currentServerData.description || '';
+    document.getElementById('serverInviteInput').value = currentServerData.invite_code || '';
+    const av = document.getElementById('serverAvatarPreview');
+    if (currentServerData.avatar) av.innerHTML = '<img src="' + currentServerData.avatar + '" style="width:100%;height:100%;object-fit:cover;">';
+    else av.textContent = (currentServerData.name || '?').charAt(0).toUpperCase();
+    const b = document.getElementById('serverBannerPreview');
+    const oi = b.querySelector('img'); if (oi) oi.remove();
+    if (currentServerData.banner) {
+        const img = document.createElement('img');
+        img.src = currentServerData.banner; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover';
+        b.insertBefore(img, b.firstChild);
+    }
+    document.getElementById('serverSettingsModal').classList.add('open');
+}
+async function saveServerSettings() {
+    try {
+        const body = { token, server_id: currentServerId, name: document.getElementById('serverNameInput').value, description: document.getElementById('serverDescInput').value };
+        if (currentServerData._newAvatar) body.avatar = currentServerData._newAvatar;
+        if (currentServerData._newBanner) body.banner = currentServerData._newBanner;
+        const r = await fetch('/api/servers/update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if (r.ok) { document.getElementById('serverSettingsModal').classList.remove('open'); loadServers(); if (currentServerId) openServer(currentServerId, document.getElementById('serverNameInput').value); }
+    } catch(e) {}
+}
+async function deleteServer() {
+    if (!confirm('Удалить сервер?')) return;
+    try {
+        const r = await fetch('/api/servers/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, server_id: currentServerId }) });
+        if (r.ok) { document.getElementById('serverSettingsModal').classList.remove('open'); currentServerId = null; currentServerData = null; loadServers(); showFriends(); }
+        else alert('Только владелец');
+    } catch(e) {}
+}
+async function leaveServer() {
+    if (!confirm('Выйти из сервера?')) return;
+    try {
+        const r = await fetch('/api/servers/leave', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, server_id: currentServerId }) });
+        if (r.ok) { document.getElementById('serverSettingsModal').classList.remove('open'); currentServerId = null; currentServerData = null; loadServers(); showFriends(); }
+    } catch(e) {}
+}
+function copyInvite() { const inp = document.getElementById('serverInviteInput'); inp.select(); document.execCommand('copy'); showShopNotice('📋 Код скопирован'); }
+
+// ===== УЧАСТНИКИ =====
+async function openMembers() {
+    if (!currentServerId) return;
+    try {
+        const r = await fetch('/api/servers/' + currentServerId + '/members?token=' + encodeURIComponent(token));
+        const members = await r.json();
+        const list = document.getElementById('membersList');
+        list.innerHTML = '';
+        members.forEach(m => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;';
+            const av = m.avatar ? '<img src="' + m.avatar + '" style="width:100%;height:100%;object-fit:cover;">' : m.username.charAt(0).toUpperCase();
+            const dot = m.online ? '<div style="position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:#22d3ee;border:2px solid var(--bg-sidebar);box-shadow:0 0 8px #22d3ee;"></div>' : '';
+            let badges = '';
+            if (m.is_admin) badges += '<span class="badge-admin"></span>';
+            if (m.is_moderator) badges += '<span class="badge-mod"></span>';
+            if (m.is_beta_tester) badges += '<span class="badge-beta"></span>';
+            row.innerHTML = '<div style="position:relative;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;overflow:hidden;">' + av + dot + '</div><div style="flex:1;"><div style="color:var(--text);font-weight:700;font-size:13px;display:flex;align-items:center;gap:4px;">' + escapeHtml(m.username) + badges + '</div><div style="color:var(--text-mute);font-size:11px;">' + (m.role === 'admin' ? 'Администратор' : (m.role === 'moderator' ? 'Модератор' : 'Участник')) + '</div></div>';
+            row.onclick = () => { document.getElementById('membersModal').classList.remove('open'); viewProfile(m.id); };
+            list.appendChild(row);
+        });
+        document.getElementById('membersModal').classList.add('open');
+    } catch(e) {}
+}
+
+// ===== ГОЛОСОВАНИЕ =====
+function showVote() {
+    currentChatType = 'vote';
+    document.getElementById('chatWindowTitle').textContent = '🗳️ Голосование';
+    document.getElementById('chatWindowAvatar').textContent = '🗳️';
+    document.getElementById('chatMembersBtn').style.display = 'none';
+    document.getElementById('chatCallBtn').style.display = 'none';
+    document.getElementById('messagesBody').innerHTML = '<div id="voteContentArea" style="padding:20px;"><div style="text-align:center;color:var(--text-mute);padding:40px;">Загрузка...</div></div>';
+    loadVote();
+    if (window.innerWidth <= 768) mobileShow('chat');
+}
+async function loadVote() {
+    try { const r = await fetch('/api/vote/current'); const v = await r.json(); currentVote = v; renderVote(v); } catch(e) {}
+}
+function renderVote(v) {
+    const c = document.getElementById('voteContentArea');
+    if (!c) return;
+    if (!v || !v.id) { c.innerHTML = '<div style="text-align:center;color:var(--text-mute);padding:40px;">Нет активных голосований</div>'; return; }
+    let html = '<div style="background:var(--bg-input);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--text);">' + escapeHtml(v.question) + '</div></div>';
+    v.options.forEach((o, i) => {
+        const voted = v.my_vote === i;
+        html += '<div onclick="castVote(' + i + ')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:' + (voted ? 'rgba(34,211,238,0.15)' : 'var(--bg-input)') + ';border:2px solid ' + (voted ? '#22d3ee' : 'var(--border)') + ';border-radius:14px;margin-bottom:10px;cursor:pointer;"><div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:900;color:white;">' + (i+1) + '</div><div style="flex:1;color:var(--text);font-weight:700;font-size:15px;">' + escapeHtml(o.text) + '</div><div style="color:#ffd700;font-weight:900;font-size:18px;">' + o.votes + '</div></div>';
+    });
+    c.innerHTML = html;
+}
+async function castVote(idx) {
+    if (!currentVote) return;
+    try { await fetch('/api/vote/cast', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, vote_id: currentVote.id, option: idx }) }); loadVote(); } catch(e) {}
+}
+
+// ===== АДМИНКА =====
 function openAdminLogin() {
     document.getElementById('adminLoginModal').classList.add('open');
     document.getElementById('adminPassword').value = '';
@@ -2620,10 +1760,7 @@ function openAdminLogin() {
 async function verifyAdmin() {
     const p = document.getElementById('adminPassword').value;
     try {
-        const r = await fetch('/api/admin/verify', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({token, password: p})
-        });
+        const r = await fetch('/api/admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token, password: p}) });
         const d = await r.json();
         if (!r.ok) { document.getElementById('adminError').textContent = d.detail || 'Ошибка'; return; }
         adminVerified = true;
@@ -2633,11 +1770,6 @@ async function verifyAdmin() {
         showAdminTab('users');
     } catch(e) { document.getElementById('adminError').textContent = 'Ошибка'; }
 }
-// ============================================
-// ЧАСТЬ 5 — АДМИНКА, ЗАЯВКИ, ЗВАНИЕ, ИГРЫ, ЗВОНКИ
-// ============================================
-
-// ===== АДМИН: СТАТИСТИКА =====
 async function loadAdminStats() {
     try {
         const r = await fetch('/api/admin/stats?token=' + encodeURIComponent(token));
@@ -2647,17 +1779,10 @@ async function loadAdminStats() {
         el.innerHTML = box(s.users || 0, 'Юзеров') + box(s.servers || 0, 'Серверов') + box(s.messages || 0, 'Сообщений') + box(s.online || 0, 'Онлайн', '#22d3ee');
     } catch(e) {}
 }
-
-// ===== АДМИН: ТАБЫ =====
 async function showAdminTab(tab, btn) {
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    else {
-        const tabs = document.querySelectorAll('.admin-tab');
-        tabs.forEach(t => t.classList.remove('active'));
-        if (tabs[0]) tabs[0].classList.add('active');
-    }
-    const b = document.getElementById('adminBody');
+    else { const tabs = document.querySelectorAll('.admin-tab'); tabs.forEach(t => t.classList.remove('active')); if (tabs[0]) tabs[0].classList.add('active'); }
     if (tab === 'logs') { await renderAdminLogs(); return; }
     if (tab === 'vote') { renderAdminVote(); return; }
     if (tab === 'appeals') { await renderAdminAppeals(); return; }
@@ -2665,8 +1790,6 @@ async function showAdminTab(tab, btn) {
     if (tab === 'beta') { await renderAdminBeta(); return; }
     await renderAdminUsers(tab);
 }
-
-// ===== АДМИН: ЮЗЕРЫ =====
 async function renderAdminUsers(mode) {
     if (!mode) mode = 'users';
     try {
@@ -2688,31 +1811,20 @@ async function renderAdminUsers(mode) {
             if (u.premium_tier === 'pro') badges += '<span style="padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#ffd700,#d946ef);color:white;">🏆</span>';
             if (u.is_banned) badges += '<span style="padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:#f43f5e;color:white;">BAN</span>';
             if (u.online) badges += '<span style="padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;">●</span>';
-
             const btnCss = 'padding:6px 10px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:800;color:white;';
             let actions = '';
             if (mode === 'moderation') {
-                actions = u.is_banned
-                    ? '<button style="' + btnCss + 'background:#22d3ee;color:#0f0520;" onclick="adminAction(' + u.id + ',\'unban\')">Разбан</button>'
-                    : '<button style="' + btnCss + 'background:#f43f5e;" onclick="adminBan(' + u.id + ')">Бан</button>';
-            }
-            else if (mode === 'premium') {
+                actions = u.is_banned ? '<button style="' + btnCss + 'background:#22d3ee;color:#0f0520;" onclick="adminAction(' + u.id + ',\'unban\')">Разбан</button>' : '<button style="' + btnCss + 'background:#f43f5e;" onclick="adminBan(' + u.id + ')">Бан</button>';
+            } else if (mode === 'premium') {
                 if (u.premium_tier === 'premium') actions = '<button style="' + btnCss + 'background:linear-gradient(135deg,#ffd700,#d946ef);" onclick="adminAction(' + u.id + ',\'grant_pro\')">🏆 Pro</button><button style="' + btnCss + 'background:rgba(255,255,255,0.15);color:var(--text-dim);" onclick="adminAction(' + u.id + ',\'revoke_premium\')">Забрать</button>';
                 else if (u.premium_tier === 'pro') actions = '<button style="' + btnCss + 'background:rgba(255,255,255,0.15);color:var(--text-dim);" onclick="adminAction(' + u.id + ',\'revoke_premium\')">Забрать Pro</button>';
                 else actions = '<button style="' + btnCss + 'background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="adminAction(' + u.id + ',\'grant_premium\')">💰 Premium</button><button style="' + btnCss + 'background:linear-gradient(135deg,#ffd700,#d946ef);" onclick="adminAction(' + u.id + ',\'grant_pro\')">🏆 Pro</button>';
-            }
-            else if (mode === 'coins') {
+            } else if (mode === 'coins') {
                 actions = '<button style="' + btnCss + 'background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520;" onclick="adminGiveCoins(' + u.id + ')">🏅 +100</button>';
-            }
-            else if (mode === 'roles') {
-                actions = u.is_admin
-                    ? '<button style="' + btnCss + 'background:rgba(217,70,239,0.3);color:#d946ef;" onclick="adminAction(' + u.id + ',\'revoke_admin\')">-Админ</button>'
-                    : '<button style="' + btnCss + 'background:#d946ef;" onclick="adminAction(' + u.id + ',\'grant_admin\')">+Админ</button>';
-                actions += u.is_moderator
-                    ? '<button style="' + btnCss + 'background:rgba(34,211,238,0.3);color:#22d3ee;" onclick="adminAction(' + u.id + ',\'revoke_moderator\')">-Модер</button>'
-                    : '<button style="' + btnCss + 'background:#22d3ee;color:#0f0520;" onclick="adminAction(' + u.id + ',\'grant_moderator\')">+Модер</button>';
-            }
-            else {
+            } else if (mode === 'roles') {
+                actions = u.is_admin ? '<button style="' + btnCss + 'background:rgba(217,70,239,0.3);color:#d946ef;" onclick="adminAction(' + u.id + ',\'revoke_admin\')">-Админ</button>' : '<button style="' + btnCss + 'background:#d946ef;" onclick="adminAction(' + u.id + ',\'grant_admin\')">+Админ</button>';
+                actions += u.is_moderator ? '<button style="' + btnCss + 'background:rgba(34,211,238,0.3);color:#22d3ee;" onclick="adminAction(' + u.id + ',\'revoke_moderator\')">-Модер</button>' : '<button style="' + btnCss + 'background:#22d3ee;color:#0f0520;" onclick="adminAction(' + u.id + ',\'grant_moderator\')">+Модер</button>';
+            } else {
                 actions = '<button style="' + btnCss + 'background:' + (u.is_banned ? '#22d3ee;color:#0f0520;' : '#f43f5e;') + '" onclick="adminAction(' + u.id + ',\'' + (u.is_banned ? 'unban' : 'ban') + '\')">' + (u.is_banned ? 'Разбан' : 'Бан') + '</button><button style="' + btnCss + 'background:rgba(244,63,94,0.3);color:#f43f5e;" onclick="if(confirm(\'Удалить?\'))adminAction(' + u.id + ',\'delete\')">Удалить</button>';
             }
             row.innerHTML = '<div style="color:var(--text);font-weight:800;min-width:120px;">' + escapeHtml(u.username) + '</div><div style="display:flex;gap:4px;flex-wrap:wrap;">' + badges + '</div><div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;">' + actions + '</div>';
@@ -2720,50 +1832,23 @@ async function renderAdminUsers(mode) {
         });
     } catch(e) { document.getElementById('adminBody').innerHTML = '<div style="color:#f43f5e;">Ошибка</div>'; }
 }
-function filterAdminUsers(q) {
-    const l = q.toLowerCase();
-    document.querySelectorAll('.admin-user-row').forEach(r => {
-        r.style.display = r.dataset.username.includes(l) ? 'flex' : 'none';
-    });
-}
+function filterAdminUsers(q) { const l = q.toLowerCase(); document.querySelectorAll('.admin-user-row').forEach(r => { r.style.display = r.dataset.username.includes(l) ? 'flex' : 'none'; }); }
 async function adminBan(targetId) {
     const reason = prompt('Причина бана:', '') || '';
-    try {
-        await fetch('/api/admin/action', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, target_id: targetId, action: 'ban', reason })
-        });
-        loadAdminStats();
-        showAdminTab('moderation');
-    } catch(e) {}
+    try { await fetch('/api/admin/action', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, target_id: targetId, action: 'ban', reason }) }); loadAdminStats(); showAdminTab('moderation'); } catch(e) {}
 }
 async function adminAction(targetId, action) {
     if (!adminVerified) { alert('Введи пароль'); openAdminLogin(); return; }
     try {
-        const r = await fetch('/api/admin/action', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, target_id: targetId, action })
-        });
-        if (r.ok) {
-            loadAdminStats();
-            const active = document.querySelector('.admin-tab.active');
-            if (active) active.click();
-        }
+        const r = await fetch('/api/admin/action', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, target_id: targetId, action }) });
+        if (r.ok) { loadAdminStats(); const active = document.querySelector('.admin-tab.active'); if (active) active.click(); }
     } catch(e) {}
 }
 async function adminGiveCoins(targetId) {
     const amt = parseInt(prompt('Сколько 🏅 выдать?', '100'));
     if (!amt) return;
-    try {
-        await fetch('/api/admin/give_coins', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, target_id: targetId, amount: amt })
-        });
-        alert('Выдано ' + amt + ' 🏅');
-    } catch(e) {}
+    try { await fetch('/api/admin/give_coins', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, target_id: targetId, amount: amt }) }); alert('Выдано ' + amt + ' 🏅'); } catch(e) {}
 }
-
-// ===== АДМИН: ЗАЯВКИ НА БЕКОИНЫ =====
 async function renderAdminRequests() {
     const b = document.getElementById('adminBody');
     b.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute);">Загрузка...</div>';
@@ -2771,52 +1856,32 @@ async function renderAdminRequests() {
         const r = await fetch('/api/admin/coin_requests?token=' + encodeURIComponent(token));
         const reqs = await r.json();
         b.innerHTML = '';
-        if (!reqs.length) {
-            b.innerHTML = '<div style="color:var(--text-mute);text-align:center;padding:40px;">Нет активных заявок</div>';
-            return;
-        }
+        if (!reqs.length) { b.innerHTML = '<div style="color:var(--text-mute);text-align:center;padding:40px;">Нет активных заявок</div>'; return; }
         reqs.forEach(req => {
             const row = document.createElement('div');
             row.className = 'shop-request-row';
             const av = req.avatar ? '<img src="' + req.avatar + '">' : (req.username || '?').charAt(0).toUpperCase();
             const time = req.created_at ? new Date(req.created_at).toLocaleString('ru-RU') : '';
             const price = req.price ? req.price + ' ₽' : '—';
-            row.innerHTML = '<div class="shop-request-avatar">' + av + '</div>' +
-                '<div><div class="shop-request-name">' + escapeHtml(req.username) + '</div><div class="shop-request-time">' + time + '</div></div>' +
-                '<div class="shop-request-amount">' + req.coins + '</div>' +
-                '<div style="color:var(--text-dim);font-size:12px;">' + price + '</div>' +
-                '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
-                '<button class="save-btn green" style="margin:0;padding:8px 14px;width:auto;font-size:12px;" onclick="resolveCoinRequest(' + req.id + ',\'approve\')">✓ Одобрить</button>' +
-                '<button class="save-btn red" style="margin:0;padding:8px 14px;width:auto;font-size:12px;" onclick="resolveCoinRequest(' + req.id + ',\'reject\')">✕ Отклонить</button>' +
-                '</div>';
+            row.innerHTML = '<div class="shop-request-avatar">' + av + '</div><div><div class="shop-request-name">' + escapeHtml(req.username) + '</div><div class="shop-request-time">' + time + '</div></div><div class="shop-request-amount">' + req.coins + '</div><div style="color:var(--text-dim);font-size:12px;">' + price + '</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="save-btn green" style="margin:0;padding:8px 14px;width:auto;font-size:12px;" onclick="resolveCoinRequest(' + req.id + ',\'approve\')">✓ Одобрить</button><button class="save-btn red" style="margin:0;padding:8px 14px;width:auto;font-size:12px;" onclick="resolveCoinRequest(' + req.id + ',\'reject\')">✕ Отклонить</button></div>';
             b.appendChild(row);
         });
     } catch(e) { b.innerHTML = '<div style="color:#f43f5e;">Ошибка загрузки</div>'; }
 }
 async function resolveCoinRequest(id, action) {
     try {
-        const r = await fetch('/api/admin/coin_resolve', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, request_id: id, action })
-        });
-        if (r.ok) {
-            showShopNotice(action === 'approve' ? '✅ Заявка одобрена' : '❌ Заявка отклонена');
-            renderAdminRequests();
-        } else {
-            const d = await r.json();
-            showShopNotice('❌ ' + (d.detail || 'Ошибка'), 'error');
-        }
+        const r = await fetch('/api/admin/coin_resolve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, request_id: id, action }) });
+        if (r.ok) { showShopNotice(action === 'approve' ? '✅ Заявка одобрена' : '❌ Заявка отклонена'); renderAdminRequests(); }
+        else { const d = await r.json(); showShopNotice('❌ ' + (d.detail || 'Ошибка'), 'error'); }
     } catch(e) { showShopNotice('❌ Ошибка', 'error'); }
 }
-
-// ===== АДМИН: БЕТА-ТЕСТЕРЫ =====
 async function renderAdminBeta() {
     const b = document.getElementById('adminBody');
     b.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute);">Загрузка...</div>';
     try {
         const r = await fetch('/api/admin/users?token=' + encodeURIComponent(token));
         const users = await r.json();
-        b.innerHTML = '<div style="margin-bottom:12px;color:var(--text-dim);font-size:13px;">🧪 Нажми на кнопку, чтобы выдать/забрать звание <b>Бета-тестер</b></div><div id="betaUsersList"></div>';
+        b.innerHTML = '<div style="margin-bottom:12px;color:var(--text-dim);font-size:13px;">🧪 Выдать/забрать звание <b>Бета-тестер</b></div><div id="betaUsersList"></div>';
         const list = document.getElementById('betaUsersList');
         users.forEach(u => {
             const row = document.createElement('div');
@@ -2825,9 +1890,7 @@ async function renderAdminBeta() {
             row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;margin-bottom:6px;background:var(--bg-input);border:1px solid ' + (u.is_beta_tester ? 'rgba(34,197,94,0.5)' : 'var(--border)') + ';flex-wrap:wrap;';
             const badge = u.is_beta_tester ? '<span class="badge-beta"></span>' : '';
             const btnCss = 'padding:6px 12px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:800;color:white;';
-            const btn = u.is_beta_tester
-                ? '<button style="' + btnCss + 'background:rgba(244,63,94,0.7);" onclick="toggleBeta(' + u.id + ',false)">Забрать 🧪</button>'
-                : '<button style="' + btnCss + 'background:linear-gradient(135deg,#22c55e,#16a34a);" onclick="toggleBeta(' + u.id + ',true)">Выдать 🧪</button>';
+            const btn = u.is_beta_tester ? '<button style="' + btnCss + 'background:rgba(244,63,94,0.7);" onclick="toggleBeta(' + u.id + ',false)">Забрать 🧪</button>' : '<button style="' + btnCss + 'background:linear-gradient(135deg,#22c55e,#16a34a);" onclick="toggleBeta(' + u.id + ',true)">Выдать 🧪</button>';
             row.innerHTML = '<div style="color:var(--text);font-weight:800;min-width:120px;">' + escapeHtml(u.username) + '</div><div>' + badge + '</div><div style="display:flex;gap:6px;margin-left:auto;">' + btn + '</div>';
             list.appendChild(row);
         });
@@ -2835,18 +1898,10 @@ async function renderAdminBeta() {
 }
 async function toggleBeta(targetId, grant) {
     try {
-        const r = await fetch('/api/admin/toggle_beta', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, target_id: targetId, grant })
-        });
-        if (r.ok) {
-            showShopNotice(grant ? '🧪 Звание выдано' : '🧪 Звание забрано');
-            renderAdminBeta();
-        }
+        const r = await fetch('/api/admin/toggle_beta', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, target_id: targetId, grant }) });
+        if (r.ok) { showShopNotice(grant ? '🧪 Звание выдано' : '🧪 Звание забрано'); renderAdminBeta(); }
     } catch(e) {}
 }
-
-// ===== АДМИН: ЛОГИ =====
 async function renderAdminLogs() {
     try {
         const r = await fetch('/api/admin/logs?token=' + encodeURIComponent(token));
@@ -2863,33 +1918,21 @@ async function renderAdminLogs() {
         });
     } catch(e) {}
 }
-
-// ===== АДМИН: ГОЛОСОВАНИЕ =====
 function renderAdminVote() {
     const b = document.getElementById('adminBody');
     const inpCss = 'width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);margin-bottom:10px;font-size:14px;outline:none;';
-    b.innerHTML = '<h3 style="color:var(--text);margin-bottom:14px;">🗳️ Запуск голосования</h3>' +
-        '<input type="text" id="voteQuestion" placeholder="Вопрос" style="' + inpCss + '">' +
-        '<input type="text" id="voteOpt1" placeholder="Вариант 1" style="' + inpCss + '">' +
-        '<input type="text" id="voteOpt2" placeholder="Вариант 2" style="' + inpCss + '">' +
-        '<input type="text" id="voteOpt3" placeholder="Вариант 3 (необязательно)" style="' + inpCss + '">' +
-        '<button class="save-btn gold" onclick="startVote()">Запустить</button>';
+    b.innerHTML = '<h3 style="color:var(--text);margin-bottom:14px;">🗳️ Запуск голосования</h3><input type="text" id="voteQuestion" placeholder="Вопрос" style="' + inpCss + '"><input type="text" id="voteOpt1" placeholder="Вариант 1" style="' + inpCss + '"><input type="text" id="voteOpt2" placeholder="Вариант 2" style="' + inpCss + '"><input type="text" id="voteOpt3" placeholder="Вариант 3" style="' + inpCss + '"><button class="save-btn gold" onclick="startVote()">Запустить</button>';
 }
 async function startVote() {
     const q = document.getElementById('voteQuestion').value.trim();
     const opts = [document.getElementById('voteOpt1').value.trim(), document.getElementById('voteOpt2').value.trim(), document.getElementById('voteOpt3').value.trim()].filter(x => x);
-    if (!q || opts.length < 2) { alert('Заполни вопрос и минимум 2 варианта'); return; }
+    if (!q || opts.length < 2) { alert('Заполни вопрос и 2+ варианта'); return; }
     try {
-        const r = await fetch('/api/vote/start', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, question: q, options: opts })
-        });
+        const r = await fetch('/api/vote/start', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, question: q, options: opts }) });
         if (r.ok) alert('Голосование запущено!');
         else { const d = await r.json(); alert(d.detail || 'Ошибка'); }
     } catch(e) { alert('Ошибка'); }
 }
-
-// ===== АДМИН: ОБЖАЛОВАНИЯ =====
 async function renderAdminAppeals() {
     const b = document.getElementById('adminBody');
     b.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute);">Загрузка...</div>';
@@ -2907,63 +1950,12 @@ async function renderAdminAppeals() {
     } catch(e) {}
 }
 async function resolveAppeal(id, action) {
-    try {
-        await fetch('/api/admin/appeal_resolve', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, appeal_id: id, action })
-        });
-        renderAdminAppeals();
-    } catch(e) {}
-}
-
-// ===== ГОЛОСОВАНИЕ (вкладка юзера) =====
-function showVote() {
-    currentChatType = 'vote';
-    document.getElementById('chatWindowTitle').textContent = '🗳️ Голосование';
-    document.getElementById('chatWindowAvatar').textContent = '🗳️';
-    document.getElementById('chatMembersBtn').style.display = 'none';
-    document.getElementById('chatCallBtn').style.display = 'none';
-    document.getElementById('messagesBody').innerHTML = '<div id="voteContentArea" style="padding:20px;"><div style="text-align:center;color:var(--text-mute);padding:40px;">Загрузка...</div></div>';
-    loadVote();
-    if (window.innerWidth <= 768) mobileShow('chat');
-}
-async function loadVote() {
-    try {
-        const r = await fetch('/api/vote/current');
-        const v = await r.json();
-        currentVote = v;
-        renderVote(v);
-    } catch(e) {}
-}
-function renderVote(v) {
-    const c = document.getElementById('voteContentArea');
-    if (!c) return;
-    if (!v || !v.id) {
-        c.innerHTML = '<div style="text-align:center;color:var(--text-mute);padding:40px;">Нет активных голосований</div>';
-        return;
-    }
-    let html = '<div style="background:var(--bg-input);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--text);">' + escapeHtml(v.question) + '</div></div>';
-    v.options.forEach((o, i) => {
-        const voted = v.my_vote === i;
-        html += '<div onclick="castVote(' + i + ')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:' + (voted ? 'rgba(34,211,238,0.15)' : 'var(--bg-input)') + ';border:2px solid ' + (voted ? '#22d3ee' : 'var(--border)') + ';border-radius:14px;margin-bottom:10px;cursor:pointer;"><div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:900;color:white;">' + (i+1) + '</div><div style="flex:1;color:var(--text);font-weight:700;font-size:15px;">' + escapeHtml(o.text) + '</div><div style="color:#ffd700;font-weight:900;font-size:18px;">' + o.votes + '</div></div>';
-    });
-    c.innerHTML = html;
-}
-async function castVote(idx) {
-    if (!currentVote) return;
-    try {
-        await fetch('/api/vote/cast', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token, vote_id: currentVote.id, option: idx })
-        });
-        loadVote();
-    } catch(e) {}
+    try { await fetch('/api/admin/appeal_resolve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, appeal_id: id, action }) }); renderAdminAppeals(); } catch(e) {}
 }
 
 // ===== ИГРЫ =====
 function openGamesMenu() { document.getElementById('gamesMenuModal').classList.add('open'); }
 
-// Сапёр
 let minesweeperState = null;
 function openMinesweeper() { document.getElementById('gamesMenuModal').classList.remove('open'); document.getElementById('minesweeperModal').classList.add('open'); resetMinesweeper(); }
 function closeMinesweeper() { document.getElementById('minesweeperModal').classList.remove('open'); }
@@ -3014,14 +2006,12 @@ function toggleFlag(i, j) {
     renderMinesweeper();
 }
 
-// Змейка
 let snakeState = null, snakeInterval = null;
 function openSnake() { document.getElementById('gamesMenuModal').classList.remove('open'); document.getElementById('snakeModal').classList.add('open'); resetSnake(); }
 function closeSnake() { document.getElementById('snakeModal').classList.remove('open'); if (snakeInterval) clearInterval(snakeInterval); }
 function resetSnake() {
     if (snakeInterval) clearInterval(snakeInterval);
-    const canvas = document.getElementById('snakeCanvas');
-    if (!canvas) return;
+    const canvas = document.getElementById('snakeCanvas'); if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const cellSize = 20, cols = canvas.width / cellSize, rows = canvas.height / cellSize;
     snakeState = { ctx, cellSize, cols, rows, snake: [{x:10,y:10}], dir:'right', nextDir:'right', food:{x:15,y:10}, score:0, over:false };
@@ -3029,17 +2019,8 @@ function resetSnake() {
     snakeInterval = setInterval(snakeTick, 120);
     snakeTick();
 }
-function snakeDir(d) {
-    if (!snakeState) return;
-    const opposite = { up:'down', down:'up', left:'right', right:'left' };
-    if (d === opposite[snakeState.dir]) return;
-    snakeState.nextDir = d;
-}
-document.addEventListener('keydown', (e) => {
-    if (!snakeState || !document.getElementById('snakeModal').classList.contains('open')) return;
-    const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
-    if (map[e.key]) { e.preventDefault(); snakeDir(map[e.key]); }
-});
+function snakeDir(d) { if (!snakeState) return; const opp = { up:'down', down:'up', left:'right', right:'left' }; if (d === opp[snakeState.dir]) return; snakeState.nextDir = d; }
+document.addEventListener('keydown', (e) => { if (!snakeState || !document.getElementById('snakeModal').classList.contains('open')) return; const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }; if (map[e.key]) { e.preventDefault(); snakeDir(map[e.key]); } });
 function snakeTick() {
     if (!snakeState || snakeState.over) return;
     const s = snakeState;
@@ -3063,15 +2044,13 @@ document.addEventListener('touchend', (e) => {
     else { if (dy > 30) snakeDir('down'); else if (dy < -30) snakeDir('up'); }
 });
 
-// 2048
 let grid2048 = [], score2048 = 0;
 function open2048() { document.getElementById('gamesMenuModal').classList.remove('open'); document.getElementById('game2048Modal').classList.add('open'); reset2048(); }
 function close2048() { document.getElementById('game2048Modal').classList.remove('open'); }
 function reset2048() { grid2048 = Array(16).fill(0); score2048 = 0; addRandom2048(); addRandom2048(); render2048(); }
 function addRandom2048() { const empty = []; grid2048.forEach((v, i) => { if (v === 0) empty.push(i); }); if (!empty.length) return; const idx = empty[Math.floor(Math.random()*empty.length)]; grid2048[idx] = Math.random() < 0.9 ? 2 : 4; }
 function render2048() {
-    const g = document.getElementById('grid2048');
-    if (!g) return;
+    const g = document.getElementById('grid2048'); if (!g) return;
     g.innerHTML = '';
     const colors = { 0:'var(--bg-input)', 2:'#eee4da', 4:'#ede0c8', 8:'#f2b179', 16:'#f59563', 32:'#f67c5f', 64:'#f65e3b', 128:'#edcf72', 256:'#edcc61', 512:'#edc850', 1024:'#edc53f', 2048:'#edc22e' };
     grid2048.forEach(v => {
@@ -3098,11 +2077,7 @@ function move2048(dir) {
     }
     if (moved) { addRandom2048(); render2048(); }
 }
-document.addEventListener('keydown', (e) => {
-    if (!document.getElementById('game2048Modal').classList.contains('open')) return;
-    const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
-    if (map[e.key]) { e.preventDefault(); move2048(map[e.key]); }
-});
+document.addEventListener('keydown', (e) => { if (!document.getElementById('game2048Modal').classList.contains('open')) return; const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' }; if (map[e.key]) { e.preventDefault(); move2048(map[e.key]); } });
 let t2048x = 0, t2048y = 0;
 document.addEventListener('touchstart', (e) => { if (!document.getElementById('game2048Modal').classList.contains('open')) return; t2048x = e.touches[0].clientX; t2048y = e.touches[0].clientY; });
 document.addEventListener('touchend', (e) => {
@@ -3113,11 +2088,8 @@ document.addEventListener('touchend', (e) => {
     else { if (dy > 30) move2048('down'); else if (dy < -30) move2048('up'); }
 });
 
-// ===== ЗВОНКИ (WebRTC) =====
-async function startCallDM() {
-    if (!currentDMUser) return;
-    await initiateCall(currentDMUser.id, currentDMUser.username);
-}
+// ===== ЗВОНКИ =====
+async function startCallDM() { if (!currentDMUser) return; await initiateCall(currentDMUser.id, currentDMUser.username); }
 async function initiateCall(targetId, targetName) {
     callTarget = targetId;
     try {
@@ -3145,23 +2117,11 @@ function showCallModal(name, status, incoming, fromId, fromAvatar) {
     const a = document.getElementById('callActions');
     a.innerHTML = '';
     if (incoming) {
-        const acc = document.createElement('button');
-        acc.className = 'save-btn green';
-        acc.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;';
-        acc.textContent = '✓';
-        acc.onclick = () => acceptCall(fromId);
-        const dec = document.createElement('button');
-        dec.className = 'save-btn red';
-        dec.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;';
-        dec.textContent = '✕';
-        dec.onclick = () => { ws.send(JSON.stringify({ type:'call_decline', target: fromId })); cm.classList.remove('open'); };
+        const acc = document.createElement('button'); acc.className = 'save-btn green'; acc.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;'; acc.textContent = '✓'; acc.onclick = () => acceptCall(fromId);
+        const dec = document.createElement('button'); dec.className = 'save-btn red'; dec.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;'; dec.textContent = '✕'; dec.onclick = () => { ws.send(JSON.stringify({ type:'call_decline', target: fromId })); cm.classList.remove('open'); };
         a.appendChild(acc); a.appendChild(dec);
     } else {
-        const dec = document.createElement('button');
-        dec.className = 'save-btn red';
-        dec.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;';
-        dec.textContent = '✕';
-        dec.onclick = () => { if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget })); cm.classList.remove('open'); if (pc) { pc.close(); pc = null; } };
+        const dec = document.createElement('button'); dec.className = 'save-btn red'; dec.style.cssText = 'width:60px;height:60px;border-radius:18px;font-size:24px;margin:0;'; dec.textContent = '✕'; dec.onclick = () => { if (callTarget) ws.send(JSON.stringify({ type:'call_decline', target: callTarget })); cm.classList.remove('open'); if (pc) { pc.close(); pc = null; } };
         a.appendChild(dec);
     }
 }
@@ -3184,109 +2144,13 @@ async function handleSignal(data) {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         ws.send(JSON.stringify({ type:'answer', target: data.from, sdp: answer }));
-    } else if (data.type === 'answer') {
-        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    } else if (data.type === 'ice') {
-        try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
-    }
+    } else if (data.type === 'answer') { await pc.setRemoteDescription(new RTCSessionDescription(data.sdp)); }
+    else if (data.type === 'ice') { try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {} }
 }
 
-// ===== ЭКСПОРТ ЧАТА =====
-function exportChat() {
-    const msgs = [];
-    document.querySelectorAll('#messagesBody .msg-row').forEach(m => {
-        const n = m.querySelector('.msg-author');
-        const t = m.querySelector('.msg-content');
-        if (n && t) msgs.push('[' + (n.textContent || '?') + ']: ' + t.textContent);
-    });
-    if (!msgs.length) { showShopNotice('⚠️ Чат пустой', 'warn'); return; }
-    const blob = new Blob([msgs.join('\n')], { type:'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'belugacord_chat_' + Date.now() + '.txt';
-    a.click();
-    showShopNotice('💾 Чат экспортирован');
-}
-
-// ===== НАСТРОЙКИ СЕРВЕРА =====
-function openServerSettings() {
-    if (!currentServerData) return;
-    document.getElementById('serverNameInput').value = currentServerData.name || '';
-    document.getElementById('serverDescInput').value = currentServerData.description || '';
-    document.getElementById('serverInviteInput').value = currentServerData.invite_code || '';
-    const av = document.getElementById('serverAvatarPreview');
-    if (currentServerData.avatar) av.innerHTML = '<img src="' + currentServerData.avatar + '" style="width:100%;height:100%;object-fit:cover;">';
-    else av.textContent = (currentServerData.name || '?').charAt(0).toUpperCase();
-    const b = document.getElementById('serverBannerPreview');
-    const oi = b.querySelector('img');
-    if (oi) oi.remove();
-    if (currentServerData.banner) {
-        const img = document.createElement('img');
-        img.src = currentServerData.banner;
-        img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
-        b.insertBefore(img, b.firstChild);
-    }
-    document.getElementById('serverSettingsModal').classList.add('open');
-}
-async function saveServerSettings() {
-    try {
-        const body = { token, server_id: currentServerId, name: document.getElementById('serverNameInput').value, description: document.getElementById('serverDescInput').value };
-        if (currentServerData._newAvatar) body.avatar = currentServerData._newAvatar;
-        if (currentServerData._newBanner) body.banner = currentServerData._newBanner;
-        const r = await fetch('/api/servers/update', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-        if (r.ok) {
-            document.getElementById('serverSettingsModal').classList.remove('open');
-            loadServers();
-            if (currentServerId) openServer(currentServerId, document.getElementById('serverNameInput').value);
-        }
-    } catch(e) {}
-}
-async function deleteServer() {
-    if (!confirm('Удалить сервер?')) return;
-    try {
-        const r = await fetch('/api/servers/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, server_id: currentServerId }) });
-        if (r.ok) { document.getElementById('serverSettingsModal').classList.remove('open'); currentServerId = null; currentServerData = null; loadServers(); showFriends(); }
-        else alert('Только владелец');
-    } catch(e) {}
-}
-async function leaveServer() {
-    if (!confirm('Выйти из сервера?')) return;
-    try {
-        const r = await fetch('/api/servers/leave', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token, server_id: currentServerId }) });
-        if (r.ok) { document.getElementById('serverSettingsModal').classList.remove('open'); currentServerId = null; currentServerData = null; loadServers(); showFriends(); }
-    } catch(e) {}
-}
-function copyInvite() {
-    const inp = document.getElementById('serverInviteInput');
-    inp.select();
-    document.execCommand('copy');
-    showShopNotice('📋 Код скопирован');
-}
-
-// ===== УЧАСТНИКИ =====
-async function openMembers() {
-    if (!currentServerId) return;
-    try {
-        const r = await fetch('/api/servers/' + currentServerId + '/members?token=' + encodeURIComponent(token));
-        const members = await r.json();
-        const list = document.getElementById('membersList');
-        list.innerHTML = '';
-        members.forEach(m => {
-            const row = document.createElement('div');
-            row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;';
-            const av = m.avatar ? '<img src="' + m.avatar + '" style="width:100%;height:100%;object-fit:cover;">' : m.username.charAt(0).toUpperCase();
-            const dot = m.online ? '<div style="position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:#22d3ee;border:2px solid var(--bg-sidebar);box-shadow:0 0 8px #22d3ee;"></div>' : '';
-            let badges = '';
-            if (m.is_admin) badges += '<span class="badge-admin"></span>';
-            if (m.is_moderator) badges += '<span class="badge-mod"></span>';
-            if (m.is_beta_tester) badges += '<span class="badge-beta"></span>';
-            row.innerHTML = '<div style="position:relative;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;overflow:hidden;">' + av + dot + '</div><div style="flex:1;"><div style="color:var(--text);font-weight:700;font-size:13px;display:flex;align-items:center;gap:4px;">' + escapeHtml(m.username) + badges + '</div><div style="color:var(--text-mute);font-size:11px;">' + (m.role === 'admin' ? 'Администратор' : (m.role === 'moderator' ? 'Модератор' : 'Участник')) + '</div></div>';
-            row.onclick = () => { document.getElementById('membersModal').classList.remove('open'); viewProfile(m.id); };
-            list.appendChild(row);
-        });
-        document.getElementById('membersModal').classList.add('open');
-    } catch(e) {}
-}
-
-// ===== ФИНАЛ =====
+// ===== СТАРТ =====
 console.log('🐱 Belugacord Beta 0.5 загружен');
+boot();
+</script>
+</body>
+</html>
