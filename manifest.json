@@ -1,16 +1,14 @@
 {
   "name": "Belugacord",
   "short_name": "Belugacord",
-  "description": "Мессенджер — чат, звонки, сервера, друзья",
+  "description": "Мессенджер Belugacord — общайся, играй, зарабатывай Бекоины",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f0520",
-  "theme_color": "#1a0a2e",
+  "background_color": "#0a0a12",
+  "theme_color": "#d946ef",
   "lang": "ru",
-  "dir": "ltr",
-  "categories": ["social", "communication"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -23,13 +21,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Друзья",
-      "url": "/?page=friends",
-      "description": "Открыть список друзей"
     }
   ]
 }
