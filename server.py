@@ -1,11 +1,11 @@
 # ============================================
-# BELUGACORD SERVER.PY — Beta 1.2
+# BELUGACORD SERVER.PY — 2.0
 # ============================================
 import os, json, time, asyncio, secrets, hashlib, random
 from typing import Optional
 import asyncpg
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -52,25 +52,27 @@ async def init_db():
             avatar_pos TEXT DEFAULT '50% 50%', banner_pos TEXT DEFAULT '50% 50%',
             email VARCHAR(128), is_admin BOOLEAN DEFAULT FALSE, is_moderator BOOLEAN DEFAULT FALSE,
             is_beta_tester BOOLEAN DEFAULT FALSE, is_scam BOOLEAN DEFAULT FALSE,
-            premium_tier VARCHAR(8), is_banned BOOLEAN DEFAULT FALSE, ban_reason VARCHAR(256),
+            is_dev BOOLEAN DEFAULT FALSE, premium_tier VARCHAR(8),
+            is_banned BOOLEAN DEFAULT FALSE, ban_reason VARCHAR(256),
             mute_until TIMESTAMP, nickname_color VARCHAR(32), nickname_gradient VARCHAR(128),
             custom_status VARCHAR(128), bio VARCHAR(256), fav_music VARCHAR(128),
             gifts_hidden BOOLEAN DEFAULT FALSE, easter_found TEXT DEFAULT '[]',
             easter_rewarded BOOLEAN DEFAULT FALSE, admin_password VARCHAR(128),
             coins INTEGER DEFAULT 0, messages_count INTEGER DEFAULT 0,
-            frozen BOOLEAN DEFAULT FALSE,
+            frozen BOOLEAN DEFAULT FALSE, is_legend BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW())""")
         for col, typ in [
             ("is_admin","BOOLEAN DEFAULT FALSE"),("is_moderator","BOOLEAN DEFAULT FALSE"),
             ("is_beta_tester","BOOLEAN DEFAULT FALSE"),("is_scam","BOOLEAN DEFAULT FALSE"),
-            ("premium_tier","VARCHAR(8)"),("is_banned","BOOLEAN DEFAULT FALSE"),
-            ("ban_reason","VARCHAR(256)"),("email","VARCHAR(128)"),("mute_until","TIMESTAMP"),
+            ("is_dev","BOOLEAN DEFAULT FALSE"),("premium_tier","VARCHAR(8)"),
+            ("is_banned","BOOLEAN DEFAULT FALSE"),("ban_reason","VARCHAR(256)"),
+            ("email","VARCHAR(128)"),("mute_until","TIMESTAMP"),
             ("nickname_color","VARCHAR(32)"),("nickname_gradient","VARCHAR(128)"),
             ("custom_status","VARCHAR(128)"),("bio","VARCHAR(256)"),("fav_music","VARCHAR(128)"),
             ("gifts_hidden","BOOLEAN DEFAULT FALSE"),("easter_found","TEXT DEFAULT '[]'"),
             ("easter_rewarded","BOOLEAN DEFAULT FALSE"),("admin_password","VARCHAR(128)"),
             ("coins","INTEGER DEFAULT 0"),("messages_count","INTEGER DEFAULT 0"),
-            ("frozen","BOOLEAN DEFAULT FALSE"),
+            ("frozen","BOOLEAN DEFAULT FALSE"),("is_legend","BOOLEAN DEFAULT FALSE"),
         ]:
             try: await conn.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {typ}")
             except: pass
@@ -90,8 +92,8 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS messages (
             id SERIAL PRIMARY KEY, channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            text TEXT, file_url TEXT, reactions TEXT DEFAULT '{}',
-            created_at TIMESTAMP DEFAULT NOW())""")
+            text TEXT, file_url TEXT, reply_to INTEGER, reactions TEXT DEFAULT '{}',
+            edited BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS friendships (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -99,23 +101,27 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS dms (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            text TEXT, file_url TEXT, created_at TIMESTAMP DEFAULT NOW())""")
+            text TEXT, file_url TEXT, reactions TEXT DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS admin_logs (
             id SERIAL PRIMARY KEY, admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-            action VARCHAR(64), target_id INTEGER, details TEXT, created_at TIMESTAMP DEFAULT NOW())""")
+            action VARCHAR(64), target_id INTEGER, details TEXT,
+            created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS ban_appeals (
             id SERIAL PRIMARY KEY, username VARCHAR(32), text TEXT,
             status VARCHAR(16) DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             target_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            text TEXT, status VARCHAR(16) DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW())""")
+            text TEXT, status VARCHAR(16) DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS coin_transactions (
             id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             amount INTEGER, reason VARCHAR(64), created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS coin_requests (
             id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            coins INTEGER NOT NULL, price INTEGER DEFAULT 0, status VARCHAR(16) DEFAULT 'pending',
+            coins INTEGER NOT NULL, price INTEGER DEFAULT 0,
+            status VARCHAR(16) DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT NOW(), resolved_at TIMESTAMP)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS gifts (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -124,12 +130,16 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS nft_series (
             id SERIAL PRIMARY KEY, name VARCHAR(64), emoji VARCHAR(8), image TEXT,
             total INTEGER NOT NULL, sold INTEGER DEFAULT 0, price INTEGER NOT NULL,
-            rarity VARCHAR(16) DEFAULT 'common', created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            rarity VARCHAR(16) DEFAULT 'common',
+            created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
             created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS nft_items (
             id SERIAL PRIMARY KEY, series_id INTEGER REFERENCES nft_series(id) ON DELETE CASCADE,
             number INTEGER NOT NULL, owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             created_at TIMESTAMP DEFAULT NOW())""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS votes (
+            id SERIAL PRIMARY KEY, question VARCHAR(256), options TEXT,
+            active BOOLEAN DEFAULT TRUE, created_at TIMESTAMP DEFAULT NOW())""")
 
 @app.on_event("startup")
 async def startup():
@@ -177,6 +187,7 @@ async def log_admin(aid, action, tid, details=""):
 def get_role(row):
     if not row: return "user"
     if row.get("username") == ADMIN_USERNAME: return "owner"
+    if row.get("is_dev"): return "dev"
     if row.get("is_admin"): return "admin"
     if row.get("is_moderator"): return "moderator"
     if row.get("is_beta_tester"): return "beta"
@@ -188,13 +199,13 @@ def user_public(row):
         "banner": row["banner"], "avatar_pos": row["avatar_pos"], "banner_pos": row["banner_pos"],
         "is_admin": row["is_admin"], "is_moderator": row["is_moderator"],
         "is_beta_tester": row.get("is_beta_tester", False),
-        "is_scam": row.get("is_scam", False),
+        "is_scam": row.get("is_scam", False), "is_dev": row.get("is_dev", False),
         "premium_tier": row.get("premium_tier"),
         "nickname_color": row.get("nickname_color"), "nickname_gradient": row.get("nickname_gradient"),
-        "custom_status": row.get("custom_status"), "bio": row.get("bio"),
-        "fav_music": row.get("fav_music"),
+        "custom_status": row.get("custom_status"), "bio": row.get("bio"), "fav_music": row.get("fav_music"),
         "gifts_hidden": row.get("gifts_hidden", False),
         "coins": row.get("coins", 0), "messages_count": row.get("messages_count", 0),
+        "is_legend": row.get("is_legend", False),
         "has_admin_pass": bool(row.get("admin_password")),
         "created_at": row["created_at"].isoformat() if row.get("created_at") else None,
         "role": get_role(row), "online": row["id"] in online_users
@@ -231,6 +242,7 @@ async def login(data: dict):
         row = await conn.fetchrow("SELECT * FROM users WHERE username = $1", u)
     if not row or not verify_password(pw, row["password_hash"]): raise HTTPException(400, "Неверный ник/пароль")
     if row["is_banned"]: raise HTTPException(403, row.get("ban_reason") or "Забанен")
+    if row.get("frozen"): raise HTTPException(403, "Аккаунт заморожен")
     return {"token": make_token(row["id"], row["username"]), "user": user_public(row)}
 
 @app.get("/api/me")
@@ -259,9 +271,9 @@ async def get_user(user_id: int):
     p = await get_pool()
     async with p.acquire() as conn:
         row = await conn.fetchrow("""SELECT id, username, avatar, banner, avatar_pos, banner_pos,
-            is_admin, is_moderator, is_beta_tester, is_scam,
+            is_admin, is_moderator, is_beta_tester, is_scam, is_dev,
             premium_tier, nickname_color, nickname_gradient, bio, fav_music,
-            messages_count, created_at FROM users WHERE id = $1""", user_id)
+            messages_count, is_legend, created_at FROM users WHERE id = $1""", user_id)
     if not row: raise HTTPException(404, "Не найден")
     d = dict(row)
     d["created_at"] = d["created_at"].isoformat() if d.get("created_at") else None
@@ -281,7 +293,7 @@ async def change_nick(data: dict):
         await conn.execute("UPDATE users SET username = $1 WHERE id = $2", new_nick, user["id"])
     return {"ok": True, "token": make_token(user["id"], new_nick)}
 
-# АДМИН-ПАРОЛЬ
+# АДМИН
 @app.post("/api/admin/set_password")
 async def admin_set_password(data: dict):
     user = await get_current_user(data.get("token"))
@@ -300,169 +312,9 @@ async def admin_verify(data: dict):
     pw = data.get("password") or ""
     stored = user.get("admin_password")
     if stored and not verify_password(pw, stored): raise HTTPException(403, "Неверный пароль")
-    if not stored and pw != "12344321": raise HTTPException(403, "Сначала установи пароль")
+    if not stored and pw != "12344321": raise HTTPException(403, "Установи пароль")
     return {"ok": True}
 
-# ВЛАДЕЛЕЦ
-@app.post("/api/owner/verify")
-async def owner_verify(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    if user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    if data.get("password") != OWNER_PASSWORD: raise HTTPException(403, "Неверный пароль")
-    return {"ok": True}
-
-@app.get("/api/owner/stats")
-async def owner_stats(token: str):
-    user = await get_current_user(token)
-    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        u = await conn.fetchval("SELECT COUNT(*) FROM users")
-        m = await conn.fetchval("SELECT COUNT(*) FROM messages")
-        c = await conn.fetchval("SELECT COALESCE(SUM(coins),0) FROM users")
-        n = await conn.fetchval("SELECT COUNT(*) FROM nft_items")
-        g = await conn.fetchval("SELECT COUNT(*) FROM gifts")
-    return {"users":u,"messages":m,"coins":c,"nfts":n,"gifts":g,"online":len(online_users)}
-
-# ПОДАРКИ
-@app.post("/api/gifts/send")
-async def gift_send(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    to_user = data.get("to_user"); gid = data.get("gift")
-    if gid not in GIFTS_DB: raise HTTPException(400, "Нет такого")
-    gift = GIFTS_DB[gid]
-    if user.get("coins", 0) < gift["price"]: raise HTTPException(400, "Не хватает")
-    if to_user == user["id"]: raise HTTPException(400, "Себе нельзя")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("UPDATE users SET coins = coins - $1 WHERE id = $2", gift["price"], user["id"])
-        await conn.execute("INSERT INTO gifts (from_user, to_user, gift) VALUES ($1,$2,$3)", user["id"], to_user, gid)
-    await manager.send_to(to_user, {"type":"gift_received","gift_emoji":gift["emoji"],"gift_name":gift["name"],"from_name":user["username"]})
-    return {"ok": True}
-
-@app.get("/api/gifts/list/{user_id}")
-async def gift_list(user_id: int):
-    p = await get_pool()
-    async with p.acquire() as conn:
-        target = await conn.fetchrow("SELECT gifts_hidden FROM users WHERE id = $1", user_id)
-        if not target: raise HTTPException(404, "Не найден")
-        if target.get("gifts_hidden"): return {"hidden": True, "gifts": []}
-        rows = await conn.fetch("SELECT gift FROM gifts WHERE to_user = $1", user_id)
-    return {"hidden": False, "gifts": [{"gift": r["gift"]} for r in rows]}
-
-@app.post("/api/gifts/sell")
-async def gift_sell(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    gid = data.get("gift")
-    if gid not in GIFTS_DB: raise HTTPException(400, "Нет такого")
-    gift = GIFTS_DB[gid]
-    price = int(gift["price"] * 0.5)
-    p = await get_pool()
-    async with p.acquire() as conn:
-        row = await conn.fetchrow("SELECT id FROM gifts WHERE to_user = $1 AND gift = $2 LIMIT 1", user["id"], gid)
-        if not row: raise HTTPException(400, "У тебя нет такого")
-        await conn.execute("DELETE FROM gifts WHERE id = $1", row["id"])
-        await conn.execute("UPDATE users SET coins = coins + $1 WHERE id = $2", price, user["id"])
-        await conn.execute("INSERT INTO coin_transactions (user_id, amount, reason) VALUES ($1,$2,'gift_sold')", user["id"], price)
-    return {"ok": True, "price": price}
-
-@app.post("/api/gifts/toggle_hidden")
-async def gift_toggle(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    new_val = not user.get("gifts_hidden", False)
-    p = await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("UPDATE users SET gifts_hidden = $1 WHERE id = $2", new_val, user["id"])
-    return {"ok": True, "hidden": new_val}
-
-# NFT
-@app.post("/api/owner/create_nft")
-async def create_nft(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    name = data.get("name"); emoji = data.get("emoji","🎨")
-    total = int(data.get("total",0)); price = int(data.get("price",0)); rarity = data.get("rarity","common")
-    if not name or total < 1 or price < 1: raise HTTPException(400, "Заполни всё")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        row = await conn.fetchrow("INSERT INTO nft_series (name, emoji, total, price, rarity, created_by) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id",
-            name, emoji, total, price, rarity, user["id"])
-    return {"ok": True, "id": row["id"]}
-
-@app.get("/api/nft/list")
-async def nft_list():
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT id, name, emoji, total, sold, price, rarity,
-            (sold + 1) AS number FROM nft_series WHERE sold < total ORDER BY id DESC""")
-    return [dict(r) for r in rows]
-
-@app.get("/api/nft/my")
-async def nft_my(token: str):
-    user = await get_current_user(token)
-    if not user: raise HTTPException(401, "Не авторизован")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT i.id, i.number, s.name, s.emoji, s.rarity, s.price, s.total
-            FROM nft_items i JOIN nft_series s ON s.id = i.series_id WHERE i.owner_id = $1""", user["id"])
-    return [dict(r) for r in rows]
-
-@app.get("/api/nft/{nft_id}")
-async def nft_get(nft_id: int):
-    p = await get_pool()
-    async with p.acquire() as conn:
-        row = await conn.fetchrow("SELECT id, name, emoji, total, sold, price, rarity FROM nft_series WHERE id = $1", nft_id)
-    if not row: raise HTTPException(404, "Не найден")
-    d = dict(row); d["number"] = d["sold"] + 1
-    return d
-
-@app.post("/api/nft/buy")
-async def nft_buy(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    sid = data.get("nft_id")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        series = await conn.fetchrow("SELECT * FROM nft_series WHERE id = $1", sid)
-        if not series: raise HTTPException(404, "Не найден")
-        if series["sold"] >= series["total"]: raise HTTPException(400, "Распродано")
-        if user.get("coins", 0) < series["price"]: raise HTTPException(400, "Не хватает Бекоинов")
-        number = series["sold"] + 1
-        await conn.execute("INSERT INTO nft_items (series_id, number, owner_id) VALUES ($1,$2,$3)", series["id"], number, user["id"])
-        await conn.execute("UPDATE nft_series SET sold = sold + 1 WHERE id = $1", series["id"])
-        await conn.execute("UPDATE users SET coins = coins - $1 WHERE id = $2", series["price"], user["id"])
-    return {"ok": True}
-
-# ЖАЛОБЫ
-@app.post("/api/reports/submit")
-async def report_submit(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    tid = data.get("target_id"); text = (data.get("text") or "").strip()
-    if not text: raise HTTPException(400, "Опиши")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("INSERT INTO reports (from_user, target_user, text) VALUES ($1,$2,$3)", user["id"], tid, text)
-    return {"ok": True}
-
-@app.get("/api/admin/reports")
-async def admin_reports(token: str):
-    user = await get_current_user(token)
-    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT r.id, r.text, r.target_user,
-            f.username AS from_username, t.username AS target_username
-            FROM reports r LEFT JOIN users f ON f.id = r.from_user
-            LEFT JOIN users t ON t.id = r.target_user
-            WHERE r.status = 'pending' ORDER BY r.id DESC""")
-    return [dict(r) for r in rows]
-
-# АДМИН
 @app.get("/api/admin/stats")
 async def admin_stats(token: str):
     user = await get_current_user(token)
@@ -480,7 +332,7 @@ async def admin_users(token: str):
     if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("SELECT id, username, is_admin, is_moderator, is_beta_tester, is_scam, premium_tier, is_banned FROM users ORDER BY id")
+        rows = await conn.fetch("SELECT id, username, is_admin, is_moderator, is_beta_tester, is_scam, is_dev, premium_tier, is_banned FROM users ORDER BY id")
     return [dict(r) for r in rows]
 
 @app.post("/api/admin/action")
@@ -507,6 +359,31 @@ async def admin_action(data: dict):
     await log_admin(user["id"], action, tid)
     return {"ok": True}
 
+@app.get("/api/admin/reports")
+async def admin_reports(token: str):
+    user = await get_current_user(token)
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT r.id, r.text, r.target_user,
+            f.username AS from_username, t.username AS target_username
+            FROM reports r LEFT JOIN users f ON f.id = r.from_user
+            LEFT JOIN users t ON t.id = r.target_user
+            WHERE r.status = 'pending' ORDER BY r.id DESC""")
+    return [dict(r) for r in rows]
+
+@app.get("/api/admin/appeals")
+async def admin_appeals(token: str):
+    user = await get_current_user(token)
+    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("SELECT id, username, text, created_at FROM ban_appeals WHERE status = 'pending' ORDER BY id DESC")
+    result = []
+    for r in rows:
+        d = dict(r); d["created_at"] = d["created_at"].isoformat(); result.append(d)
+    return result
+
 @app.get("/api/admin/logs")
 async def admin_logs(token: str):
     user = await get_current_user(token)
@@ -521,6 +398,18 @@ async def admin_logs(token: str):
         result.append(d)
     return result
 
+# ЖАЛОБЫ
+@app.post("/api/reports/submit")
+async def report_submit(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    tid = data.get("target_id"); text = (data.get("text") or "").strip()
+    if not text: raise HTTPException(400, "Опиши")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("INSERT INTO reports (from_user, target_user, text) VALUES ($1,$2,$3)", user["id"], tid, text)
+    return {"ok": True}
+
 # ОБЖАЛОВАНИЯ
 @app.post("/api/appeal/submit")
 async def appeal_submit(data: dict):
@@ -531,91 +420,45 @@ async def appeal_submit(data: dict):
         await conn.execute("INSERT INTO ban_appeals (username, text) VALUES ($1,$2)", u, t)
     return {"ok": True}
 
-@app.get("/api/admin/appeals")
-async def admin_appeals(token: str):
-    user = await get_current_user(token)
-    if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("SELECT id, username, text, created_at FROM ban_appeals WHERE status = 'pending' ORDER BY id DESC")
-    result = []
-    for r in rows:
-        d = dict(r); d["created_at"] = d["created_at"].isoformat(); result.append(d)
-    return result
-
-# БЕКОИНЫ
-@app.get("/api/coins/balance")
-async def coins_balance(token: str):
-    user = await get_current_user(token)
-    if not user: raise HTTPException(401, "Не авторизован")
-    return {"coins": user.get("coins", 0)}
-
-@app.get("/api/coins/leaders")
-async def coins_leaders():
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("SELECT username, coins FROM users WHERE coins > 0 ORDER BY coins DESC LIMIT 20")
-    return [dict(r) for r in rows]
-
-@app.post("/api/coins/request")
-async def coins_request(data: dict):
+# ВЛАДЕЛЕЦ
+@app.post("/api/owner/verify")
+async def owner_verify(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
-    c = int(data.get("coins",0)); pr = int(data.get("price",0))
-    if c < 1 or c > 999999999: raise HTTPException(400, "Неверно")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        existing = await conn.fetchrow("SELECT id FROM coin_requests WHERE user_id = $1 AND status = 'pending'", user["id"])
-        if existing: raise HTTPException(400, "Уже есть заявка")
-        await conn.execute("INSERT INTO coin_requests (user_id, coins, price) VALUES ($1,$2,$3)", user["id"], c, pr)
+    if user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    if data.get("password") != OWNER_PASSWORD: raise HTTPException(403, "Неверный пароль")
     return {"ok": True}
 
-@app.get("/api/admin/coin_requests")
-async def admin_coin_requests(token: str):
+@app.get("/api/owner/stats")
+async def owner_stats(token: str):
     user = await get_current_user(token)
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT r.id, r.coins, r.price, u.username
-            FROM coin_requests r JOIN users u ON u.id = r.user_id
-            WHERE r.status = 'pending' ORDER BY r.id DESC""")
-    return [dict(r) for r in rows]
+        u = await conn.fetchval("SELECT COUNT(*) FROM users")
+        m = await conn.fetchval("SELECT COUNT(*) FROM messages")
+        c = await conn.fetchval("SELECT COALESCE(SUM(coins),0) FROM users")
+        n = await conn.fetchval("SELECT COUNT(*) FROM nft_items")
+        g = await conn.fetchval("SELECT COUNT(*) FROM gifts")
+    return {"users":u,"messages":m,"coins":c,"nfts":n,"gifts":g,"online":len(online_users)}
 
-@app.post("/api/admin/coin_resolve")
-async def admin_coin_resolve(data: dict):
+@app.post("/api/owner/troll")
+async def owner_troll(data: dict):
     user = await get_current_user(data.get("token"))
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    rid = data.get("request_id"); action = data.get("action")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        req = await conn.fetchrow("SELECT * FROM coin_requests WHERE id = $1 AND status = 'pending'", rid)
-        if not req: raise HTTPException(404, "Не найдена")
-        if action == "approve":
-            await conn.execute("UPDATE users SET coins = coins + $1 WHERE id = $2", req["coins"], req["user_id"])
-        await conn.execute("UPDATE coin_requests SET status = $1, resolved_at = NOW() WHERE id = $2", action, rid)
-    if action == "approve":
-        await manager.send_to(req["user_id"], {"type":"coins_approved","amount":req["coins"]})
+    troll = data.get("troll")
+    await manager.broadcast({"type":"event","event":troll})
+    await log_admin(user["id"], "troll_"+str(troll), 0)
     return {"ok": True}
 
-# ВЛАДЕЛЕЦ ФУНКЦИИ
-@app.get("/api/owner/read_chat")
-async def owner_read_chat(token: str, username: str):
-    user = await get_current_user(token)
-    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", username)
-        if not target: raise HTTPException(404, "Не найден")
-        rows = await conn.fetch("""SELECT d.text, d.created_at, u.username AS from_name
-            FROM dms d JOIN users u ON u.id = d.from_user
-            WHERE d.from_user = $1 OR d.to_user = $1 ORDER BY d.id DESC LIMIT 50""", target["id"])
-    return {"messages": [{"from": r["from_name"], "text": r["text"], "time": r["created_at"].isoformat()} for r in rows]}
-
-@app.post("/api/owner/write_as")
-async def owner_write_as(data: dict):
+@app.post("/api/owner/suddness")
+async def owner_suddness(data: dict):
     user = await get_current_user(data.get("token"))
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    return {"ok": True}
+    events = ["confetti","balloons","cat_mode","snow","stars","firework"]
+    evt = random.choice(events)
+    await manager.broadcast({"type":"event","event":evt})
+    return {"ok": True, "event": evt}
 
 @app.post("/api/owner/give_coins")
 async def owner_give_coins(data: dict):
@@ -641,6 +484,18 @@ async def owner_take_coins(data: dict):
         await conn.execute("UPDATE users SET coins = GREATEST(coins - $1, 0) WHERE id = $2", amt, target["id"])
     return {"ok": True}
 
+@app.post("/api/owner/set_coins")
+async def owner_set_coins(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", data.get("username"))
+        if not target: raise HTTPException(404, "Не найден")
+        amt = int(data.get("amount",0))
+        await conn.execute("UPDATE users SET coins = $1 WHERE id = $2", amt, target["id"])
+    return {"ok": True}
+
 @app.post("/api/owner/give_all")
 async def owner_give_all(data: dict):
     user = await get_current_user(data.get("token"))
@@ -649,34 +504,6 @@ async def owner_give_all(data: dict):
     p = await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET coins = coins + $1", amt)
-    return {"ok": True}
-
-@app.post("/api/owner/troll")
-async def owner_troll(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    troll = data.get("troll")
-    await manager.broadcast({"type":"event","event":troll})
-    return {"ok": True}
-
-@app.post("/api/owner/suddness")
-async def owner_suddness(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    events = ["confetti","balloons"]
-    evt = random.choice(events)
-    await manager.broadcast({"type":"event","event":evt})
-    return {"ok": True, "event": evt}
-
-@app.post("/api/owner/self_destruct")
-async def owner_self_destruct(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
-    ch = data.get("channel_id")
-    if not ch: raise HTTPException(400, "Нет канала")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("DELETE FROM messages WHERE channel_id = $1", ch)
     return {"ok": True}
 
 @app.post("/api/owner/announce")
@@ -733,8 +560,32 @@ async def owner_mute(data: dict):
         await conn.execute(f"UPDATE users SET mute_until = NOW() + INTERVAL '{mins*60} seconds' WHERE id = $1", target["id"])
     return {"ok": True}
 
+@app.post("/api/owner/freeze")
+async def owner_freeze(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id, frozen FROM users WHERE username = $1", data.get("username"))
+        if not target: raise HTTPException(404, "Не найден")
+        new_val = not target.get("frozen", False)
+        await conn.execute("UPDATE users SET frozen = $1 WHERE id = $2", new_val, target["id"])
+    return {"ok": True, "frozen": new_val}
+
 @app.post("/api/owner/shadow_ban")
 async def owner_shadow(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    return {"ok": True}
+
+@app.post("/api/owner/ip_ban")
+async def owner_ip_ban(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    return {"ok": True}
+
+@app.post("/api/owner/ghost")
+async def owner_ghost(data: dict):
     user = await get_current_user(data.get("token"))
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
     return {"ok": True}
@@ -750,17 +601,381 @@ async def owner_del_msgs(data: dict):
         await conn.execute("DELETE FROM messages WHERE user_id = $1", target["id"])
     return {"ok": True}
 
+@app.post("/api/owner/delete_user")
+async def owner_delete_user(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM users WHERE username = $1", data.get("username"))
+    return {"ok": True}
+
 @app.post("/api/owner/legend")
 async def owner_legend(data: dict):
     user = await get_current_user(data.get("token"))
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET is_legend = TRUE WHERE username = $1", data.get("username"))
     return {"ok": True}
 
-@app.post("/api/owner/give_nft")
-async def owner_give_nft(data: dict):
+@app.post("/api/owner/take_roles")
+async def owner_take_roles(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET is_admin=FALSE, is_moderator=FALSE, is_beta_tester=FALSE WHERE username = $1", data.get("username"))
+    return {"ok": True}
+
+@app.post("/api/owner/give_premium")
+async def owner_give_premium(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET premium_tier = $1 WHERE username = $2", data.get("tier","premium"), data.get("username"))
+    return {"ok": True}
+
+@app.post("/api/owner/take_premium")
+async def owner_take_premium(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET premium_tier = NULL WHERE username = $1", data.get("username"))
+    return {"ok": True}
+
+@app.post("/api/owner/toggle_beta")
+async def owner_toggle_beta(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id, is_beta_tester FROM users WHERE username = $1", data.get("username"))
+        if not target: raise HTTPException(404, "Не найден")
+        new_val = not target.get("is_beta_tester", False)
+        await conn.execute("UPDATE users SET is_beta_tester = $1 WHERE id = $2", new_val, target["id"])
+    return {"ok": True}
+
+@app.post("/api/owner/grant_admin")
+async def owner_grant_admin(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET is_admin = TRUE WHERE username = $1", data.get("username"))
+    return {"ok": True}
+
+@app.post("/api/owner/revoke_admin")
+async def owner_revoke_admin(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET is_admin = FALSE WHERE username = $1", data.get("username"))
+    return {"ok": True}
+
+@app.post("/api/owner/create_nft")
+async def create_nft(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    name = data.get("name"); emoji = data.get("emoji","🎨")
+    total = int(data.get("total",0)); price = int(data.get("price",0)); rarity = data.get("rarity","common")
+    if not name or total < 1 or price < 1: raise HTTPException(400, "Заполни всё")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        row = await conn.fetchrow("INSERT INTO nft_series (name, emoji, total, price, rarity, created_by) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id",
+            name, emoji, total, price, rarity, user["id"])
+    return {"ok": True, "id": row["id"]}
+
+@app.post("/api/owner/delete_nft")
+async def owner_delete_nft(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM nft_series WHERE id = $1", data.get("nft_id"))
+    return {"ok": True}
+
+@app.post("/api/owner/clean_db")
+async def owner_clean_db(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM messages WHERE created_at < NOW() - INTERVAL '1 year'")
+    return {"ok": True}
+
+@app.post("/api/owner/maintenance")
+async def owner_maintenance(data: dict):
     user = await get_current_user(data.get("token"))
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
     return {"ok": True}
+
+@app.post("/api/owner/notify_stream")
+async def owner_notify_stream(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    await manager.broadcast({"type":"abuse","from_name":user["username"],"text":"🎬 Скоро начнётся трансляция!"})
+    return {"ok": True}
+
+@app.get("/api/owner/coin_history")
+async def owner_coin_history(token: str, username: str):
+    user = await get_current_user(token)
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", username)
+        if not target: raise HTTPException(404, "Не найден")
+        rows = await conn.fetch("SELECT amount, reason, created_at FROM coin_transactions WHERE user_id = $1 ORDER BY id DESC LIMIT 50", target["id"])
+    return [{"amount":r["amount"],"reason":r["reason"],"created_at":r["created_at"].isoformat()} for r in rows]
+
+@app.get("/api/owner/read_chat")
+async def owner_read_chat(token: str, username: str):
+    user = await get_current_user(token)
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", username)
+        if not target: raise HTTPException(404, "Не найден")
+        rows = await conn.fetch("""SELECT d.text, d.created_at, u.username AS from_name
+            FROM dms d JOIN users u ON u.id = d.from_user
+            WHERE d.from_user = $1 OR d.to_user = $1 ORDER BY d.id DESC LIMIT 50""", target["id"])
+    return {"messages": [{"from": r["from_name"], "text": r["text"], "time": r["created_at"].isoformat()} for r in rows]}
+
+# ПОСХАЛКИ
+@app.post("/api/easter/found")
+async def easter_found(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    egg = data.get("egg")
+    if egg not in EASTER_EGGS: raise HTTPException(400, "Нет такой")
+    try: found = json.loads(user.get("easter_found") or "[]")
+    except: found = []
+    if egg not in found: found.append(egg)
+    all_found = len(found) >= len(EASTER_EGGS)
+    already = user.get("easter_rewarded", False)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET easter_found = $1 WHERE id = $2", json.dumps(found), user["id"])
+        if all_found and not already:
+            await conn.execute("UPDATE users SET easter_rewarded = TRUE, coins = coins + 100 WHERE id = $1", user["id"])
+    return {"ok": True, "found": len(found), "total": len(EASTER_EGGS), "all_found": all_found, "already_rewarded": already}
+
+# БЕКОИНЫ
+@app.get("/api/coins/balance")
+async def coins_balance(token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    return {"coins": user.get("coins", 0)}
+
+@app.get("/api/coins/leaders")
+async def coins_leaders():
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("SELECT username, coins FROM users WHERE coins > 0 ORDER BY coins DESC LIMIT 20")
+    return [dict(r) for r in rows]
+
+@app.post("/api/coins/request")
+async def coins_request(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    c = int(data.get("coins",0)); pr = int(data.get("price",0))
+    if c < 1 or c > 999999999: raise HTTPException(400, "Неверно")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        existing = await conn.fetchrow("SELECT id FROM coin_requests WHERE user_id = $1 AND status = 'pending'", user["id"])
+        if existing: raise HTTPException(400, "Уже есть заявка")
+        await conn.execute("INSERT INTO coin_requests (user_id, coins, price) VALUES ($1,$2,$3)", user["id"], c, pr)
+    return {"ok": True}
+
+@app.get("/api/admin/coin_requests")
+async def admin_coin_requests(token: str):
+    user = await get_current_user(token)
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT r.id, r.coins, r.price, u.username
+            FROM coin_requests r JOIN users u ON u.id = r.user_id
+            WHERE r.status = 'pending' ORDER BY r.id DESC""")
+    return [dict(r) for r in rows]
+
+@app.post("/api/admin/coin_resolve")
+async def admin_coin_resolve(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    rid = data.get("request_id"); action = data.get("action")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        req = await conn.fetchrow("SELECT * FROM coin_requests WHERE id = $1 AND status = 'pending'", rid)
+        if not req: raise HTTPException(404, "Не найдена")
+        if action == "approve":
+            await conn.execute("UPDATE users SET coins = coins + $1 WHERE id = $2", req["coins"], req["user_id"])
+        await conn.execute("UPDATE coin_requests SET status = $1, resolved_at = NOW() WHERE id = $2", action, rid)
+    if action == "approve":
+        await manager.send_to(req["user_id"], {"type":"coins_approved","amount":req["coins"]})
+    else:
+        await manager.send_to(req["user_id"], {"type":"coins_rejected"})
+    return {"ok": True}
+
+# ПОДАРКИ
+@app.post("/api/gifts/send")
+async def gift_send(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    to_user = data.get("to_user"); gid = data.get("gift")
+    if gid not in GIFTS_DB: raise HTTPException(400, "Нет такого")
+    gift = GIFTS_DB[gid]
+    if user.get("coins", 0) < gift["price"]: raise HTTPException(400, "Не хватает")
+    if to_user == user["id"]: raise HTTPException(400, "Себе нельзя")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET coins = coins - $1 WHERE id = $2", gift["price"], user["id"])
+        await conn.execute("INSERT INTO gifts (from_user, to_user, gift) VALUES ($1,$2,$3)", user["id"], to_user, gid)
+    await manager.send_to(to_user, {"type":"gift_received","gift_emoji":gift["emoji"],"gift_name":gift["name"],"from_name":user["username"]})
+    return {"ok": True}
+
+@app.get("/api/gifts/list/{user_id}")
+async def gift_list(user_id: int):
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT gifts_hidden FROM users WHERE id = $1", user_id)
+        if not target: raise HTTPException(404, "Не найден")
+        if target.get("gifts_hidden"): return {"hidden": True, "gifts": []}
+        rows = await conn.fetch("SELECT gift FROM gifts WHERE to_user = $1", user_id)
+    return {"hidden": False, "gifts": [{"gift": r["gift"]} for r in rows]}
+
+@app.post("/api/gifts/sell")
+async def gift_sell(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    gid = data.get("gift")
+    if gid not in GIFTS_DB: raise HTTPException(400, "Нет такого")
+    gift = GIFTS_DB[gid]
+    price = int(gift["price"] * 0.5)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        row = await conn.fetchrow("SELECT id FROM gifts WHERE to_user = $1 AND gift = $2 LIMIT 1", user["id"], gid)
+        if not row: raise HTTPException(400, "У тебя нет такого")
+        await conn.execute("DELETE FROM gifts WHERE id = $1", row["id"])
+        await conn.execute("UPDATE users SET coins = coins + $1 WHERE id = $2", price, user["id"])
+    return {"ok": True, "price": price}
+
+@app.post("/api/gifts/toggle_hidden")
+async def gift_toggle(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    new_val = not user.get("gifts_hidden", False)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET gifts_hidden = $1 WHERE id = $2", new_val, user["id"])
+    return {"ok": True, "hidden": new_val}
+
+# NFT
+@app.get("/api/nft/list")
+async def nft_list():
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT id, name, emoji, total, sold, price, rarity,
+            (sold + 1) AS number FROM nft_series WHERE sold < total ORDER BY id DESC""")
+    return [dict(r) for r in rows]
+
+@app.get("/api/nft/my")
+async def nft_my(token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT i.id, i.number, s.name, s.emoji, s.rarity, s.price, s.total
+            FROM nft_items i JOIN nft_series s ON s.id = i.series_id WHERE i.owner_id = $1""", user["id"])
+    return [dict(r) for r in rows]
+
+@app.get("/api/nft/{nft_id}")
+async def nft_get(nft_id: int):
+    p = await get_pool()
+    async with p.acquire() as conn:
+        row = await conn.fetchrow("SELECT id, name, emoji, total, sold, price, rarity FROM nft_series WHERE id = $1", nft_id)
+    if not row: raise HTTPException(404, "Не найден")
+    d = dict(row); d["number"] = d["sold"] + 1
+    return d
+
+@app.post("/api/nft/buy")
+async def nft_buy(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    sid = data.get("nft_id")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        series = await conn.fetchrow("SELECT * FROM nft_series WHERE id = $1", sid)
+        if not series: raise HTTPException(404, "Не найден")
+        if series["sold"] >= series["total"]: raise HTTPException(400, "Распродано")
+        if user.get("coins", 0) < series["price"]: raise HTTPException(400, "Не хватает")
+        number = series["sold"] + 1
+        await conn.execute("INSERT INTO nft_items (series_id, number, owner_id) VALUES ($1,$2,$3)", series["id"], number, user["id"])
+        await conn.execute("UPDATE nft_series SET sold = sold + 1 WHERE id = $1", series["id"])
+        await conn.execute("UPDATE users SET coins = coins - $1 WHERE id = $2", series["price"], user["id"])
+    return {"ok": True}
+
+# МАГАЗИН
+@app.post("/api/shop/buy")
+async def shop_buy(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    item = data.get("item"); price = int(data.get("price",0))
+    if user.get("coins",0) < price: raise HTTPException(400, "Не хватает")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET coins = coins - $1 WHERE id = $2", price, user["id"])
+    return {"ok": True, "item": item}
+
+# СООБЩЕНИЯ
+@app.post("/api/messages/edit")
+async def msg_edit(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    mid = data.get("message_id"); text = (data.get("text") or "").strip()
+    if not text: raise HTTPException(400, "Пусто")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        row = await conn.fetchrow("SELECT user_id FROM messages WHERE id = $1", mid)
+        if not row or row["user_id"] != user["id"]: raise HTTPException(403, "Не твоё")
+        await conn.execute("UPDATE messages SET text = $1, edited = TRUE WHERE id = $2", text, mid)
+    await manager.broadcast({"type":"message_edited","message_id":mid,"text":text})
+    return {"ok": True}
+
+@app.post("/api/messages/delete")
+async def msg_delete(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    mid = data.get("message_id")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        row = await conn.fetchrow("SELECT user_id FROM messages WHERE id = $1", mid)
+        if not row: raise HTTPException(404, "Не найден")
+        if row["user_id"] != user["id"] and not user.get("is_admin"): raise HTTPException(403, "Не твоё")
+        await conn.execute("DELETE FROM messages WHERE id = $1", mid)
+    await manager.broadcast({"type":"message_deleted","message_id":mid})
+    return {"ok": True}
+
+@app.post("/api/messages/reaction")
+async def msg_reaction(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    mid = data.get("message_id"); emoji = data.get("emoji")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        row = await conn.fetchrow("SELECT reactions FROM messages WHERE id = $1", mid)
+        if not row: raise HTTPException(404, "Не найден")
+        try: reactions = json.loads(row["reactions"] or "{}")
+        except: reactions = {}
+        if emoji not in reactions: reactions[emoji] = []
+        if user["username"] in reactions[emoji]: reactions[emoji].remove(user["username"])
+        else: reactions[emoji].append(user["username"])
+        if not reactions[emoji]: del reactions[emoji]
+        await conn.execute("UPDATE messages SET reactions = $1 WHERE id = $2", json.dumps(reactions), mid)
+    await manager.broadcast({"type":"message_reaction","message_id":mid,"reactions":reactions})
+    return {"ok": True, "reactions": reactions}
 
 # СЕРВЕРА
 @app.post("/api/servers/create")
@@ -850,7 +1065,7 @@ async def get_messages(cid: int, token: str):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT m.id, m.text, m.file_url, m.created_at,
+        rows = await conn.fetch("""SELECT m.id, m.text, m.file_url, m.created_at, m.reactions, m.edited,
             u.id AS user_id, u.username, u.avatar, u.is_banned, u.is_beta_tester,
             u.is_admin, u.is_moderator, u.is_scam, u.nickname_color, u.nickname_gradient
             FROM messages m JOIN users u ON u.id = m.user_id
@@ -895,6 +1110,19 @@ async def friend_accept(data: dict):
         await conn.execute("UPDATE friendships SET status = 'accepted' WHERE from_user = $1 AND to_user = $2", data.get("friend_id"), user["id"])
     return {"ok": True}
 
+@app.post("/api/friends/request_by_id")
+async def friend_request_by_id(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    tid = data.get("user_id")
+    if tid == user["id"]: raise HTTPException(400, "Это ты")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        existing = await conn.fetchrow("SELECT id FROM friendships WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)", user["id"], tid)
+        if existing: raise HTTPException(400, "Уже есть")
+        await conn.execute("INSERT INTO friendships (from_user, to_user) VALUES ($1,$2)", user["id"], tid)
+    return {"ok": True}
+
 # ЛС
 @app.get("/api/dm/{uid}/messages")
 async def get_dm(uid: int, token: str):
@@ -909,26 +1137,7 @@ async def get_dm(uid: int, token: str):
             ORDER BY d.id ASC LIMIT 100""", me_u["id"], uid)
     return [dict(r) for r in rows]
 
-# ПОСХАЛКИ
-@app.post("/api/easter/found")
-async def easter_found(data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    egg = data.get("egg")
-    if egg not in EASTER_EGGS: raise HTTPException(400, "Нет такой")
-    try: found = json.loads(user.get("easter_found") or "[]")
-    except: found = []
-    if egg not in found: found.append(egg)
-    all_found = len(found) >= len(EASTER_EGGS)
-    already = user.get("easter_rewarded", False)
-    p = await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("UPDATE users SET easter_found = $1 WHERE id = $2", json.dumps(found), user["id"])
-        if all_found and not already:
-            await conn.execute("UPDATE users SET easter_rewarded = TRUE, coins = coins + 100 WHERE id = $1", user["id"])
-    return {"ok": True, "found": len(found), "total": len(EASTER_EGGS), "all_found": all_found, "already_rewarded": already}
-
-# WEBSOCKET
+# ВЕБСОКЕТ
 class Manager:
     def __init__(self): self.active = {}
     async def connect(self, uid, ws):
@@ -961,12 +1170,16 @@ async def ws_endpoint(websocket: WebSocket):
             except: continue
             t = data.get("type")
             if t == "message":
-                ch = data.get("channel_id"); text = data.get("text",""); temp_id = data.get("temp_id")
+                ch = data.get("channel_id"); text = data.get("text",""); temp_id = data.get("temp_id"); reply_to = data.get("reply_to")
                 if not text.strip(): continue
                 p = await get_pool()
                 async with p.acquire() as conn:
-                    row = await conn.fetchrow("INSERT INTO messages (channel_id, user_id, text) VALUES ($1,$2,$3) RETURNING id, created_at", ch, user["id"], text)
+                    row = await conn.fetchrow("INSERT INTO messages (channel_id, user_id, text, reply_to) VALUES ($1,$2,$3,$4) RETURNING id, created_at", ch, user["id"], text, reply_to)
                     await conn.execute("UPDATE users SET messages_count = messages_count + 1 WHERE id = $1", user["id"])
+                    reply_name=None;reply_text=None
+                    if reply_to:
+                        rr = await conn.fetchrow("SELECT m.text, u.username FROM messages m JOIN users u ON u.id=m.user_id WHERE m.id=$1", reply_to)
+                        if rr: reply_name=rr["username"];reply_text=rr["text"]
                 await manager.broadcast({
                     "type":"message","id":row["id"],"channel_id":ch,"temp_id":temp_id,
                     "user_id":user["id"],"username":user["username"],"avatar":user["avatar"],
@@ -974,7 +1187,8 @@ async def ws_endpoint(websocket: WebSocket):
                     "is_beta_tester":user.get("is_beta_tester"),"is_scam":user.get("is_scam"),
                     "role":get_role(user),"nickname_color":user.get("nickname_color"),
                     "nickname_gradient":user.get("nickname_gradient"),
-                    "text":text,"created_at":row["created_at"].isoformat()
+                    "text":text,"created_at":row["created_at"].isoformat(),
+                    "reply_to_name":reply_name,"reply_to_text":reply_text
                 })
             elif t == "dm":
                 to_user = data.get("to_user"); text = data.get("text",""); temp_id = data.get("temp_id")
@@ -985,6 +1199,10 @@ async def ws_endpoint(websocket: WebSocket):
                     "username":user["username"],"avatar":user["avatar"],"role":get_role(user),
                     "text":text,"created_at":row["created_at"].isoformat()}
                 await manager.send_to(to_user, payload); await manager.send_to(user["id"], payload)
+            elif t == "typing":
+                await manager.broadcast({"type":"typing","channel_id":data.get("channel_id"),"username":user["username"]})
+            elif t == "typing_dm":
+                await manager.send_to(data.get("to_user"), {"type":"typing_dm","from":user["id"],"username":user["username"]})
     except WebSocketDisconnect:
         manager.disconnect(user["id"])
 
