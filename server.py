@@ -1,10 +1,10 @@
 # ============================================
-# BELUGACORD SERVER.PY — BETA 1.6
+# BELUGACORD SERVER.PY — BETA 1.7
 # ============================================
-import os, json, time, asyncio, secrets, hashlib, random
+import os, json, time, secrets, hashlib, random
 from typing import Optional
 import asyncpg
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,50 +15,66 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 SECRET_KEY = os.environ.get("SECRET_KEY", "belugacord_secret_2026")
 ADMIN_USERNAME = "_fan_beluga_"
 OWNER_PASSWORD = "12344321"
+CURRENT_VERSION = "1.7"
 
 LIMITS = {
     None: {"file":10*1024*1024,"msg":2000,"servers":10,"channels":20},
     "premium":{"file":50*1024*1024,"msg":4000,"servers":50,"channels":100},
     "pro":{"file":200*1024*1024,"msg":10000,"servers":999,"channels":999},
 }
-GIFTS_DB = {
-    "rose":{"name":"Роза","emoji":"🌹","price":15},"bear":{"name":"Мишка","emoji":"🧸","price":25},
-    "cake":{"name":"Торт","emoji":"🎂","price":50},"diamond":{"name":"Алмаз","emoji":"💎","price":100},
-    "crown":{"name":"Корона","emoji":"👑","price":500},"dragon":{"name":"Дракон","emoji":"🐉","price":1000},
-    "legend":{"name":"Легендарка","emoji":"💠","price":5000},"alien":{"name":"Инопланетянин","emoji":"👽","price":10000},
-    "galaxy":{"name":"Галактика","emoji":"🌌","price":100000},"goldcat":{"name":"Золотой Белуга","emoji":"🐱","price":1000000},
+
+DEFAULT_GIFTS = {
+    "rose":{"name":"Роза","emoji":"🌹","price":15},
+    "bear":{"name":"Мишка","emoji":"🧸","price":25},
+    "cake":{"name":"Торт","emoji":"🎂","price":50},
+    "diamond":{"name":"Алмаз","emoji":"💎","price":100},
+    "crown":{"name":"Корона","emoji":"👑","price":500},
+    "dragon":{"name":"Дракон","emoji":"🐉","price":1000},
+    "legend":{"name":"Легендарка","emoji":"💠","price":5000},
+    "alien":{"name":"Инопланетянин","emoji":"👽","price":10000},
+    "galaxy":{"name":"Галактика","emoji":"🌌","price":100000},
+    "goldcat":{"name":"Золотой Белуга","emoji":"🐱","price":1000000},
     "universe":{"name":"Мультивселенная","emoji":"💫","price":1000000000},
 }
+
 EASTER_EGGS = ["song","cat","beluga"]
 
-CURRENT_VERSION = "1.6"
 CHANGELOG = {
-    "1.6": {
-        "title": "Belugacord Beta 1.6",
+    "1.7": {
+        "title": "Belugacord Beta 1.7",
         "items": [
-            "🔍 Полноценный поиск пользователей с добавлением в друзья",
-            "👥 Улучшенное управление друзьями (принять/отклонить/удалить)",
-            "⚙️ Настройки сервера с инвайт-кодом и созданием каналов",
-            "📱 Авто-мобильный интерфейс (определение по User-Agent)",
-            "🎯 Тема CS 2 вместо CS 1.6",
-            "🔧 Новая модер-панель (жалобы, мут, варн)",
-            "🔒 Админка и БОГ-ГУИ только у админов и владельца",
-            "📰 Экран «Что нового» с историей версий",
+            "📞 Полноценные голосовые звонки (WebRTC)",
+            "📑 Табы серверов/каналов сверху чата",
+            "🟢 Кружок онлайна теперь на рамке аватара (пульсирует)",
+            "🎁 Кастомные подарки с картинками (БОГ-ГУИ)",
+            "🎨 NFT теперь можно загружать картинку вместо эмодзи",
+            "🔔 Уведомления в реальном времени через WebSocket",
+            "👥 Оптимистичное принятие заявок в друзья",
+            "🎯 Тема CS2",
             "🐛 Множество багфиксов"
         ]
     },
+    "1.6": {
+        "title": "Belugacord Beta 1.6",
+        "items": ["🔍 Поиск юзеров","👥 Друзья","⚙️ Настройки сервера","📱 Мобильный интерфейс","🔧 Модер-панель"]
+    },
     "0.6": {
         "title": "Belugacord 0.6",
-        "items": [
-            "Первый публичный бета-релиз",
-            "Темы, магазин, NFT, подарки",
-            "Мини-игры: 3D Пингвин, Сапёр, Змейка, 2048"
-        ]
+        "items": ["Первый публичный бета-релиз","Темы, магазин, NFT, подарки","Мини-игры"]
     }
 }
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+@app.middleware("http")
+async def no_cache_api(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+    return response
+
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 pool: Optional[asyncpg.Pool] = None
 online_users = set()
@@ -111,13 +127,16 @@ async def init_db():
         for col, typ in [("avatar","TEXT"),("banner","TEXT"),("description","TEXT")]:
             try: await conn.execute(f"ALTER TABLE servers ADD COLUMN IF NOT EXISTS {col} {typ}")
             except: pass
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS server_members (
             server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             joined_at TIMESTAMP DEFAULT NOW(), PRIMARY KEY (server_id, user_id))""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS channels (
             id SERIAL PRIMARY KEY, server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
             name VARCHAR(64), type VARCHAR(16) DEFAULT 'text', created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS messages (
             id SERIAL PRIMARY KEY, channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -126,44 +145,58 @@ async def init_db():
         for col, typ in [("reply_to","INTEGER"),("reactions","TEXT DEFAULT '{}'"),("edited","BOOLEAN DEFAULT FALSE")]:
             try: await conn.execute(f"ALTER TABLE messages ADD COLUMN IF NOT EXISTS {col} {typ}")
             except: pass
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS friendships (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             status VARCHAR(16) DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS dms (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             text TEXT, file_url TEXT, created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS admin_logs (
             id SERIAL PRIMARY KEY, admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             action VARCHAR(64), target_id INTEGER, details TEXT,
             created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS ban_appeals (
             id SERIAL PRIMARY KEY, username VARCHAR(32), text TEXT,
             status VARCHAR(16) DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             target_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             text TEXT, status VARCHAR(16) DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT NOW())""")
-        await conn.execute("""CREATE TABLE IF NOT EXISTS coin_transactions (
-            id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            amount INTEGER, reason VARCHAR(64), created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS coin_requests (
             id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             coins INTEGER NOT NULL, price INTEGER DEFAULT 0,
             status VARCHAR(16) DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT NOW(), resolved_at TIMESTAMP)""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS gifts (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             gift VARCHAR(32) NOT NULL, created_at TIMESTAMP DEFAULT NOW())""")
+
+        # Кастомные подарки (созданные владельцем)
+        await conn.execute("""CREATE TABLE IF NOT EXISTS custom_gifts (
+            gift_id VARCHAR(32) PRIMARY KEY, name VARCHAR(64) NOT NULL,
+            emoji VARCHAR(8), image TEXT, price INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW())""")
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS nft_series (
             id SERIAL PRIMARY KEY, name VARCHAR(64), emoji VARCHAR(8), image TEXT,
             total INTEGER NOT NULL, sold INTEGER DEFAULT 0, price INTEGER NOT NULL,
             rarity VARCHAR(16) DEFAULT 'common',
             created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
             created_at TIMESTAMP DEFAULT NOW())""")
+        try: await conn.execute("ALTER TABLE nft_series ADD COLUMN IF NOT EXISTS image TEXT")
+        except: pass
+
         await conn.execute("""CREATE TABLE IF NOT EXISTS nft_items (
             id SERIAL PRIMARY KEY, series_id INTEGER REFERENCES nft_series(id) ON DELETE CASCADE,
             number INTEGER NOT NULL, owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -178,14 +211,17 @@ async def startup():
 def hash_password(p):
     s = secrets.token_hex(16)
     return f"{s}${hashlib.sha256((s+p).encode()).hexdigest()}"
+
 def verify_password(p, st):
     try:
         s, h = st.split("$", 1)
         return hashlib.sha256((s+p).encode()).hexdigest() == h
     except: return False
+
 def make_token(uid, un):
     d = f"{uid}:{un}:{int(time.time())}"
     return f"{d}:{hashlib.sha256((d+SECRET_KEY).encode()).hexdigest()[:32]}"
+
 def parse_token(t):
     try:
         parts = t.split(":")
@@ -231,13 +267,27 @@ def user_public(row):
         "premium_tier": row.get("premium_tier"),
         "nickname_color": row.get("nickname_color"), "nickname_gradient": row.get("nickname_gradient"),
         "custom_status": row.get("custom_status"), "bio": row.get("bio"), "fav_music": row.get("fav_music"),
-        "gifts_hidden": row.get("gifts_hidden", False),
         "coins": row.get("coins", 0), "messages_count": row.get("messages_count", 0),
         "is_legend": row.get("is_legend", False),
         "has_admin_pass": bool(row.get("admin_password")),
         "created_at": row["created_at"].isoformat() if row.get("created_at") else None,
         "role": get_role(row), "online": row["id"] in online_users
     }
+
+async def get_all_gifts():
+    """Сливаем DEFAULT_GIFTS с кастомными из БД"""
+    gifts = dict(DEFAULT_GIFTS)
+    try:
+        p = await get_pool()
+        async with p.acquire() as conn:
+            rows = await conn.fetch("SELECT * FROM custom_gifts")
+            for r in rows:
+                gifts[r["gift_id"]] = {
+                    "name": r["name"], "emoji": r["emoji"],
+                    "image": r["image"], "price": r["price"]
+                }
+    except: pass
+    return gifts
 
 # ============================================
 # CHANGELOG
@@ -400,8 +450,7 @@ async def admin_action(data: dict):
     if not user or not user.get("is_admin"): raise HTTPException(403, "Не админ")
     tid = data.get("target_id"); action = data.get("action")
     is_owner = user["username"] == ADMIN_USERNAME
-    owner_only = ["grant_premium","grant_pro","revoke_premium","grant_admin","revoke_admin",
-                  "grant_moderator","revoke_moderator","scam","unscam"]
+    owner_only = ["grant_premium","grant_pro","revoke_premium","grant_admin","revoke_admin","scam","unscam"]
     if action in owner_only and not is_owner: raise HTTPException(403, "Только владелец")
     p = await get_pool()
     async with p.acquire() as conn:
@@ -782,10 +831,10 @@ async def owner_create_nft(data: dict):
     if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
     p = await get_pool()
     async with p.acquire() as conn:
-        row = await conn.fetchrow("""INSERT INTO nft_series (name, emoji, total, price, rarity, created_by)
-            VALUES ($1,$2,$3,$4,$5,$6) RETURNING *""",
-            data.get("name"), data.get("emoji","🎨"), int(data.get("total",1)),
-            int(data.get("price",0)), data.get("rarity","common"), user["id"])
+        row = await conn.fetchrow("""INSERT INTO nft_series (name, emoji, image, total, price, rarity, created_by)
+            VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *""",
+            data.get("name"), data.get("emoji","🎨"), data.get("image"),
+            int(data.get("total",1)), int(data.get("price",0)), data.get("rarity","common"), user["id"])
     return {"ok": True, "id": row["id"]}
 
 @app.post("/api/owner/give_nft")
@@ -812,6 +861,41 @@ async def owner_delete_nft(data: dict):
     async with p.acquire() as conn:
         await conn.execute("DELETE FROM nft_series WHERE id = $1", int(data.get("nft_id",0)))
     return {"ok": True}
+
+@app.post("/api/owner/create_gift")
+async def owner_create_gift(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    gid = (data.get("gift_id") or "").strip().lower()
+    if not gid or len(gid) > 32: raise HTTPException(400, "ID 1-32")
+    name = (data.get("name") or "").strip()
+    if not name: raise HTTPException(400, "Название нужно")
+    price = int(data.get("price", 0))
+    if price <= 0: raise HTTPException(400, "Цена > 0")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        if await conn.fetchrow("SELECT gift_id FROM custom_gifts WHERE gift_id = $1", gid):
+            raise HTTPException(400, "Такой ID уже есть")
+        if gid in DEFAULT_GIFTS:
+            raise HTTPException(400, "ID занят дефолтным подарком")
+        await conn.execute("""INSERT INTO custom_gifts (gift_id, name, emoji, image, price)
+            VALUES ($1,$2,$3,$4,$5)""", gid, name, data.get("emoji","🎁"), data.get("image"), price)
+    return {"ok": True}
+
+@app.post("/api/owner/delete_gift")
+async def owner_delete_gift(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM custom_gifts WHERE gift_id = $1", data.get("gift_id"))
+    return {"ok": True}
+
+@app.get("/api/gifts/all")
+async def gifts_all():
+    gifts = await get_all_gifts()
+    return [{"gift_id": k, "name": v["name"], "emoji": v.get("emoji"),
+             "image": v.get("image"), "price": v["price"]} for k, v in gifts.items()]
 
 @app.post("/api/owner/self_destruct")
 async def owner_self_destruct(data: dict):
@@ -897,16 +981,23 @@ async def gift_send(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
     gift_id = data.get("gift")
-    if gift_id not in GIFTS_DB: raise HTTPException(400, "Нет такого подарка")
-    price = GIFTS_DB[gift_id]["price"]
+    all_gifts = await get_all_gifts()
+    if gift_id not in all_gifts: raise HTTPException(400, "Нет такого подарка")
+    gift = all_gifts[gift_id]
+    price = gift["price"]
     if user.get("coins",0) < price: raise HTTPException(400, "Не хватает 🏅")
     to_id = int(data.get("to_user",0))
     p = await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET coins = coins - $1 WHERE id = $2", price, user["id"])
         await conn.execute("INSERT INTO gifts (from_user, to_user, gift) VALUES ($1,$2,$3)", user["id"], to_id, gift_id)
-    await manager.send_to(to_id, {"type":"gift_received","gift_emoji":GIFTS_DB[gift_id]["emoji"],
-        "gift_name":GIFTS_DB[gift_id]["name"],"from_name":user["username"]})
+    await manager.send_to(to_id, {
+        "type":"gift_received",
+        "gift_emoji": gift.get("emoji"),
+        "gift_name": gift["name"],
+        "gift_image": gift.get("image"),
+        "from_name": user["username"]
+    })
     return {"ok": True}
 
 @app.get("/api/gifts/list/{user_id}")
@@ -921,8 +1012,9 @@ async def gift_sell(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
     gift_id = data.get("gift")
-    if gift_id not in GIFTS_DB: raise HTTPException(400, "Нет подарка")
-    price = GIFTS_DB[gift_id]["price"] // 2
+    all_gifts = await get_all_gifts()
+    if gift_id not in all_gifts: raise HTTPException(400, "Нет подарка")
+    price = all_gifts[gift_id]["price"] // 2
     p = await get_pool()
     async with p.acquire() as conn:
         row = await conn.fetchrow("SELECT id FROM gifts WHERE to_user = $1 AND gift = $2 ORDER BY id LIMIT 1", user["id"], gift_id)
@@ -939,8 +1031,9 @@ async def nft_list():
     p = await get_pool()
     async with p.acquire() as conn:
         rows = await conn.fetch("SELECT * FROM nft_series WHERE sold < total ORDER BY id DESC")
-    return [{"id": r["id"], "name": r["name"], "emoji": r["emoji"], "price": r["price"],
-             "total": r["total"], "sold": r["sold"], "rarity": r["rarity"], "number": (r["sold"] or 0)+1} for r in rows]
+    return [{"id": r["id"], "name": r["name"], "emoji": r["emoji"], "image": r.get("image"),
+             "price": r["price"], "total": r["total"], "sold": r["sold"],
+             "rarity": r["rarity"], "number": (r["sold"] or 0)+1} for r in rows]
 
 @app.get("/api/nft/my")
 async def nft_my(token: str):
@@ -948,7 +1041,7 @@ async def nft_my(token: str):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT ni.id, ni.number, ns.name, ns.emoji, ns.price, ns.total, ns.rarity
+        rows = await conn.fetch("""SELECT ni.id, ni.number, ns.name, ns.emoji, ns.image, ns.price, ns.total, ns.rarity
             FROM nft_items ni JOIN nft_series ns ON ns.id = ni.series_id
             WHERE ni.owner_id = $1 ORDER BY ni.id DESC""", user["id"])
     return [dict(r) for r in rows]
@@ -959,8 +1052,8 @@ async def nft_get(nft_id: int):
     async with p.acquire() as conn:
         r = await conn.fetchrow("SELECT * FROM nft_series WHERE id = $1", nft_id)
     if not r: raise HTTPException(404, "Не найден")
-    return {"id": r["id"], "name": r["name"], "emoji": r["emoji"], "price": r["price"],
-            "total": r["total"], "sold": r["sold"], "rarity": r["rarity"]}
+    return {"id": r["id"], "name": r["name"], "emoji": r["emoji"], "image": r.get("image"),
+            "price": r["price"], "total": r["total"], "sold": r["sold"], "rarity": r["rarity"]}
 
 @app.post("/api/nft/buy")
 async def nft_buy(data: dict):
@@ -1020,6 +1113,7 @@ async def friends_request(data: dict):
             user["id"], target["id"])
         if ex: raise HTTPException(400, "Уже есть заявка")
         await conn.execute("INSERT INTO friendships (from_user, to_user) VALUES ($1,$2)", user["id"], target["id"])
+    await manager.send_to(target["id"], {"type":"friend_request","from_id":user["id"],"username":user["username"]})
     return {"ok": True}
 
 @app.post("/api/friends/request_by_id")
@@ -1033,17 +1127,24 @@ async def friends_request_by_id(data: dict):
         ex = await conn.fetchrow("SELECT id FROM friendships WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)", user["id"], tid)
         if ex: raise HTTPException(400, "Уже есть")
         await conn.execute("INSERT INTO friendships (from_user, to_user) VALUES ($1,$2)", user["id"], tid)
+    await manager.send_to(tid, {"type":"friend_request","from_id":user["id"],"username":user["username"]})
     return {"ok": True}
 
 @app.post("/api/friends/accept")
 async def friends_accept(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
+    fid = int(data.get("friend_id", 0))
     p = await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("UPDATE friendships SET status = 'accepted' WHERE id = $1 AND to_user = $2",
-            int(data.get("friend_id",0)), user["id"])
-    return {"ok": True}
+        row = await conn.fetchrow("SELECT id, from_user, to_user, status FROM friendships WHERE id = $1", fid)
+        if not row: raise HTTPException(404, "Заявка не найдена")
+        if row["to_user"] != user["id"]: raise HTTPException(403, "Не твоя заявка")
+        if row["status"] == "accepted": return {"ok": True, "status": "accepted", "already": True}
+        await conn.execute("UPDATE friendships SET status = 'accepted' WHERE id = $1", fid)
+    await manager.send_to(row["from_user"], {"type":"friend_accepted","friend_id":user["id"],"username":user["username"]})
+    await manager.send_to(user["id"], {"type":"friend_accepted","friend_id":row["from_user"]})
+    return {"ok": True, "status": "accepted"}
 
 @app.post("/api/friends/decline")
 async def friends_decline(data: dict):
@@ -1373,16 +1474,21 @@ async def websocket_endpoint(ws: WebSocket, token: str):
         return
     uid = user["id"]
     await manager.connect(uid, ws)
+    # Отправляем список онлайна
+    try: await ws.send_json({"type":"online_list","users":list(online_users)})
+    except: pass
+    # Уведомляем всех что я онлайн
+    await manager.broadcast({"type":"user_online","user_id":uid}, exclude=uid)
     try:
         while True:
             raw = await ws.receive_text()
             try: data = json.loads(raw)
             except: continue
             t = data.get("type")
+
             if t == "message":
                 ch = data.get("channel_id"); text = (data.get("text") or "")[:2000]
-                file_url = data.get("file_url")
-                temp_id = data.get("temp_id")
+                file_url = data.get("file_url"); temp_id = data.get("temp_id")
                 if not ch: continue
                 p = await get_pool()
                 async with p.acquire() as conn:
@@ -1399,6 +1505,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     "role":get_role(user),"temp_id":temp_id}
                 for m in members:
                     await manager.send_to(m["user_id"], payload)
+
             elif t == "dm":
                 to_id = int(data.get("to_user",0)); text = (data.get("text") or "")[:2000]
                 file_url = data.get("file_url"); temp_id = data.get("temp_id")
@@ -1412,6 +1519,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     "temp_id":temp_id}
                 await manager.send_to(to_id, payload)
                 await manager.send_to(uid, payload)
+
             elif t == "typing":
                 ch = data.get("channel_id")
                 p = await get_pool()
@@ -1421,15 +1529,41 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 for m in members:
                     if m["user_id"] != uid:
                         await manager.send_to(m["user_id"], {"type":"typing","channel_id":ch,"username":user["username"]})
+
             elif t == "typing_dm":
                 to_id = int(data.get("to_user",0))
                 await manager.send_to(to_id, {"type":"typing_dm","from":uid,"username":user["username"]})
+
+            elif t == "call_offer":
+                to_id = int(data.get("to",0))
+                await manager.send_to(to_id, {
+                    "type":"call_offer","from":uid,"sdp":data.get("sdp"),
+                    "username":user["username"],"avatar":user.get("avatar")
+                })
+
+            elif t == "call_answer":
+                to_id = int(data.get("to",0))
+                await manager.send_to(to_id, {"type":"call_answer","from":uid,"sdp":data.get("sdp")})
+
+            elif t == "call_ice":
+                to_id = int(data.get("to",0))
+                await manager.send_to(to_id, {"type":"call_ice","from":uid,"candidate":data.get("candidate")})
+
+            elif t == "call_decline":
+                to_id = int(data.get("to",0))
+                await manager.send_to(to_id, {"type":"call_decline","from":uid})
+
+            elif t == "call_end":
+                to_id = int(data.get("to",0))
+                await manager.send_to(to_id, {"type":"call_end","from":uid})
+
     except WebSocketDisconnect:
         pass
     except Exception as e:
         print(f"WS error: {e}")
     finally:
         manager.disconnect(uid, ws)
+        await manager.broadcast({"type":"user_offline","user_id":uid})
 
 # ============================================
 # СТАТИКА И СТАРТ
@@ -1437,7 +1571,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
 @app.get("/manifest.json")
 async def manifest():
     return {
-        "name": "Belugacord Beta 1.6", "short_name": "Belugacord",
+        "name": "Belugacord Beta 1.7", "short_name": "Belugacord",
         "start_url": "/", "display": "standalone",
         "background_color": "#0a0a12", "theme_color": "#0a0a12",
         "icons": [{"src": "/uploads/icon.png", "sizes": "192x192", "type": "image/png"}]
