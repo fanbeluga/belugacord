@@ -1,5 +1,5 @@
 # ============================================
-# BELUGACORD SERVER.PY — 0.6
+# BELUGACORD SERVER.PY — BETA 1.6
 # ============================================
 import os, json, time, asyncio, secrets, hashlib, random
 from typing import Optional
@@ -30,6 +30,32 @@ GIFTS_DB = {
     "universe":{"name":"Мультивселенная","emoji":"💫","price":1000000000},
 }
 EASTER_EGGS = ["song","cat","beluga"]
+
+CURRENT_VERSION = "1.6"
+CHANGELOG = {
+    "1.6": {
+        "title": "Belugacord Beta 1.6",
+        "items": [
+            "🔍 Полноценный поиск пользователей с добавлением в друзья",
+            "👥 Улучшенное управление друзьями (принять/отклонить/удалить)",
+            "⚙️ Настройки сервера с инвайт-кодом и созданием каналов",
+            "📱 Авто-мобильный интерфейс (определение по User-Agent)",
+            "🎯 Тема CS 2 вместо CS 1.6",
+            "🔧 Новая модер-панель (жалобы, мут, варн)",
+            "🔒 Админка и БОГ-ГУИ только у админов и владельца",
+            "📰 Экран «Что нового» с историей версий",
+            "🐛 Множество багфиксов"
+        ]
+    },
+    "0.6": {
+        "title": "Belugacord 0.6",
+        "items": [
+            "Первый публичный бета-релиз",
+            "Темы, магазин, NFT, подарки",
+            "Мини-игры: 3D Пингвин, Сапёр, Змейка, 2048"
+        ]
+    }
+}
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -213,7 +239,16 @@ def user_public(row):
         "role": get_role(row), "online": row["id"] in online_users
     }
 
+# ============================================
+# CHANGELOG
+# ============================================
+@app.get("/api/changelog")
+async def changelog():
+    return {"current": CURRENT_VERSION, "all": CHANGELOG}
+
+# ============================================
 # АВТОРИЗАЦИЯ
+# ============================================
 @app.get("/api/check_username")
 async def check_username(username: str):
     p = await get_pool()
@@ -295,7 +330,29 @@ async def change_nick(data: dict):
         await conn.execute("UPDATE users SET username = $1 WHERE id = $2", new_nick, user["id"])
     return {"ok": True, "token": make_token(user["id"], new_nick)}
 
+# ============================================
+# ПОИСК ЮЗЕРОВ
+# ============================================
+@app.get("/api/users/search")
+async def users_search(q: str, token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    q = (q or "").strip()
+    if len(q) < 2: return []
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT id, username, avatar, is_admin, is_moderator,
+            is_beta_tester, is_scam, is_dev FROM users
+            WHERE username ILIKE $1 AND id != $2 ORDER BY username LIMIT 20""",
+            f"%{q}%", user["id"])
+    result = []
+    for r in rows:
+        d = dict(r); d["role"] = get_role(r); result.append(d)
+    return result
+
+# ============================================
 # АДМИН
+# ============================================
 @app.post("/api/admin/set_password")
 async def admin_set_password(data: dict):
     user = await get_current_user(data.get("token"))
@@ -400,7 +457,82 @@ async def admin_logs(token: str):
         result.append(d)
     return result
 
+# ============================================
+# МОДЕР-ПАНЕЛЬ
+# ============================================
+async def check_mod(user):
+    if not user: raise HTTPException(401, "Не авторизован")
+    if not (user.get("is_moderator") or user.get("is_admin") or user["username"] == ADMIN_USERNAME):
+        raise HTTPException(403, "Нет прав модератора")
+
+@app.get("/api/mod/reports")
+async def mod_reports(token: str):
+    user = await get_current_user(token)
+    await check_mod(user)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT r.id, r.text, r.target_user,
+            f.username AS from_username, t.username AS target_username
+            FROM reports r LEFT JOIN users f ON f.id = r.from_user
+            LEFT JOIN users t ON t.id = r.target_user
+            WHERE r.status = 'pending' ORDER BY r.id DESC""")
+    return [dict(r) for r in rows]
+
+@app.post("/api/mod/mute")
+async def mod_mute(data: dict):
+    user = await get_current_user(data.get("token"))
+    await check_mod(user)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        mins = int(data.get("minutes", 60))
+        await conn.execute(f"UPDATE users SET mute_until = NOW() + INTERVAL '{mins*60} seconds' WHERE id = $1",
+            int(data.get("user_id",0)))
+    await log_admin(user["id"], "mod_mute", int(data.get("user_id",0)), f"{mins} min")
+    return {"ok": True}
+
+@app.post("/api/mod/warn")
+async def mod_warn(data: dict):
+    user = await get_current_user(data.get("token"))
+    await check_mod(user)
+    await log_admin(user["id"], "warn", int(data.get("user_id",0)), data.get("reason",""))
+    return {"ok": True}
+
+@app.post("/api/mod/dismiss_report")
+async def mod_dismiss_report(data: dict):
+    user = await get_current_user(data.get("token"))
+    await check_mod(user)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE reports SET status = 'dismissed' WHERE id = $1", int(data.get("report_id",0)))
+    return {"ok": True}
+
+@app.post("/api/mod/mute_by_name")
+async def mod_mute_by_name(data: dict):
+    user = await get_current_user(data.get("token"))
+    await check_mod(user)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", data.get("username"))
+        if not target: raise HTTPException(404, "Не найден")
+        mins = int(data.get("minutes", 60))
+        await conn.execute(f"UPDATE users SET mute_until = NOW() + INTERVAL '{mins*60} seconds' WHERE id = $1", target["id"])
+    await log_admin(user["id"], "mod_mute", target["id"], f"{mins} min")
+    return {"ok": True}
+
+@app.post("/api/mod/warn_by_name")
+async def mod_warn_by_name(data: dict):
+    user = await get_current_user(data.get("token"))
+    await check_mod(user)
+    p = await get_pool()
+    async with p.acquire() as conn:
+        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", data.get("username"))
+        if not target: raise HTTPException(404, "Не найден")
+    await log_admin(user["id"], "warn", target["id"], data.get("reason",""))
+    return {"ok": True}
+
+# ============================================
 # ЖАЛОБЫ / ОБЖАЛОВАНИЯ
+# ============================================
 @app.post("/api/reports/submit")
 async def report_submit(data: dict):
     user = await get_current_user(data.get("token"))
@@ -421,7 +553,9 @@ async def appeal_submit(data: dict):
         await conn.execute("INSERT INTO ban_appeals (username, text) VALUES ($1,$2)", u, t)
     return {"ok": True}
 
+# ============================================
 # ВЛАДЕЛЕЦ
+# ============================================
 @app.post("/api/owner/verify")
 async def owner_verify(data: dict):
     user = await get_current_user(data.get("token"))
@@ -631,7 +765,6 @@ async def owner_write_as(data: dict):
     async with p.acquire() as conn:
         target = await conn.fetchrow("SELECT id, username, avatar FROM users WHERE username = $1", data.get("username"))
         if not target: raise HTTPException(404, "Не найден")
-        # пишем в первый канал первого сервера цели
         ch = await conn.fetchrow("""SELECT c.id FROM channels c
             JOIN server_members sm ON sm.server_id = c.server_id
             WHERE sm.user_id = $1 ORDER BY c.id LIMIT 1""", target["id"])
@@ -701,7 +834,9 @@ async def owner_clean_db(data: dict):
         await conn.execute("DELETE FROM dms WHERE created_at < NOW() - INTERVAL '30 days'")
     return {"ok": True}
 
+# ============================================
 # ЭКОНОМИКА
+# ============================================
 @app.get("/api/coins/balance")
 async def coins_balance(token: str):
     user = await get_current_user(token)
@@ -754,7 +889,9 @@ async def admin_coin_resolve(data: dict):
             await manager.send_to(req["user_id"], {"type":"coins_rejected"})
     return {"ok": True}
 
+# ============================================
 # ПОДАРКИ
+# ============================================
 @app.post("/api/gifts/send")
 async def gift_send(data: dict):
     user = await get_current_user(data.get("token"))
@@ -794,7 +931,9 @@ async def gift_sell(data: dict):
         await conn.execute("UPDATE users SET coins = coins + $1 WHERE id = $2", price, user["id"])
     return {"ok": True, "got": price}
 
+# ============================================
 # NFT
+# ============================================
 @app.get("/api/nft/list")
 async def nft_list():
     p = await get_pool()
@@ -840,7 +979,9 @@ async def nft_buy(data: dict):
         await conn.execute("UPDATE nft_series SET sold = sold + 1 WHERE id = $1", nid)
     return {"ok": True, "number": number}
 
+# ============================================
 # ДРУЗЬЯ
+# ============================================
 @app.get("/api/friends/list")
 async def friends_list(token: str):
     user = await get_current_user(token)
@@ -852,14 +993,17 @@ async def friends_list(token: str):
             FROM friendships f WHERE f.from_user = $1 OR f.to_user = $1""", user["id"])
         result = []
         for r in rows:
-            o = await conn.fetchrow("SELECT id, username, avatar, is_admin, is_moderator, is_beta_tester, is_scam, is_dev, role_dummy FROM (SELECT *, NULL AS role_dummy FROM users WHERE id = $1) sub", r["other_id"])
+            o = await conn.fetchrow("""SELECT id, username, avatar, is_admin, is_moderator,
+                is_beta_tester, is_scam, is_dev FROM users WHERE id = $1""", r["other_id"])
             if not o: continue
-            result.append({"id": o["id"], "username": o["username"], "avatar": o["avatar"],
+            result.append({
+                "id": o["id"], "username": o["username"], "avatar": o["avatar"],
                 "status": r["status"], "from_user": r["from_user"], "to_user": r["to_user"],
                 "online": o["id"] in online_users,
                 "is_admin": o["is_admin"], "is_moderator": o["is_moderator"],
                 "is_beta_tester": o["is_beta_tester"], "is_scam": o["is_scam"],
-                "role": get_role(o)})
+                "role": get_role(o)
+            })
     return result
 
 @app.post("/api/friends/request")
@@ -883,6 +1027,7 @@ async def friends_request_by_id(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
     tid = int(data.get("user_id",0))
+    if tid == user["id"]: raise HTTPException(400, "Себя нельзя")
     p = await get_pool()
     async with p.acquire() as conn:
         ex = await conn.fetchrow("SELECT id FROM friendships WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)", user["id"], tid)
@@ -900,6 +1045,27 @@ async def friends_accept(data: dict):
             int(data.get("friend_id",0)), user["id"])
     return {"ok": True}
 
+@app.post("/api/friends/decline")
+async def friends_decline(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM friendships WHERE id = $1 AND to_user = $2",
+            int(data.get("friend_id",0)), user["id"])
+    return {"ok": True}
+
+@app.post("/api/friends/remove")
+async def friends_remove(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("""DELETE FROM friendships
+            WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""",
+            user["id"], int(data.get("user_id",0)))
+    return {"ok": True}
+
 @app.get("/api/friends/check/{user_id}")
 async def friends_check(user_id: int, token: str):
     user = await get_current_user(token)
@@ -910,7 +1076,9 @@ async def friends_check(user_id: int, token: str):
             WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""", user["id"], user_id)
     return {"status": r["status"] if r else "none"}
 
+# ============================================
 # СЕРВЕРЫ / КАНАЛЫ
+# ============================================
 @app.get("/api/servers/list")
 async def servers_list(token: str):
     user = await get_current_user(token)
@@ -1018,6 +1186,18 @@ async def server_leave(data: dict):
             int(data.get("server_id",0)), user["id"])
     return {"ok": True}
 
+@app.post("/api/servers/regen_invite")
+async def server_regen_invite(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        s = await conn.fetchrow("SELECT owner_id FROM servers WHERE id = $1", int(data.get("server_id",0)))
+        if not s or s["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
+        code = secrets.token_urlsafe(8)[:12]
+        await conn.execute("UPDATE servers SET invite_code = $1 WHERE id = $2", code, int(data.get("server_id",0)))
+    return {"ok": True, "invite_code": code}
+
 @app.post("/api/channels/create")
 async def channel_create(data: dict):
     user = await get_current_user(data.get("token"))
@@ -1030,7 +1210,9 @@ async def channel_create(data: dict):
             sid, name)
     return {"id": r["id"], "name": r["name"]}
 
+# ============================================
 # СООБЩЕНИЯ
+# ============================================
 @app.get("/api/channels/{channel_id}/messages")
 async def channel_messages(channel_id: int, token: str):
     user = await get_current_user(token)
@@ -1124,7 +1306,9 @@ async def upload(token: str = Form(...), file: UploadFile = File(...)):
         f.write(content)
     return {"url": f"/uploads/{name}"}
 
+# ============================================
 # ПАСХАЛКИ
+# ============================================
 @app.post("/api/easter/found")
 async def easter_found(data: dict):
     user = await get_current_user(data.get("token"))
@@ -1205,7 +1389,6 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     msg = await conn.fetchrow("""INSERT INTO messages (channel_id, user_id, text, file_url)
                         VALUES ($1,$2,$3,$4) RETURNING *""", int(ch), uid, text, file_url)
                     await conn.execute("UPDATE users SET messages_count = messages_count + 1 WHERE id = $1", uid)
-                    # получить всех участников сервера
                     members = await conn.fetch("""SELECT sm.user_id FROM server_members sm
                         JOIN channels c ON c.server_id = sm.server_id WHERE c.id = $1""", int(ch))
                 payload = {"type":"message","id":msg["id"],"channel_id":int(ch),"user_id":uid,
@@ -1254,7 +1437,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
 @app.get("/manifest.json")
 async def manifest():
     return {
-        "name": "Belugacord 0.6", "short_name": "Belugacord",
+        "name": "Belugacord Beta 1.6", "short_name": "Belugacord",
         "start_url": "/", "display": "standalone",
         "background_color": "#0a0a12", "theme_color": "#0a0a12",
         "icons": [{"src": "/uploads/icon.png", "sizes": "192x192", "type": "image/png"}]
@@ -1268,4 +1451,5 @@ async def index():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port, ws="websockets")
+    uvicorn.run(app, host="0.0.0.0", port=port, ws="websockets",
+                proxy_headers=True, forwarded_allow_ips="*")
