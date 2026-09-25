@@ -1,5 +1,5 @@
 # ============================================
-# BELUGACORD SERVER.PY — BETA 1.7
+# BELUGACORD SERVER.PY — BETA 1.8
 # ============================================
 import os, json, time, secrets, hashlib, random
 from typing import Optional
@@ -15,7 +15,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 SECRET_KEY = os.environ.get("SECRET_KEY", "belugacord_secret_2026")
 ADMIN_USERNAME = "_fan_beluga_"
 OWNER_PASSWORD = "12344321"
-CURRENT_VERSION = "1.7"
+CURRENT_VERSION = "1.8"
 
 LIMITS = {
     None: {"file":10*1024*1024,"msg":2000,"servers":10,"channels":20},
@@ -40,19 +40,27 @@ DEFAULT_GIFTS = {
 EASTER_EGGS = ["song","cat","beluga"]
 
 CHANGELOG = {
+    "1.8": {
+        "title": "Belugacord Beta 1.8 — Друзья работают!",
+        "items": [
+            "✅ ПОЛНОСТЬЮ ПЕРЕПИСАНА система друзей",
+            "📩 Отдельные таблицы: друзья / входящие / исходящие",
+            "⚡ Заявки исчезают мгновенно (оптимистичный UI)",
+            "🔔 Бейдж с числом заявок на иконке «Друзья»",
+            "🚫 Кнопка «отменить» свою исходящую заявку",
+            "🕐 «Был(а) X минут назад» — статус last_seen",
+            "🎨 Стиль ника (8 цветов + 6 градиентов)",
+            "⚡ Быстрые реакции правым кликом",
+            "⌨️ Enter=отправить, Shift+Enter=новая строка",
+            "🌈 Секретная радужная тема (5 тапов по логотипу)",
+            "🐱 Кот-пасхалка при реакции 🐱",
+            "⌨️ Ctrl+K поиск, Esc закрыть",
+            "🚀 Экран загрузки и авто-фокус"
+        ]
+    },
     "1.7": {
         "title": "Belugacord Beta 1.7",
-        "items": [
-            "📞 Полноценные голосовые звонки (WebRTC)",
-            "📑 Табы серверов/каналов сверху чата",
-            "🟢 Кружок онлайна теперь на рамке аватара (пульсирует)",
-            "🎁 Кастомные подарки с картинками (БОГ-ГУИ)",
-            "🎨 NFT теперь можно загружать картинку вместо эмодзи",
-            "🔔 Уведомления в реальном времени через WebSocket",
-            "👥 Оптимистичное принятие заявок в друзья",
-            "🎯 Тема CS2",
-            "🐛 Множество багфиксов"
-        ]
+        "items": ["📞 Голосовые звонки (WebRTC)","📑 Табы серверов/каналов","🟢 Кружок онлайна на рамке","🎁 Кастомные подарки с картинками","🎨 NFT с картинками","🔔 WS-уведомления"]
     },
     "1.6": {
         "title": "Belugacord Beta 1.6",
@@ -102,6 +110,7 @@ async def init_db():
             easter_rewarded BOOLEAN DEFAULT FALSE, admin_password VARCHAR(128),
             coins INTEGER DEFAULT 0, messages_count INTEGER DEFAULT 0,
             frozen BOOLEAN DEFAULT FALSE, is_legend BOOLEAN DEFAULT FALSE,
+            last_seen TIMESTAMP DEFAULT NOW(),
             created_at TIMESTAMP DEFAULT NOW())""")
         for col, typ in [
             ("is_admin","BOOLEAN DEFAULT FALSE"),("is_moderator","BOOLEAN DEFAULT FALSE"),
@@ -115,6 +124,7 @@ async def init_db():
             ("easter_rewarded","BOOLEAN DEFAULT FALSE"),("admin_password","VARCHAR(128)"),
             ("coins","INTEGER DEFAULT 0"),("messages_count","INTEGER DEFAULT 0"),
             ("frozen","BOOLEAN DEFAULT FALSE"),("is_legend","BOOLEAN DEFAULT FALSE"),
+            ("last_seen","TIMESTAMP DEFAULT NOW()"),
         ]:
             try: await conn.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {typ}")
             except: pass
@@ -146,10 +156,45 @@ async def init_db():
             try: await conn.execute(f"ALTER TABLE messages ADD COLUMN IF NOT EXISTS {col} {typ}")
             except: pass
 
+        # НОВАЯ система друзей
         await conn.execute("""CREATE TABLE IF NOT EXISTS friendships (
-            id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            id SERIAL PRIMARY KEY,
+            user_a INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            user_b INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(user_a, user_b))""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS friend_requests (
+            id SERIAL PRIMARY KEY,
+            from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            status VARCHAR(16) DEFAULT 'pending', created_at TIMESTAMP DEFAULT NOW())""")
+            created_at TIMESTAMP DEFAULT NOW())""")
+
+        # Миграция старой таблицы friendships
+        try:
+            cols = await conn.fetch("""SELECT column_name FROM information_schema.columns
+                WHERE table_name='friendships'""")
+            col_names = [c["column_name"] for c in cols]
+            if "from_user" in col_names and "user_a" not in col_names:
+                await conn.execute("ALTER TABLE friendships RENAME TO friendships_old")
+                await conn.execute("""CREATE TABLE friendships (
+                    id SERIAL PRIMARY KEY,
+                    user_a INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                    user_b INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    UNIQUE(user_a, user_b))""")
+                old = await conn.fetch("SELECT from_user, to_user, status FROM friendships_old")
+                for row in old:
+                    a, b = sorted([row["from_user"], row["to_user"]])
+                    try:
+                        await conn.execute("INSERT INTO friendships (user_a, user_b) VALUES ($1,$2) ON CONFLICT DO NOTHING", a, b)
+                    except: pass
+                    if row["status"] == "pending":
+                        try:
+                            await conn.execute("INSERT INTO friend_requests (from_user, to_user) VALUES ($1,$2)", row["from_user"], row["to_user"])
+                        except: pass
+                await conn.execute("DROP TABLE friendships_old")
+        except Exception as e:
+            print(f"Migration: {e}")
 
         await conn.execute("""CREATE TABLE IF NOT EXISTS dms (
             id SERIAL PRIMARY KEY, from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -182,7 +227,6 @@ async def init_db():
             to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
             gift VARCHAR(32) NOT NULL, created_at TIMESTAMP DEFAULT NOW())""")
 
-        # Кастомные подарки (созданные владельцем)
         await conn.execute("""CREATE TABLE IF NOT EXISTS custom_gifts (
             gift_id VARCHAR(32) PRIMARY KEY, name VARCHAR(64) NOT NULL,
             emoji VARCHAR(8), image TEXT, price INTEGER NOT NULL,
@@ -275,17 +319,13 @@ def user_public(row):
     }
 
 async def get_all_gifts():
-    """Сливаем DEFAULT_GIFTS с кастомными из БД"""
     gifts = dict(DEFAULT_GIFTS)
     try:
         p = await get_pool()
         async with p.acquire() as conn:
             rows = await conn.fetch("SELECT * FROM custom_gifts")
             for r in rows:
-                gifts[r["gift_id"]] = {
-                    "name": r["name"], "emoji": r["emoji"],
-                    "image": r["image"], "price": r["price"]
-                }
+                gifts[r["gift_id"]] = {"name": r["name"], "emoji": r["emoji"], "image": r["image"], "price": r["price"]}
     except: pass
     return gifts
 
@@ -346,7 +386,7 @@ async def update_profile(data: dict):
     async with p.acquire() as conn:
         await conn.execute("""UPDATE users SET avatar = COALESCE($1, avatar), banner = COALESCE($2, banner),
             avatar_pos = COALESCE($3, avatar_pos), banner_pos = COALESCE($4, banner_pos),
-            nickname_color = COALESCE($5, nickname_color), nickname_gradient = COALESCE($6, nickname_gradient),
+            nickname_color = $5, nickname_gradient = $6,
             bio = COALESCE($7, bio), fav_music = COALESCE($8, fav_music) WHERE id = $9""",
             data.get("avatar"), data.get("banner"), data.get("avatar_pos"), data.get("banner_pos"),
             data.get("nickname_color"), data.get("nickname_gradient"),
@@ -360,10 +400,11 @@ async def get_user(user_id: int):
         row = await conn.fetchrow("""SELECT id, username, avatar, banner, avatar_pos, banner_pos,
             is_admin, is_moderator, is_beta_tester, is_scam, is_dev,
             premium_tier, nickname_color, nickname_gradient, bio, fav_music,
-            messages_count, is_legend, created_at FROM users WHERE id = $1""", user_id)
+            messages_count, is_legend, created_at, last_seen FROM users WHERE id = $1""", user_id)
     if not row: raise HTTPException(404, "Не найден")
     d = dict(row)
     d["created_at"] = d["created_at"].isoformat() if d.get("created_at") else None
+    d["last_seen"] = d["last_seen"].isoformat() if d.get("last_seen") else None
     d["role"] = get_role(row)
     d["online"] = user_id in online_users
     return d
@@ -894,8 +935,7 @@ async def owner_delete_gift(data: dict):
 @app.get("/api/gifts/all")
 async def gifts_all():
     gifts = await get_all_gifts()
-    return [{"gift_id": k, "name": v["name"], "emoji": v.get("emoji"),
-             "image": v.get("image"), "price": v["price"]} for k, v in gifts.items()]
+    return [{"gift_id": k, "name": v["name"], "emoji": v.get("emoji"), "image": v.get("image"), "price": v["price"]} for k, v in gifts.items()]
 
 @app.post("/api/owner/self_destruct")
 async def owner_self_destruct(data: dict):
@@ -1079,23 +1119,51 @@ async def nft_buy(data: dict):
 async def friends_list(token: str):
     user = await get_current_user(token)
     if not user: raise HTTPException(401, "Не авторизован")
+    uid = user["id"]
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT f.id, f.from_user, f.to_user, f.status,
-            CASE WHEN f.from_user = $1 THEN f.to_user ELSE f.from_user END AS other_id
-            FROM friendships f WHERE f.from_user = $1 OR f.to_user = $1""", user["id"])
+        friends_rows = await conn.fetch("""SELECT f.id, f.user_a, f.user_b
+            FROM friendships f WHERE f.user_a = $1 OR f.user_b = $1""", uid)
+        incoming = await conn.fetch("""SELECT r.id, r.from_user, u.username, u.avatar,
+            u.is_admin, u.is_moderator, u.is_beta_tester, u.is_scam, u.is_dev
+            FROM friend_requests r JOIN users u ON u.id = r.from_user
+            WHERE r.to_user = $1 ORDER BY r.created_at DESC""", uid)
+        outgoing = await conn.fetch("""SELECT r.id, r.to_user, u.username, u.avatar
+            FROM friend_requests r JOIN users u ON u.id = r.to_user
+            WHERE r.from_user = $1 ORDER BY r.created_at DESC""", uid)
+
         result = []
-        for r in rows:
+        for r in friends_rows:
+            other_id = r["user_b"] if r["user_a"] == uid else r["user_a"]
             o = await conn.fetchrow("""SELECT id, username, avatar, is_admin, is_moderator,
-                is_beta_tester, is_scam, is_dev FROM users WHERE id = $1""", r["other_id"])
+                is_beta_tester, is_scam, is_dev, last_seen FROM users WHERE id = $1""", other_id)
             if not o: continue
             result.append({
                 "id": o["id"], "username": o["username"], "avatar": o["avatar"],
-                "status": r["status"], "from_user": r["from_user"], "to_user": r["to_user"],
+                "status": "accepted", "friend_row_id": r["id"],
                 "online": o["id"] in online_users,
+                "last_seen": o["last_seen"].isoformat() if o.get("last_seen") else None,
                 "is_admin": o["is_admin"], "is_moderator": o["is_moderator"],
                 "is_beta_tester": o["is_beta_tester"], "is_scam": o["is_scam"],
                 "role": get_role(o)
+            })
+        for r in incoming:
+            result.append({
+                "id": r["from_user"], "username": r["username"], "avatar": r["avatar"],
+                "status": "incoming", "request_id": r["id"],
+                "online": r["from_user"] in online_users,
+                "is_admin": r["is_admin"], "is_moderator": r["is_moderator"],
+                "is_beta_tester": r["is_beta_tester"], "is_scam": r["is_scam"],
+                "role": get_role(r)
+            })
+        for r in outgoing:
+            result.append({
+                "id": r["to_user"], "username": r["username"], "avatar": r["avatar"],
+                "status": "outgoing", "request_id": r["id"],
+                "online": r["to_user"] in online_users,
+                "is_admin": False, "is_moderator": False,
+                "is_beta_tester": False, "is_scam": False,
+                "role": "user"
             })
     return result
 
@@ -1106,14 +1174,17 @@ async def friends_request(data: dict):
     target_name = (data.get("username") or "").strip()
     p = await get_pool()
     async with p.acquire() as conn:
-        target = await conn.fetchrow("SELECT id FROM users WHERE username = $1", target_name)
+        target = await conn.fetchrow("SELECT id, username FROM users WHERE username = $1", target_name)
         if not target: raise HTTPException(404, "Не найден")
         if target["id"] == user["id"]: raise HTTPException(400, "Себя нельзя")
-        ex = await conn.fetchrow("""SELECT id FROM friendships WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""",
-            user["id"], target["id"])
-        if ex: raise HTTPException(400, "Уже есть заявка")
-        await conn.execute("INSERT INTO friendships (from_user, to_user) VALUES ($1,$2)", user["id"], target["id"])
-    await manager.send_to(target["id"], {"type":"friend_request","from_id":user["id"],"username":user["username"]})
+        ex = await conn.fetchrow("""SELECT id FROM friendships
+            WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)""", user["id"], target["id"])
+        if ex: raise HTTPException(400, "Уже друзья")
+        ex2 = await conn.fetchrow("""SELECT id FROM friend_requests
+            WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""", user["id"], target["id"])
+        if ex2: raise HTTPException(400, "Заявка уже есть")
+        await conn.execute("INSERT INTO friend_requests (from_user, to_user) VALUES ($1,$2)", user["id"], target["id"])
+    await manager.send_to(target["id"], {"type":"friend_request","from_id":user["id"],"username":user["username"],"avatar":user.get("avatar")})
     return {"ok": True}
 
 @app.post("/api/friends/request_by_id")
@@ -1124,47 +1195,73 @@ async def friends_request_by_id(data: dict):
     if tid == user["id"]: raise HTTPException(400, "Себя нельзя")
     p = await get_pool()
     async with p.acquire() as conn:
-        ex = await conn.fetchrow("SELECT id FROM friendships WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)", user["id"], tid)
-        if ex: raise HTTPException(400, "Уже есть")
-        await conn.execute("INSERT INTO friendships (from_user, to_user) VALUES ($1,$2)", user["id"], tid)
-    await manager.send_to(tid, {"type":"friend_request","from_id":user["id"],"username":user["username"]})
+        target = await conn.fetchrow("SELECT id, username FROM users WHERE id = $1", tid)
+        if not target: raise HTTPException(404, "Не найден")
+        ex = await conn.fetchrow("""SELECT id FROM friendships
+            WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)""", user["id"], tid)
+        if ex: raise HTTPException(400, "Уже друзья")
+        ex2 = await conn.fetchrow("""SELECT id FROM friend_requests
+            WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""", user["id"], tid)
+        if ex2: raise HTTPException(400, "Заявка уже есть")
+        await conn.execute("INSERT INTO friend_requests (from_user, to_user) VALUES ($1,$2)", user["id"], tid)
+    await manager.send_to(tid, {"type":"friend_request","from_id":user["id"],"username":user["username"],"avatar":user.get("avatar")})
     return {"ok": True}
 
 @app.post("/api/friends/accept")
 async def friends_accept(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
-    fid = int(data.get("friend_id", 0))
+    rid = int(data.get("request_id", 0))
+    if not rid: raise HTTPException(400, "request_id обязателен")
     p = await get_pool()
     async with p.acquire() as conn:
-        row = await conn.fetchrow("SELECT id, from_user, to_user, status FROM friendships WHERE id = $1", fid)
-        if not row: raise HTTPException(404, "Заявка не найдена")
-        if row["to_user"] != user["id"]: raise HTTPException(403, "Не твоя заявка")
-        if row["status"] == "accepted": return {"ok": True, "status": "accepted", "already": True}
-        await conn.execute("UPDATE friendships SET status = 'accepted' WHERE id = $1", fid)
-    await manager.send_to(row["from_user"], {"type":"friend_accepted","friend_id":user["id"],"username":user["username"]})
-    await manager.send_to(user["id"], {"type":"friend_accepted","friend_id":row["from_user"]})
-    return {"ok": True, "status": "accepted"}
+        r = await conn.fetchrow("SELECT id, from_user, to_user FROM friend_requests WHERE id = $1", rid)
+        if not r: raise HTTPException(404, "Заявка уже обработана")
+        if r["to_user"] != user["id"]: raise HTTPException(403, "Не твоя заявка")
+        a, b = sorted([r["from_user"], r["to_user"]])
+        try:
+            await conn.execute("INSERT INTO friendships (user_a, user_b) VALUES ($1,$2)", a, b)
+        except: pass
+        await conn.execute("DELETE FROM friend_requests WHERE id = $1", rid)
+        other = await conn.fetchrow("SELECT id, username, avatar FROM users WHERE id = $1", r["from_user"])
+    await manager.send_to(r["from_user"], {"type":"friend_accepted","friend_id":user["id"],"username":user["username"],"avatar":user.get("avatar")})
+    await manager.send_to(user["id"], {"type":"friend_accepted","friend_id":r["from_user"],"username":other["username"],"avatar":other["avatar"]})
+    return {"ok": True}
 
 @app.post("/api/friends/decline")
 async def friends_decline(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
+    rid = int(data.get("request_id", 0))
     p = await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("DELETE FROM friendships WHERE id = $1 AND to_user = $2",
-            int(data.get("friend_id",0)), user["id"])
+        r = await conn.fetchrow("SELECT from_user, to_user FROM friend_requests WHERE id = $1", rid)
+        if not r: return {"ok": True}
+        if r["to_user"] != user["id"]: raise HTTPException(403, "Не твоя заявка")
+        await conn.execute("DELETE FROM friend_requests WHERE id = $1", rid)
+    await manager.send_to(r["from_user"], {"type":"friend_declined","by_id":user["id"],"username":user["username"]})
+    return {"ok": True}
+
+@app.post("/api/friends/cancel")
+async def friends_cancel(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    rid = int(data.get("request_id", 0))
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM friend_requests WHERE id = $1 AND from_user = $2", rid, user["id"])
     return {"ok": True}
 
 @app.post("/api/friends/remove")
 async def friends_remove(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
+    tid = int(data.get("user_id",0))
     p = await get_pool()
     async with p.acquire() as conn:
         await conn.execute("""DELETE FROM friendships
-            WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""",
-            user["id"], int(data.get("user_id",0)))
+            WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)""", user["id"], tid)
+    await manager.send_to(tid, {"type":"friend_removed","by_id":user["id"],"username":user["username"]})
     return {"ok": True}
 
 @app.get("/api/friends/check/{user_id}")
@@ -1173,9 +1270,23 @@ async def friends_check(user_id: int, token: str):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        r = await conn.fetchrow("""SELECT status FROM friendships
+        fr = await conn.fetchrow("""SELECT id FROM friendships
+            WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)""", user["id"], user_id)
+        if fr: return {"status": "accepted"}
+        req = await conn.fetchrow("""SELECT id, from_user FROM friend_requests
             WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""", user["id"], user_id)
-    return {"status": r["status"] if r else "none"}
+        if req:
+            return {"status": "incoming" if req["from_user"] != user["id"] else "outgoing", "request_id": req["id"]}
+        return {"status": "none"}
+
+@app.get("/api/friends/count")
+async def friends_count(token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        n = await conn.fetchval("SELECT COUNT(*) FROM friend_requests WHERE to_user = $1", user["id"])
+    return {"count": n or 0}
 
 # ============================================
 # СЕРВЕРЫ / КАНАЛЫ
@@ -1307,8 +1418,7 @@ async def channel_create(data: dict):
     if not name: raise HTTPException(400, "Имя нужно")
     p = await get_pool()
     async with p.acquire() as conn:
-        r = await conn.fetchrow("INSERT INTO channels (server_id, name) VALUES ($1,$2) RETURNING id, name",
-            sid, name)
+        r = await conn.fetchrow("INSERT INTO channels (server_id, name) VALUES ($1,$2) RETURNING id, name", sid, name)
     return {"id": r["id"], "name": r["name"]}
 
 # ============================================
@@ -1474,10 +1584,9 @@ async def websocket_endpoint(ws: WebSocket, token: str):
         return
     uid = user["id"]
     await manager.connect(uid, ws)
-    # Отправляем список онлайна
-    try: await ws.send_json({"type":"online_list","users":list(online_users)})
+    try:
+        await ws.send_json({"type":"online_list","users":list(online_users)})
     except: pass
-    # Уведомляем всех что я онлайн
     await manager.broadcast({"type":"user_online","user_id":uid}, exclude=uid)
     try:
         while True:
@@ -1536,23 +1645,16 @@ async def websocket_endpoint(ws: WebSocket, token: str):
 
             elif t == "call_offer":
                 to_id = int(data.get("to",0))
-                await manager.send_to(to_id, {
-                    "type":"call_offer","from":uid,"sdp":data.get("sdp"),
-                    "username":user["username"],"avatar":user.get("avatar")
-                })
-
+                await manager.send_to(to_id, {"type":"call_offer","from":uid,"sdp":data.get("sdp"),"username":user["username"],"avatar":user.get("avatar")})
             elif t == "call_answer":
                 to_id = int(data.get("to",0))
                 await manager.send_to(to_id, {"type":"call_answer","from":uid,"sdp":data.get("sdp")})
-
             elif t == "call_ice":
                 to_id = int(data.get("to",0))
                 await manager.send_to(to_id, {"type":"call_ice","from":uid,"candidate":data.get("candidate")})
-
             elif t == "call_decline":
                 to_id = int(data.get("to",0))
                 await manager.send_to(to_id, {"type":"call_decline","from":uid})
-
             elif t == "call_end":
                 to_id = int(data.get("to",0))
                 await manager.send_to(to_id, {"type":"call_end","from":uid})
@@ -1563,6 +1665,11 @@ async def websocket_endpoint(ws: WebSocket, token: str):
         print(f"WS error: {e}")
     finally:
         manager.disconnect(uid, ws)
+        try:
+            p = await get_pool()
+            async with p.acquire() as conn:
+                await conn.execute("UPDATE users SET last_seen = NOW() WHERE id = $1", uid)
+        except: pass
         await manager.broadcast({"type":"user_offline","user_id":uid})
 
 # ============================================
@@ -1571,7 +1678,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
 @app.get("/manifest.json")
 async def manifest():
     return {
-        "name": "Belugacord Beta 1.7", "short_name": "Belugacord",
+        "name": "Belugacord Beta 1.8", "short_name": "Belugacord",
         "start_url": "/", "display": "standalone",
         "background_color": "#0a0a12", "theme_color": "#0a0a12",
         "icons": [{"src": "/uploads/icon.png", "sizes": "192x192", "type": "image/png"}]
