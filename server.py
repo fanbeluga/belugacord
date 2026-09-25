@@ -1,4 +1,4 @@
-import os,json,time,secrets,hashlib,random,datetime,asyncio
+	import os,json,time,secrets,hashlib,random,datetime,asyncio
 from typing import Optional
 import asyncpg
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect,HTTPException,UploadFile,File,Form,Request
@@ -1612,8 +1612,8 @@ async def abuse_coop_grants(token:str):
     async with p.acquire() as conn:
         rows=await conn.fetch("SELECT g.user_id,g.can_gift,g.can_nft,g.can_coins,g.can_online,g.can_timer,g.expires_at,u.username FROM abuse_grants g JOIN users u ON u.id=g.user_id WHERE g.expires_at>NOW() ORDER BY g.expires_at DESC")
     return [{"user_id":r["user_id"],"username":r["username"],"can_gift":r["can_gift"],"can_nft":r["can_nft"],"can_coins":r["can_coins"],"can_online":r["can_online"],"can_timer":r["can_timer"],"expires_at":r["expires_at"].isoformat()} for r in rows]
-    
-    @app.post("/api/abuse/broadcast")
+   
+@app.post("/api/abuse/broadcast")
 async def abuse_broadcast(data:dict):
     user=await get_current_user(data.get("token"))
     acc=await has_abuse_access(user)
