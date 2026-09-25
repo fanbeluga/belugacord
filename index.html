@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Belugacord Beta 1.7</title>
+<title>Belugacord Beta 1.8</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0a0a12">
 <style>
@@ -24,6 +24,9 @@ body.theme-nature{--bg-desktop:#1a2a1a;--bg-window:rgba(25,45,25,0.9);--bg-heade
 body.theme-sunset{--bg-desktop:#1a0a0a;--bg-window:rgba(45,20,20,0.9);--bg-header:rgba(60,30,30,0.95);--bg-sidebar:rgba(50,25,25,0.9);--bg-chat:rgba(40,20,20,0.9);--bg-taskbar:rgba(30,15,15,0.95);--bg-input:rgba(60,35,35,0.8);--accent:#ff6b35;--accent-2:#f7931e;--accent-3:#ffd23f;--text:#ffe8d6;--text-dim:#ffb380;--text-mute:#cc8855;--border:rgba(255,107,53,0.3)}
 body.theme-ocean{--bg-desktop:#0a1a2a;--bg-window:rgba(20,40,60,0.9);--bg-header:rgba(30,50,70,0.95);--bg-sidebar:rgba(25,45,65,0.9);--bg-chat:rgba(15,35,55,0.9);--bg-taskbar:rgba(10,25,40,0.95);--bg-input:rgba(35,55,75,0.8);--accent:#0ea5e9;--accent-2:#06b6d4;--accent-3:#22d3ee;--text:#e0f2fe;--text-dim:#7dd3fc;--text-mute:#38bdf8;--border:rgba(14,165,233,0.3)}
 body.theme-royal{--bg-desktop:#0a0a2a;--bg-window:rgba(20,20,60,0.9);--bg-header:rgba(30,30,70,0.95);--bg-sidebar:rgba(25,25,65,0.9);--bg-chat:rgba(15,15,55,0.9);--bg-taskbar:rgba(10,10,40,0.95);--bg-input:rgba(35,35,75,0.8);--accent:#a855f7;--accent-2:#9333ea;--accent-3:#c084fc;--text:#f3e8ff;--text-dim:#d8b4fe;--text-mute:#a855f7;--border:rgba(168,85,247,0.3)}
+body.theme-rainbow{--bg-desktop:#0a0a12;--bg-window:rgba(20,15,35,0.85);--bg-header:rgba(30,20,50,0.9);--bg-sidebar:rgba(25,15,45,0.8);--bg-chat:rgba(15,8,28,0.85);--bg-taskbar:rgba(10,5,20,0.95);--bg-input:rgba(35,20,60,0.7);--accent:#d946ef;--accent-2:#8b5cf6;--accent-3:#22d3ee;--text:#e8e0ff;--text-dim:#9d8fc4;--text-mute:#6b5f8a;--border:rgba(200,80,255,0.15)}
+body.theme-rainbow{animation:hueShift 10s linear infinite}
+@keyframes hueShift{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
 body{background:var(--bg-desktop);color:var(--text);height:100vh;position:relative;overflow:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 10%,rgba(217,70,239,0.15),transparent 50%),radial-gradient(ellipse at 80% 90%,rgba(34,211,238,0.1),transparent 50%);pointer-events:none;z-index:0}
 body.theme-white::before,body.theme-retro::before,body.theme-discord::before,body.theme-cs2::before,body.theme-minecraft::before,body.theme-neon::before{display:none}
@@ -37,9 +40,9 @@ body.theme-white::before,body.theme-retro::before,body.theme-discord::before,bod
 .win-btn.close:hover{background:#e81123;color:#fff}
 .win-body{flex:1;display:flex;min-height:0;overflow:hidden}
 .desktop{width:240px;background:var(--bg-sidebar);border-right:1px solid var(--border);padding:16px 12px;overflow-y:auto;flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;align-content:start}
-.desktop-icon{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px 4px;border-radius:8px;text-align:center;transition:all 0.2s}
+.desktop-icon{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px 4px;border-radius:8px;text-align:center;transition:all 0.2s;position:relative}
 .desktop-icon:hover{background:rgba(217,70,239,0.12);transform:translateY(-2px)}
-.desktop-icon .d-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(217,70,239,0.3)}
+.desktop-icon .d-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(217,70,239,0.3);position:relative}
 .desktop-icon .d-label{font-size:10px;color:var(--text-dim);font-weight:600;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-list{width:260px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
 .chat-list-header{height:46px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;font-weight:700;font-size:13px}
@@ -77,23 +80,27 @@ body.theme-white::before,body.theme-retro::before,body.theme-discord::before,bod
 .msg-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;flex-wrap:wrap}
 .msg-author{font-weight:800;font-size:13px;cursor:pointer}
 .msg-time{font-size:10px;color:var(--text-mute)}
-.msg-content{color:var(--text);font-size:13px;line-height:1.5;word-wrap:break-word;background:rgba(255,255,255,0.04);padding:7px 11px;border-radius:12px;display:inline-block;max-width:100%}
+.msg-content{color:var(--text);font-size:13px;line-height:1.5;word-wrap:break-word;background:rgba(255,255,255,0.04);padding:7px 11px;border-radius:12px;display:inline-block;max-width:100%;white-space:pre-wrap}
 .msg-content a{color:var(--accent-3);text-decoration:none;word-break:break-all}
 .msg-content a:hover{text-decoration:underline}
-.msg-actions{position:absolute;top:2px;right:8px;display:none;gap:4px;background:var(--bg-window);border:1px solid var(--border);border-radius:8px;padding:2px}
+.msg-actions{position:absolute;top:2px;right:8px;display:none;gap:4px;background:var(--bg-window);border:1px solid var(--border);border-radius:8px;padding:2px;z-index:5}
 .msg-row:hover .msg-actions{display:flex}
 .msg-action-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;color:var(--text-dim)}
 .msg-action-btn:hover{background:rgba(255,255,255,0.1)}
 .msg-reactions{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
 .reaction-pill{background:rgba(217,70,239,0.15);border:1px solid rgba(217,70,239,0.3);border-radius:14px;padding:2px 8px;font-size:11px;cursor:pointer;transition:all 0.15s}
 .reaction-pill:hover{background:rgba(217,70,239,0.3)}
+.quick-reactions{position:absolute;background:var(--bg-window);border:1px solid var(--border);border-radius:12px;padding:6px;display:none;gap:4px;z-index:100;box-shadow:var(--shadow)}
+.quick-reactions.show{display:flex}
+.quick-reactions span{font-size:24px;cursor:pointer;padding:4px 6px;border-radius:8px;transition:all 0.15s}
+.quick-reactions span:hover{background:rgba(217,70,239,0.2);transform:scale(1.2)}
 .chat-window-input-area{padding:10px 14px 14px;flex-shrink:0}
-.chat-window-input-box{background:var(--bg-input);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;padding:0 12px;gap:8px}
-.chat-window-input-box input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13px;padding:11px 0;font-family:inherit}
+.chat-window-input-box{background:var(--bg-input);border:1px solid var(--border);border-radius:14px;display:flex;align-items:flex-end;padding:6px 12px;gap:8px}
+.chat-window-input-box textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13px;padding:6px 0;font-family:inherit;resize:none;max-height:120px;min-height:20px;line-height:1.4}
 .file-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:19px;padding:5px 7px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 .file-btn:hover{background:rgba(255,255,255,0.1)}
 .taskbar{position:fixed;bottom:0;left:0;right:0;height:48px;background:var(--bg-taskbar);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:6px;z-index:100}
-.tb-btn{height:36px;padding:0 14px;background:transparent;border:none;border-radius:8px;color:var(--text);cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;font-family:inherit;white-space:nowrap}
+.tb-btn{height:36px;padding:0 14px;background:transparent;border:none;border-radius:8px;color:var(--text);cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;font-family:inherit;white-space:nowrap;position:relative}
 .tb-btn:hover{background:rgba(217,70,239,0.15)}
 .tb-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
 .tb-start{font-weight:800;font-size:14px;padding:0 18px}
@@ -115,7 +122,7 @@ body.theme-white::before,body.theme-retro::before,body.theme-discord::before,bod
 .win-login-time{font-size:72px;font-weight:200;letter-spacing:-3px;line-height:1}
 .win-login-date{font-size:20px;margin-top:8px;opacity:0.9}
 .win-login-box{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;padding:30px}
-.win-login-avatar{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:56px;color:#fff;font-weight:800;border:4px solid rgba(255,255,255,0.15)}
+.win-login-avatar{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:56px;color:#fff;font-weight:800;border:4px solid rgba(255,255,255,0.15);cursor:pointer;user-select:none}
 .win-login-name{color:#fff;font-size:26px;font-weight:700;text-align:center}
 .win-login-form{display:flex;flex-direction:column;gap:10px;width:320px;max-width:90vw}
 .win-login-input{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:12px 16px;color:#fff;font-size:15px;outline:none;font-family:inherit}
@@ -140,6 +147,7 @@ body.theme-white::before,body.theme-retro::before,body.theme-discord::before,bod
 .admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
 .shop-header{background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(217,70,239,0.1));border:1px solid rgba(255,215,0,0.4);border-radius:14px;padding:20px;text-align:center;margin-bottom:16px}
 .shop-header-balance{font-size:42px;font-weight:900;color:var(--gold);line-height:1}
 .shop-header-label{color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-top:6px}
@@ -261,6 +269,15 @@ body.iface-tg .win-window{position:fixed!important;top:0!important;left:0!import
 .call-btn.speaker{background:var(--bg-input);color:var(--text)}
 .call-btn.speaker.active{background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520}
 .call-timer{font-size:14px;color:var(--text-mute);margin-top:16px;font-weight:700}
+.loading-screen{position:fixed;inset:0;background:var(--bg-desktop);z-index:4000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.loading-spinner{width:60px;height:60px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text-dim);font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.user-badge-count{position:absolute;top:-4px;right:-4px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:10px;box-shadow:0 0 8px rgba(244,63,94,0.8);min-width:16px;text-align:center}
+.color-picker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.color-swatch{aspect-ratio:1;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:all 0.15s}
+.color-swatch:hover{transform:scale(1.05)}
+.color-swatch.active{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
 @media (max-width:768px){
 body{display:block;overscroll-behavior:none}
 .win-window{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:52px!important;width:auto!important;height:auto!important;min-width:0;min-height:0;border-radius:0;border:none}
@@ -308,11 +325,16 @@ body{display:block;overscroll-behavior:none}
 </head>
 <body>
 
-<div class="win-login" id="authScreen">
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Загрузка...</div>
+</div>
+
+<div class="win-login" id="authScreen" style="display:none">
 <div class="win-login-clock"><div class="win-login-time" id="loginTime">00:00</div><div class="win-login-date" id="loginDate">1 января</div></div>
 <div class="win-login-box">
-<div class="win-login-avatar" id="loginAvatar">?</div>
-<div class="win-login-name" id="loginName">Вход в Belugacord Beta 1.7</div>
+<div class="win-login-avatar" id="loginAvatar" onclick="tapLogo()">🐱</div>
+<div class="win-login-name" id="loginName">Вход в Belugacord Beta 1.8</div>
 <div class="win-login-tabs"><button class="win-login-tab active" id="tabLogin" onclick="switchTab('login')">Вход</button><button class="win-login-tab" id="tabRegister" onclick="switchTab('register')">Регистрация</button></div>
 <div class="win-login-form">
 <input type="text" class="win-login-input" id="authUsername" placeholder="Имя пользователя" maxlength="32" autocomplete="off">
@@ -329,7 +351,7 @@ body{display:block;overscroll-behavior:none}
 <div id="app" style="display:none">
 <div class="win-window" id="mainWindow" style="top:30px;left:30px;width:1100px;height:calc(100vh - 110px)">
 <div class="win-titlebar" id="mainTitlebar">
-<div class="win-title"><span>🐱</span><span id="mainWindowTitle">Belugacord Beta 1.7</span></div>
+<div class="win-title"><span>🐱</span><span id="mainWindowTitle">Belugacord Beta 1.8</span></div>
 <div class="win-controls"><button class="win-btn">─</button><button class="win-btn" onclick="toggleMaximize('mainWindow')">□</button><button class="win-btn close" onclick="logout()">✕</button></div>
 </div>
 <div class="mobile-tabs"><button class="mobile-tab active" onclick="mobileShow('desktop',event)">🖥️ Стол</button><button class="mobile-tab" onclick="mobileShow('chats',event)">💬 Чаты</button><button class="mobile-tab" onclick="mobileShow('chat',event)">📨 Чат</button></div>
@@ -385,11 +407,10 @@ body{display:block;overscroll-behavior:none}
 <div class="chat-window-messages" id="messagesBody"><div style="text-align:center;color:var(--text-mute);padding:60px 20px;font-size:14px"><div style="font-size:64px;margin-bottom:16px">💬</div><div>Выбери чат или сервер<br>чтобы начать общение</div></div></div>
 <div style="padding:4px 20px;height:22px;font-size:12px;color:var(--text-mute);font-style:italic" id="typingIndicator"></div>
 <div class="chat-window-input-area">
-<div id="replyBox" style="display:none;background:rgba(217,70,239,0.15);border-left:3px solid var(--accent);padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;color:var(--text-dim);justify-content:space-between;align-items:center;margin-bottom:-1px"><span>Ответ <b id="replyToName"></b></span><span style="cursor:pointer" onclick="cancelReply()">✕</span></div>
 <div class="chat-window-input-box">
 <label class="file-btn" for="fileInput">+</label>
 <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this)">
-<input type="text" id="inp" placeholder="Написать сообщение..." autocomplete="off">
+<textarea id="inp" placeholder="Написать сообщение..." rows="1"></textarea>
 <button class="file-btn" onclick="openEmojiPicker()">😀</button>
 </div>
 </div>
@@ -406,7 +427,7 @@ body{display:block;overscroll-behavior:none}
 <div class="start-menu-title">Профиль</div>
 <div class="start-menu-item" onclick="openProfile();toggleStartMenu()"><div class="sm-icon">👤</div><div>Мой профиль</div></div>
 <div class="start-menu-item" onclick="openSettings();toggleStartMenu()"><div class="sm-icon">⚙️</div><div>Настройки</div></div>
-<div class="start-menu-item" onclick="openNickChange();toggleStartMenu()"><div class="sm-icon">✏️</div><div>Сменить ник</div></div>
+<div class="start-menu-item" onclick="openNickStyle();toggleStartMenu()"><div class="sm-icon">🎨</div><div>Стиль ника</div></div>
 <div class="start-menu-item" onclick="openUserSearch();toggleStartMenu()"><div class="sm-icon" style="background:linear-gradient(135deg,#22d3ee,#06b6d4)">🔍</div><div>Поиск юзеров</div></div>
 <div class="start-menu-title" style="margin-top:8px">Развлечения</div>
 <div class="start-menu-item" onclick="openMusicPlayer();toggleStartMenu()"><div class="sm-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🎵</div><div>Музыка</div></div>
@@ -426,7 +447,6 @@ body{display:block;overscroll-behavior:none}
 </div>
 </div>
 
-<!-- ========== ОВЕРЛЕЙ ЗВОНКА ========== -->
 <div class="call-overlay" id="callOverlay">
   <div class="call-avatar" id="callAvatar">?</div>
   <div class="call-name" id="callName">Звонок</div>
@@ -435,13 +455,11 @@ body{display:block;overscroll-behavior:none}
   <div class="call-timer" id="callTimer"></div>
 </div>
 
-<!-- ========== МОДАЛКИ ========== -->
-
 <div class="modal-overlay" id="changelogModal">
   <div class="modal" style="max-width:520px">
     <button class="close-btn" onclick="document.getElementById('changelogModal').classList.remove('open')">✕</button>
     <div style="padding:28px 24px">
-      <h2 style="text-align:center;font-size:24px;margin-bottom:4px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900">🐱 Belugacord Beta 1.7</h2>
+      <h2 style="text-align:center;font-size:24px;margin-bottom:4px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900">🐱 Belugacord Beta 1.8</h2>
       <div style="text-align:center;color:var(--text-mute);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px">Что нового</div>
       <div id="changelogBody" style="max-height:55vh;overflow-y:auto"></div>
       <button class="save-btn green" onclick="document.getElementById('changelogModal').classList.remove('open')" style="margin-top:14px">Понятно 🚀</button>
@@ -493,13 +511,27 @@ body{display:block;overscroll-behavior:none}
   </div>
 </div>
 
-<div class="modal-overlay" id="profileModal"><div class="modal" style="max-width:560px;overflow:hidden"><button class="close-btn" onclick="closeProfile()">✕</button><div class="banner" id="bannerPreview"><button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить</button></div><div class="profile-avatar" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">?</div><div style="padding:60px 26px 26px"><h2 id="profileName" style="font-size:22px;margin-bottom:8px">Профиль</h2><div id="profileStats" style="color:var(--text-mute);font-size:12px;margin-bottom:10px"></div><label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px">Bio</label><input type="text" id="bioInput" maxlength="128" placeholder="О себе..." style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px"><label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px">Музыка</label><input type="text" id="musicInput" maxlength="64" placeholder="Что слушаешь?" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none"><button class="save-btn green" onclick="saveProfile()">💾 Сохранить</button><button class="save-btn gray" onclick="openGiftsCollection()">🎁 Подарки</button><button class="save-btn gray" onclick="openSettings()">⚙️ Настройки</button><button class="save-btn gray" onclick="openNickChange()">✏️ Ник</button><button class="save-btn red" onclick="logout()">Выйти</button><button class="save-btn gold" id="adminBtn" style="display:none" onclick="closeProfile();openAdminLogin()">🛡️ Админка</button><button class="save-btn" id="modBtn" style="display:none;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520" onclick="closeProfile();openModPanel()">🔧 Модер</button><button class="save-btn purple" id="ownerBtn" style="display:none" onclick="closeProfile();openOwnerGui()">👑 БОГ-ГУИ</button></div></div></div>
+<div class="modal-overlay" id="profileModal"><div class="modal" style="max-width:560px;overflow:hidden"><button class="close-btn" onclick="closeProfile()">✕</button><div class="banner" id="bannerPreview"><button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить</button></div><div class="profile-avatar" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">?</div><div style="padding:60px 26px 26px"><h2 id="profileName" style="font-size:22px;margin-bottom:8px">Профиль</h2><div id="profileStats" style="color:var(--text-mute);font-size:12px;margin-bottom:10px"></div><label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px">Bio</label><input type="text" id="bioInput" maxlength="128" placeholder="О себе..." style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px"><label style="display:block;color:var(--text-dim);font-size:11px;font-weight:700;margin:14px 0 6px">Музыка</label><input type="text" id="musicInput" maxlength="64" placeholder="Что слушаешь?" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none"><button class="save-btn green" onclick="saveProfile()">💾 Сохранить</button><button class="save-btn gray" onclick="openNickStyle()">🎨 Стиль ника</button><button class="save-btn gray" onclick="openGiftsCollection()">🎁 Подарки</button><button class="save-btn gray" onclick="openSettings()">⚙️ Настройки</button><button class="save-btn red" onclick="logout()">Выйти</button><button class="save-btn gold" id="adminBtn" style="display:none" onclick="closeProfile();openAdminLogin()">🛡️ Админка</button><button class="save-btn" id="modBtn" style="display:none;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520" onclick="closeProfile();openModPanel()">🔧 Модер</button><button class="save-btn purple" id="ownerBtn" style="display:none" onclick="closeProfile();openOwnerGui()">👑 БОГ-ГУИ</button></div></div></div>
+
+<div class="modal-overlay" id="nickStyleModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('nickStyleModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:18px">🎨 Стиль ника</h2>
+      <div id="nickPreview" style="text-align:center;font-size:26px;font-weight:900;padding:16px;background:var(--bg-input);border-radius:12px;margin-bottom:16px">Твой ник</div>
+      <div class="shop-section-title">Цвета</div>
+      <div class="color-picker-grid" id="colorGrid"></div>
+      <div class="shop-section-title">Градиенты</div>
+      <div class="color-picker-grid" id="gradientGrid"></div>
+      <button class="save-btn green" onclick="saveNickStyle()">💾 Сохранить</button>
+      <button class="save-btn gray" onclick="resetNickStyle()">🗑️ Сбросить</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="viewProfileModal"><div class="modal" style="max-width:520px;overflow:hidden"><button class="close-btn" onclick="document.getElementById('viewProfileModal').classList.remove('open')">✕</button><div class="banner" id="viewBanner"></div><div class="profile-avatar" id="viewAvatar">?</div><div style="padding:56px 26px 26px"><h2 id="viewName" style="font-size:22px;margin-bottom:8px">Юзер</h2><div id="viewStats" style="color:var(--text-mute);font-size:12px;margin-bottom:8px"></div><div id="viewBadges" style="margin-bottom:14px;display:flex;gap:4px;flex-wrap:wrap"></div><div id="viewInfo"></div><div id="viewActions" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"></div></div></div></div>
 
 <div class="modal-overlay" id="settingsModal"><div class="modal" style="max-width:520px"><button class="close-btn" onclick="document.getElementById('settingsModal').classList.remove('open')">✕</button><div style="padding:28px 24px"><h2 style="text-align:center;font-size:22px;margin-bottom:20px">⚙️ Настройки</h2><button class="settings-tab active" onclick="showSettingsTab('theme',event)">🎨 Тема</button><button class="settings-tab" onclick="showSettingsTab('interface',event)">🖥️ Интерфейс</button><div id="settingsContent" style="margin-top:16px"></div></div></div></div>
-
-<div class="modal-overlay" id="nickModal"><div class="modal" style="max-width:400px"><button class="close-btn" onclick="document.getElementById('nickModal').classList.remove('open')">✕</button><div style="padding:28px 24px"><h2 style="text-align:center;font-size:20px;margin-bottom:18px">✏️ Сменить ник</h2><input type="text" id="newNickInput" maxlength="32" placeholder="Новый ник" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none"><div id="nickStatus" style="font-size:12px;margin-top:8px;min-height:16px"></div><button class="save-btn green" onclick="changeNick()">Сменить</button></div></div></div>
 
 <div class="modal-overlay" id="createMenuModal"><div class="modal" style="max-width:400px"><button class="close-btn" onclick="document.getElementById('createMenuModal').classList.remove('open')">✕</button><div style="padding:28px 24px"><h2 style="text-align:center;font-size:22px;margin-bottom:20px">➕ Создать</h2><div class="shop-tile" style="margin-bottom:10px" onclick="chooseCreate('server')"><span class="st-icon">🏠</span><div class="st-name">Сервер</div></div><div class="shop-tile" onclick="chooseCreate('channel')"><span class="st-icon">💬</span><div class="st-name">Канал</div></div></div></div></div>
 
@@ -539,21 +571,18 @@ body{display:block;overscroll-behavior:none}
     <div style="padding:28px 24px">
       <h2 style="text-align:center;font-size:20px;margin-bottom:18px">🎨 Создать NFT</h2>
       <div style="text-align:center;margin-bottom:14px">
-        <label for="nftImageInput" style="cursor:pointer;display:inline-block;width:130px;height:130px;border-radius:14px;background:var(--bg-input);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
-          <span id="nftImagePreview" style="font-size:32px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">📷</span>
+        <label for="nftImageInput" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:130px;height:130px;border-radius:14px;background:var(--bg-input);border:2px dashed var(--border);overflow:hidden">
+          <span id="nftImagePreview" style="font-size:32px">📷</span>
         </label>
         <input type="file" id="nftImageInput" accept="image/*" style="display:none">
-        <div style="color:var(--text-mute);font-size:11px;margin-top:6px">Картинка (необязательно, заменит эмодзи)</div>
+        <div style="color:var(--text-mute);font-size:11px;margin-top:6px">Картинка (необязательно)</div>
       </div>
       <input type="text" id="nftName" placeholder="Название" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px">
       <input type="text" id="nftEmoji" placeholder="🐱 Эмодзи (fallback)" maxlength="4" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:20px;outline:none;text-align:center;margin-bottom:10px">
       <input type="number" id="nftTotal" placeholder="Тираж" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px">
       <input type="number" id="nftPrice" placeholder="Цена 🏅" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px">
       <select id="nftRarity" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;outline:none">
-        <option value="common">Обычный</option>
-        <option value="rare">Редкий</option>
-        <option value="epic">Эпический</option>
-        <option value="legendary">Легендарный</option>
+        <option value="common">Обычный</option><option value="rare">Редкий</option><option value="epic">Эпический</option><option value="legendary">Легендарный</option>
       </select>
       <button class="save-btn gold" onclick="createNftSeries()">🚀 Создать</button>
     </div>
@@ -566,8 +595,8 @@ body{display:block;overscroll-behavior:none}
     <div style="padding:28px 24px">
       <h2 style="text-align:center;font-size:20px;margin-bottom:18px">🎁 Создать подарок</h2>
       <div style="text-align:center;margin-bottom:14px">
-        <label for="giftImageInput" style="cursor:pointer;display:inline-block;width:130px;height:130px;border-radius:14px;background:var(--bg-input);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
-          <span id="giftImagePreview" style="font-size:32px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">📷</span>
+        <label for="giftImageInput" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:130px;height:130px;border-radius:14px;background:var(--bg-input);border:2px dashed var(--border);overflow:hidden">
+          <span id="giftImagePreview" style="font-size:32px">📷</span>
         </label>
         <input type="file" id="giftImageInput" accept="image/*" style="display:none">
         <div style="color:var(--text-mute);font-size:11px;margin-top:6px">Картинка (необязательно)</div>
@@ -598,10 +627,14 @@ var replyTo=null,unreadCounts={},currentTyping={};
 var myCoins=0,currentChatType='channel';
 var isOwner=false,isMod=false,currentInterface=localStorage.getItem('belugacord_iface')||'windows';
 var currentTrack=null,selectedGift=null;
-var APP_VERSION='1.7';
+var APP_VERSION='1.8';
 var openTabs=[];
 var onlineSet={};
+var selectedReactionEmoji=null;
 var MY_EMOJIS=['😀','😂','🥰','😎','🤔','😴','🤯','🥳','😭','😡','👍','👎','❤️','🔥','⭐','✨','🎉','🎁','🐱','🐶','🍕','🍔','⚽','🎮','💎','🏆','💰','🎵','🌈','☀️','🌙','⚡'];
+var QUICK_REACTIONS=['👍','❤️','🔥','😂','😮','😢'];
+var NICK_COLORS=['#ffd700','#d946ef','#22d3ee','#ec4899','#00ffaa','#ff8c00','#f43f5e','#ffffff'];
+var NICK_GRADIENTS=['linear-gradient(135deg,#d946ef,#8b5cf6)','linear-gradient(135deg,#22d3ee,#06b6d4)','linear-gradient(135deg,#f43f5e,#ec4899)','linear-gradient(135deg,#ffd700,#ff8c00)','linear-gradient(135deg,#22c55e,#16a34a)','linear-gradient(135deg,#8b5cf6,#22d3ee)'];
 var GIFTS=[{id:'rose',name:'Роза',emoji:'🌹',price:15},{id:'bear',name:'Мишка',emoji:'🧸',price:25},{id:'cake',name:'Торт',emoji:'🎂',price:50},{id:'diamond',name:'Алмаз',emoji:'💎',price:100},{id:'crown',name:'Корона',emoji:'👑',price:500},{id:'dragon',name:'Дракон',emoji:'🐉',price:1000},{id:'legend',name:'Легендарка',emoji:'💠',price:5000},{id:'alien',name:'Инопланетянин',emoji:'👽',price:10000},{id:'galaxy',name:'Галактика',emoji:'🌌',price:100000},{id:'goldcat',name:'Золотой Белуга',emoji:'🐱',price:1000000},{id:'universe',name:'Мультивселенная',emoji:'💫',price:1000000000}];
 var SONG_LYRICS="Where's your head at? We can't live on, live on without you. Don't let the walls cave in on you.";
 
@@ -628,11 +661,25 @@ document.getElementById('authUsername').addEventListener('input',checkUsername);
 async function submitAuth(){var u=document.getElementById('authUsername').value.trim();var p=document.getElementById('authPassword').value;var em=document.getElementById('authEmail').value.trim();var err=document.getElementById('authError');err.textContent='';if(!u||!p){err.textContent='Заполни поля';return;}var url=authMode==='login'?'/api/login':'/api/register';try{var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p,email:em})});var d=await r.json();if(!r.ok){err.textContent=d.detail||'Ошибка';return;}token=d.token;localStorage.setItem('belugacord_token',token);me=d.user;enterApp();}catch(e){err.textContent='Ошибка соединения';}}
 document.getElementById('authPassword').addEventListener('keydown',function(e){if(e.key==='Enter')submitAuth();});
 
-function logout(){localStorage.removeItem('belugacord_token');token='';me=null;if(ws)ws.close();if(musicAudio){musicAudio.pause();musicAudio.src='';}document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='flex';}
+function logout(){localStorage.removeItem('belugacord_token');token='';me=null;if(ws){try{ws.close();}catch(e){}}if(musicAudio){musicAudio.pause();musicAudio.src='';}document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='flex';}
 
-async function boot(){var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.innerWidth<768;if(isMobile&&!localStorage.getItem('belugacord_iface_manual')){currentInterface='tg';localStorage.setItem('belugacord_iface','tg');}try{applyInterface(currentInterface);}catch(e){}if(token){try{var r=await fetch('/api/me?token='+encodeURIComponent(token));if(r.ok){me=await r.json();enterApp();return;}}catch(e){}token='';localStorage.removeItem('belugacord_token');}document.getElementById('authScreen').style.display='flex';}
+async function boot(){
+    var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.innerWidth<768;
+    if(isMobile&&!localStorage.getItem('belugacord_iface_manual')){currentInterface='tg';localStorage.setItem('belugacord_iface','tg');}
+    try{applyInterface(currentInterface);}catch(e){}
+    if(token){
+        try{
+            var r=await fetch('/api/me?token='+encodeURIComponent(token));
+            if(r.ok){me=await r.json();enterApp();return;}
+        }catch(e){}
+        token='';localStorage.removeItem('belugacord_token');
+    }
+    document.getElementById('loadingScreen').style.display='none';
+    document.getElementById('authScreen').style.display='flex';
+}
 
 function enterApp(){
+    document.getElementById('loadingScreen').style.display='none';
     document.getElementById('authScreen').style.display='none';
     document.getElementById('app').style.display='block';
     avatarPos=parsePos(me.avatar_pos);bannerPos=parsePos(me.banner_pos);
@@ -644,12 +691,25 @@ function enterApp(){
     try{connectWS();}catch(e){}
     try{showFriends();}catch(e){}
     try{loadCoins();}catch(e){}
+    try{updateFriendsBadge();}catch(e){}
+    setInterval(updateFriendsBadge,30000);
     if(isMod){var md=document.getElementById('modDeskIcon');if(md)md.style.display='flex';var ms=document.getElementById('modStartItem');if(ms)ms.style.display='flex';var mb=document.getElementById('modBtn');if(mb)mb.style.display='block';var im=document.getElementById('ifaceModBtn');if(im)im.style.display='flex';}
     if(me.is_admin||isOwner){var ai=document.getElementById('adminDeskIcon');if(ai)ai.style.display='flex';var si=document.getElementById('adminStartItem');if(si)si.style.display='flex';var ab=document.getElementById('adminBtn');if(ab)ab.style.display='block';var ifa=document.getElementById('ifaceAdminBtn');if(ifa)ifa.style.display='flex';}
     if(isOwner){var oi=document.getElementById('ownerDeskIcon');if(oi)oi.style.display='flex';var osti=document.getElementById('ownerStartItem');if(osti)osti.style.display='flex';var ob=document.getElementById('ownerBtn');if(ob)ob.style.display='block';var ifo=document.getElementById('ifaceOwnerBtn');if(ifo)ifo.style.display='flex';}
     makeDraggable('mainWindow','mainTitlebar');
+    setupHotkeys();
     if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
     setTimeout(function(){showChangelog(false);},800);
+}
+
+function setupHotkeys(){
+    document.addEventListener('keydown',function(e){
+        if(e.key==='Escape'){
+            document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});
+            document.querySelectorAll('.quick-reactions.show').forEach(function(q){q.classList.remove('show');});
+        }
+        if(e.ctrlKey&&e.key==='k'){e.preventDefault();openUserSearch();}
+    });
 }
 
 function mobileShow(view,ev){if(ev){var p=ev.target.parentNode;if(p)p.querySelectorAll('.mobile-tab').forEach(function(t){t.classList.remove('active');});ev.target.classList.add('active');}var d=document.getElementById('desktopCol'),c=document.getElementById('chatListCol'),ch=document.getElementById('chatWindowCol');d.classList.remove('mobile-active');c.classList.remove('mobile-active');ch.classList.remove('mobile-active');if(view==='desktop')d.classList.add('mobile-active');else if(view==='chats')c.classList.add('mobile-active');else ch.classList.add('mobile-active');}
@@ -661,13 +721,25 @@ document.addEventListener('click',function(e){var sm=document.getElementById('st
 function makeDraggable(winId,handleId){var win=document.getElementById(winId),handle=document.getElementById(handleId);if(!win||!handle)return;var isDown=false,ox=0,oy=0;handle.addEventListener('mousedown',function(e){if(e.target.closest('.win-btn'))return;if(win.classList.contains('maximized'))return;isDown=true;ox=e.clientX-win.offsetLeft;oy=e.clientY-win.offsetTop;e.preventDefault();});document.addEventListener('mousemove',function(e){if(!isDown)return;win.style.left=(e.clientX-ox)+'px';win.style.top=Math.max(0,e.clientY-oy)+'px';});document.addEventListener('mouseup',function(){isDown=false;});}
 function toggleMaximize(id){var w=document.getElementById(id);if(w)w.classList.toggle('maximized');}
 
-function setTheme(t){localStorage.setItem('belugacord_theme',t);document.body.classList.remove('theme-discord','theme-white','theme-cyber','theme-retro','theme-cs2','theme-minecraft','theme-neon','theme-nature','theme-sunset','theme-ocean','theme-royal');if(t!=='beluga')document.body.classList.add('theme-'+t);showSettingsTab('theme');}
+function setTheme(t){localStorage.setItem('belugacord_theme',t);document.body.classList.remove('theme-discord','theme-white','theme-cyber','theme-retro','theme-cs2','theme-minecraft','theme-neon','theme-nature','theme-sunset','theme-ocean','theme-royal','theme-rainbow');if(t!=='beluga')document.body.classList.add('theme-'+t);showSettingsTab('theme');}
 (function(){var t=localStorage.getItem('belugacord_theme')||'beluga';if(t!=='beluga')document.body.classList.add('theme-'+t);})();
 
 function openSettings(){document.getElementById('settingsModal').classList.add('open');showSettingsTab('theme');}
 function showSettingsTab(tab,ev){document.querySelectorAll('.settings-tab').forEach(function(t){t.classList.remove('active');});if(ev)ev.target.classList.add('active');var c=document.getElementById('settingsContent');var cur=localStorage.getItem('belugacord_theme')||'beluga';if(tab==='theme'){var themes=[{id:'beluga',name:'🐱 Beluga',desc:'Фиолетово-розовый',preview:'linear-gradient(135deg,#d946ef,#8b5cf6)'},{id:'discord',name:'💬 Discord',desc:'Классика',preview:'linear-gradient(135deg,#5865f2,#2b2d31)'},{id:'white',name:'☀️ Белая',desc:'Минимализм',preview:'linear-gradient(135deg,#fff,#000)'},{id:'cyber',name:'🤖 Киберпанк',desc:'Жёлтый+циан',preview:'linear-gradient(135deg,#ffee00,#00ffff)'},{id:'retro',name:'📺 Ретро 95',desc:'Windows 95',preview:'linear-gradient(135deg,#c0c0c0,#000080)'},{id:'cs2',name:'🎯 CS 2',desc:'Тёмный + оранжевый',preview:'linear-gradient(135deg,#f0883e,#0d1117)'},{id:'minecraft',name:'⛏️ Minecraft',desc:'Зелёный',preview:'linear-gradient(135deg,#7cb342,#2d3d2d)'},{id:'neon',name:'🌟 Неон',desc:'Розовый неон',preview:'linear-gradient(135deg,#ff00ff,#00ffff)'},{id:'nature',name:'🌿 Природа',desc:'Зелёный',preview:'linear-gradient(135deg,#4ade80,#22c55e)'},{id:'sunset',name:'🌅 Закат',desc:'Оранжевый',preview:'linear-gradient(135deg,#ff6b35,#f7931e)'},{id:'ocean',name:'🌊 Океан',desc:'Синий',preview:'linear-gradient(135deg,#0ea5e9,#06b6d4)'},{id:'royal',name:'👑 Роял',desc:'Фиолетовый',preview:'linear-gradient(135deg,#a855f7,#9333ea)'}];c.innerHTML=themes.map(function(t){return '<div style="display:flex;gap:12px;padding:14px;border-radius:12px;border:2px solid '+(cur===t.id?'var(--accent)':'var(--border)')+';background:var(--bg-input);cursor:pointer;margin-bottom:10px" onclick="setTheme(\''+t.id+'\')"><div style="width:56px;height:56px;border-radius:10px;background:'+t.preview+';flex-shrink:0"></div><div style="flex:1"><div style="color:var(--text);font-weight:800;font-size:14px">'+t.name+'</div><div style="color:var(--text-mute);font-size:12px">'+t.desc+'</div></div></div>';}).join('');}else if(tab==='interface'){var ifaces=[{id:'windows',name:'🖥️ Windows',desc:'Окна, таскбар',icon:'🖥️'},{id:'discord',name:'💬 Discord',desc:'Каналы слева',icon:'💬'},{id:'tg',name:'📱 Мессенджер',desc:'ТГ-стиль',icon:'📱'}];c.innerHTML=ifaces.map(function(i){return '<div style="display:flex;gap:12px;padding:14px;border-radius:12px;border:2px solid '+(currentInterface===i.id?'var(--accent)':'var(--border)')+';background:var(--bg-input);cursor:pointer;margin-bottom:10px" onclick="setInterface(\''+i.id+'\')"><div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:24px">'+i.icon+'</div><div style="flex:1"><div style="color:var(--text);font-weight:800;font-size:14px">'+i.name+'</div><div style="color:var(--text-mute);font-size:12px">'+i.desc+'</div></div></div>';}).join('');}}
 
-function renderProfile(){var pn=document.getElementById('profileName');if(pn){pn.textContent=me.username;if(me.nickname_gradient){pn.style.background=me.nickname_gradient;pn.style.webkitBackgroundClip='text';pn.style.webkitTextFillColor='transparent';}else if(me.nickname_color){pn.style.color=me.nickname_color;}}var ps=document.getElementById('profileStats');if(ps)ps.textContent='📨 '+(me.messages_count||0)+' сообщений · 📅 с '+(me.created_at?new Date(me.created_at).toLocaleDateString('ru-RU'):'—');var bio=document.getElementById('bioInput');if(bio)bio.value=me.bio||'';var mi=document.getElementById('musicInput');if(mi)mi.value=me.fav_music||'';avatarData=me.avatar;bannerData=me.banner;var bigAv=document.getElementById('avatarPreview');if(bigAv){if(avatarData)bigAv.innerHTML='<img src="'+avatarData+'" style="object-position:'+avatarPos.x+'% '+avatarPos.y+'%">';else bigAv.textContent=me.username.charAt(0).toUpperCase();}var bn=document.getElementById('bannerPreview');if(bn){var oi=bn.querySelector('img');if(oi)oi.remove();if(bannerData){var img=document.createElement('img');img.src=bannerData;img.style.objectPosition=bannerPos.x+'% '+bannerPos.y+'%';bn.insertBefore(img,bn.firstChild);}}}
+var logoClicks=0,logoTimer=null;
+function tapLogo(){
+    logoClicks++;
+    clearTimeout(logoTimer);
+    logoTimer=setTimeout(function(){logoClicks=0;},1000);
+    if(logoClicks>=5){
+        logoClicks=0;
+        showShopNotice('🌈 Секретная тема открыта!','warn');
+        setTheme('rainbow');
+    }
+}
+
+function renderProfile(){var pn=document.getElementById('profileName');if(pn){pn.textContent=me.username;if(me.nickname_gradient){pn.style.background=me.nickname_gradient;pn.style.webkitBackgroundClip='text';pn.style.webkitTextFillColor='transparent';pn.style.color='';}else if(me.nickname_color){pn.style.color=me.nickname_color;pn.style.background='';pn.style.webkitTextFillColor='';}else{pn.style.color='';pn.style.background='';pn.style.webkitTextFillColor='';}}var ps=document.getElementById('profileStats');if(ps)ps.textContent='📨 '+(me.messages_count||0)+' сообщений · 📅 с '+(me.created_at?new Date(me.created_at).toLocaleDateString('ru-RU'):'—');var bio=document.getElementById('bioInput');if(bio)bio.value=me.bio||'';var mi=document.getElementById('musicInput');if(mi)mi.value=me.fav_music||'';avatarData=me.avatar;bannerData=me.banner;var bigAv=document.getElementById('avatarPreview');if(bigAv){if(avatarData)bigAv.innerHTML='<img src="'+avatarData+'" style="object-position:'+avatarPos.x+'% '+avatarPos.y+'%">';else bigAv.textContent=me.username.charAt(0).toUpperCase();}var bn=document.getElementById('bannerPreview');if(bn){var oi=bn.querySelector('img');if(oi)oi.remove();if(bannerData){var img=document.createElement('img');img.src=bannerData;img.style.objectPosition=bannerPos.x+'% '+bannerPos.y+'%';bn.insertBefore(img,bn.firstChild);}}}
 function openProfile(){renderProfile();document.getElementById('profileModal').classList.add('open');}
 function closeProfile(){document.getElementById('profileModal').classList.remove('open');}
 
@@ -683,8 +755,58 @@ function stopDrag(){dragging=null;document.removeEventListener('mousemove',onDra
 var avInput=document.getElementById('avatarInput');if(avInput)avInput.addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){pendingAvatar=ev.target.result;avatarData=pendingAvatar;avatarPos={x:50,y:50};renderProfile();};r.readAsDataURL(f);});
 var bnInput=document.getElementById('bannerInput');if(bnInput)bnInput.addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){pendingBanner=ev.target.result;bannerData=pendingBanner;bannerPos={x:50,y:50};renderProfile();};r.readAsDataURL(f);});
 async function saveProfile(){var bio=document.getElementById('bioInput').value.trim();var music=document.getElementById('musicInput').value.trim();try{await fetch('/api/update_profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,avatar:pendingAvatar,banner:pendingBanner,avatar_pos:avatarPos.x+'% '+avatarPos.y+'%',banner_pos:bannerPos.x+'% '+bannerPos.y+'%',nickname_color:nicknameColor,nickname_gradient:nicknameGradient,bio:bio,fav_music:music})});Object.assign(me,{avatar:avatarData,banner:bannerData,nickname_color:nicknameColor,nickname_gradient:nicknameGradient,bio:bio,fav_music:music});closeProfile();showShopNotice('✅ Сохранено');}catch(e){showShopNotice('❌ Ошибка','error');}}
-function openNickChange(){document.getElementById('nickModal').classList.add('open');document.getElementById('newNickInput').value=me.username;}
-async function changeNick(){var n=document.getElementById('newNickInput').value.trim();var s=document.getElementById('nickStatus');if(n.length<2){s.textContent='Минимум 2';s.style.color='#f43f5e';return;}try{var r=await fetch('/api/user/change_nick',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,new_nick:n})});var d=await r.json();if(r.ok){me.username=n;token=d.token;localStorage.setItem('belugacord_token',token);s.textContent='✓ Изменён';s.style.color='#22d3ee';renderProfile();setTimeout(function(){document.getElementById('nickModal').classList.remove('open');},1000);}else{s.textContent=d.detail||'Ошибка';s.style.color='#f43f5e';}}catch(e){s.textContent='Ошибка';}}
+
+var tempNickColor=null,tempNickGradient=null;
+function openNickStyle(){
+    tempNickColor=nicknameColor;tempNickGradient=nicknameGradient;
+    var preview=document.getElementById('nickPreview');
+    preview.textContent=me.username;
+    applyNickPreview(preview);
+    var cg=document.getElementById('colorGrid');
+    cg.innerHTML=NICK_COLORS.map(function(c){return '<div class="color-swatch'+(c===tempNickColor?' active':'')+'" style="background:'+c+'" onclick="pickNickColor(\''+c+'\',this)"></div>';}).join('');
+    var gg=document.getElementById('gradientGrid');
+    gg.innerHTML=NICK_GRADIENTS.map(function(g){return '<div class="color-swatch'+(g===tempNickGradient?' active':'')+'" style="background:'+g+'" onclick="pickNickGradient(\''+g+'\',this)"></div>';}).join('');
+    document.getElementById('nickStyleModal').classList.add('open');
+}
+function applyNickPreview(el){
+    el.style.background='';el.style.webkitBackgroundClip='';el.style.webkitTextFillColor='';el.style.color='';
+    if(tempNickGradient){el.style.background=tempNickGradient;el.style.webkitBackgroundClip='text';el.style.webkitTextFillColor='transparent';}
+    else if(tempNickColor){el.style.color=tempNickColor;}
+}
+function pickNickColor(c,el){
+    tempNickColor=c;tempNickGradient=null;
+    document.querySelectorAll('#colorGrid .color-swatch').forEach(function(s){s.classList.remove('active');});
+    document.querySelectorAll('#gradientGrid .color-swatch').forEach(function(s){s.classList.remove('active');});
+    if(el)el.classList.add('active');
+    applyNickPreview(document.getElementById('nickPreview'));
+}
+function pickNickGradient(g,el){
+    tempNickGradient=g;tempNickColor=null;
+    document.querySelectorAll('#colorGrid .color-swatch').forEach(function(s){s.classList.remove('active');});
+    document.querySelectorAll('#gradientGrid .color-swatch').forEach(function(s){s.classList.remove('active');});
+    if(el)el.classList.add('active');
+    applyNickPreview(document.getElementById('nickPreview'));
+}
+async function saveNickStyle(){
+    nicknameColor=tempNickColor;nicknameGradient=tempNickGradient;
+    try{
+        await fetch('/api/update_profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,nickname_color:nicknameColor,nickname_gradient:nicknameGradient})});
+        me.nickname_color=nicknameColor;me.nickname_gradient=nicknameGradient;
+        renderProfile();
+        document.getElementById('nickStyleModal').classList.remove('open');
+        showShopNotice('🎨 Стиль сохранён');
+    }catch(e){showShopNotice('❌ Ошибка','error');}
+}
+async function resetNickStyle(){
+    nicknameColor=null;nicknameGradient=null;
+    try{
+        await fetch('/api/update_profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,nickname_color:null,nickname_gradient:null})});
+        me.nickname_color=null;me.nickname_gradient=null;
+        renderProfile();
+        document.getElementById('nickStyleModal').classList.remove('open');
+        showShopNotice('🗑️ Сброшено');
+    }catch(e){}
+}
 
 async function showChangelog(force){var seen=localStorage.getItem('belugacord_version');if(!force&&seen===APP_VERSION)return;try{var r=await fetch('/api/changelog');var d=await r.json();var body=document.getElementById('changelogBody');var html='';if(d.all){var versions=Object.keys(d.all).sort().reverse();versions.forEach(function(v){var ch=d.all[v];var isCur=v===d.current;html+='<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:900;color:var(--accent);margin-bottom:8px">'+ch.title+(isCur?' <span class="changelog-badge">NEW</span>':'')+'</div><ul style="list-style:none;padding:0;margin:0">';ch.items.forEach(function(item){html+='<li style="padding:8px 12px;background:var(--bg-input);border-radius:8px;margin-bottom:4px;font-size:12px;line-height:1.4">'+esc(item)+'</li>';});html+='</ul></div>';});}body.innerHTML=html;document.getElementById('changelogModal').classList.add('open');localStorage.setItem('belugacord_version',APP_VERSION);}catch(e){}}
 
@@ -697,12 +819,98 @@ async function loadServerContent(id,name){currentServerId=id;document.getElement
 function openUserSearch(){document.getElementById('userSearchModal').classList.add('open');document.getElementById('userSearchInput').value='';document.getElementById('userSearchResults').innerHTML='';setTimeout(function(){document.getElementById('userSearchInput').focus();},100);}
 var userSearchTimer=null;
 function doUserSearch(q){clearTimeout(userSearchTimer);var c=document.getElementById('userSearchResults');if(q.trim().length<2){c.innerHTML='';return;}c.innerHTML='<div style="text-align:center;color:var(--text-mute);padding:20px">Поиск...</div>';userSearchTimer=setTimeout(async function(){try{var r=await fetch('/api/users/search?q='+encodeURIComponent(q)+'&token='+encodeURIComponent(token));var users=await r.json();if(!users.length){c.innerHTML='<div style="text-align:center;color:var(--text-mute);padding:20px">Никого не найдено</div>';return;}c.innerHTML='';for(var i=0;i<users.length;i++){(function(u){var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;background:var(--bg-input)';var av=u.avatar?'<img src="'+u.avatar+'" style="width:100%;height:100%;object-fit:cover">':u.username.charAt(0).toUpperCase();row.innerHTML='<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;overflow:hidden;flex-shrink:0">'+av+'</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+esc(u.username)+buildRoleBadge(u)+'</div></div><button class="save-btn" style="margin:0;width:auto;padding:8px 14px;font-size:12px" onclick="event.stopPropagation();addFriendFromSearch('+u.id+',this)">👥</button>';row.onclick=function(){viewProfile(u.id);};c.appendChild(row);})(users[i]);}}catch(e){c.innerHTML='<div style="text-align:center;color:#f43f5e;padding:20px">Ошибка</div>';}},350);}
-async function addFriendFromSearch(userId,btn){btn.disabled=true;btn.textContent='...';try{var r=await fetch('/api/friends/request_by_id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,user_id:userId})});if(r.ok){btn.textContent='⏳';showShopNotice('👥 Запрос отправлен');}else{var d=await r.json();btn.textContent='✕';showShopNotice('❌ '+(d.detail||'Ошибка'),'error');setTimeout(function(){btn.disabled=false;btn.textContent='👥';},2000);}}catch(e){btn.disabled=false;btn.textContent='👥';}}
+async function addFriendFromSearch(userId,btn){btn.disabled=true;btn.textContent='...';try{var r=await fetch('/api/friends/request_by_id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,user_id:userId})});var d=await r.json();if(r.ok){btn.textContent='⏳';showShopNotice('👥 Запрос отправлен');}else{btn.textContent='✕';showShopNotice('❌ '+(d.detail||'Ошибка'),'error');setTimeout(function(){btn.disabled=false;btn.textContent='👥';},2000);}}catch(e){btn.disabled=false;btn.textContent='👥';}}
 
-function promptAddFriend(){var u=prompt('Введи ник юзера:');if(!u)return;fetch('/api/friends/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,username:u.trim()})}).then(function(r){return r.json();}).then(function(d){if(d.ok||d.detail===undefined){showShopNotice('👥 Запрос отправлен');showFriends();}else{showShopNotice('❌ '+(d.detail||'Ошибка'),'error');}}).catch(function(){showShopNotice('❌ Ошибка','error');});}
-async function acceptFriend(id,btn){if(btn){btn.disabled=true;btn.textContent='...';}var row=btn?btn.closest('.chat-item'):null;if(row)row.style.opacity='0.3';try{var r=await fetch('/api/friends/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,friend_id:id})});if(!r.ok)throw new Error('fail');if(row)row.remove();showShopNotice('✅ Принят');setTimeout(showFriends,300);}catch(e){if(row)row.style.opacity='1';if(btn){btn.disabled=false;btn.textContent='✓';}}}
-async function declineFriend(id,btn){if(btn){btn.disabled=true;btn.textContent='...';}var row=btn?btn.closest('.chat-item'):null;if(row)row.style.opacity='0.3';try{var r=await fetch('/api/friends/decline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,friend_id:id})});if(!r.ok)throw new Error('fail');if(row)row.remove();setTimeout(showFriends,300);}catch(e){if(row)row.style.opacity='1';if(btn){btn.disabled=false;btn.textContent='✕';}}}
-async function removeFriend(id,btn){if(!confirm('Удалить из друзей?'))return;if(btn){btn.disabled=true;btn.textContent='...';}var row=btn?btn.closest('.chat-item'):null;if(row)row.style.opacity='0.3';try{var r=await fetch('/api/friends/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,user_id:id})});if(!r.ok)throw new Error('fail');if(row)row.remove();showShopNotice('🗑️ Удалён');setTimeout(showFriends,300);}catch(e){if(row)row.style.opacity='1';if(btn){btn.disabled=false;btn.textContent='🗑️';}}}
+function promptAddFriend(){
+    var u=prompt('Введи ник юзера:');
+    if(!u)return;
+    fetch('/api/friends/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,username:u.trim()})})
+    .then(function(r){return r.json().then(function(d){return{r:r,d:d};});})
+    .then(function(x){if(x.r.ok){showShopNotice('👥 Запрос отправлен');showFriends();}else{showShopNotice('❌ '+(x.d.detail||'Ошибка'),'error');}})
+    .catch(function(){showShopNotice('❌ Ошибка','error');});
+}
+async function acceptFriend(requestId,btn){
+    if(btn){btn.disabled=true;btn.textContent='...';}
+    var row=btn?btn.closest('.chat-item'):null;
+    if(row)row.style.opacity='0.3';
+    try{
+        var r=await fetch('/api/friends/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,request_id:requestId})});
+        var d=await r.json();
+        if(!r.ok)throw new Error(d.detail||'Ошибка');
+        if(row)row.remove();
+        showShopNotice('✅ Принят');
+        updateFriendsBadge();
+        setTimeout(showFriends,300);
+    }catch(e){
+        if(row)row.style.opacity='1';
+        if(btn){btn.disabled=false;btn.textContent='✓';}
+        showShopNotice('❌ '+e.message,'error');
+    }
+}
+async function declineFriend(requestId,btn){
+    if(btn){btn.disabled=true;btn.textContent='...';}
+    var row=btn?btn.closest('.chat-item'):null;
+    if(row)row.style.opacity='0.3';
+    try{
+        var r=await fetch('/api/friends/decline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,request_id:requestId})});
+        if(!r.ok)throw new Error('fail');
+        if(row)row.remove();
+        updateFriendsBadge();
+        setTimeout(showFriends,300);
+    }catch(e){
+        if(row)row.style.opacity='1';
+        if(btn){btn.disabled=false;btn.textContent='✕';}
+    }
+}
+async function cancelRequest(requestId,btn){
+    if(btn){btn.disabled=true;btn.textContent='...';}
+    var row=btn?btn.closest('.chat-item'):null;
+    if(row)row.style.opacity='0.3';
+    try{
+        await fetch('/api/friends/cancel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,request_id:requestId})});
+        if(row)row.remove();
+        setTimeout(showFriends,300);
+    }catch(e){
+        if(row)row.style.opacity='1';
+        if(btn){btn.disabled=false;btn.textContent='✕';}
+    }
+}
+async function removeFriend(id,btn){
+    if(!confirm('Удалить из друзей?'))return;
+    if(btn){btn.disabled=true;btn.textContent='...';}
+    var row=btn?btn.closest('.chat-item'):null;
+    if(row)row.style.opacity='0.3';
+    try{
+        var r=await fetch('/api/friends/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,user_id:id})});
+        if(!r.ok)throw new Error('fail');
+        if(row)row.remove();
+        showShopNotice('🗑️ Удалён');
+        setTimeout(showFriends,300);
+    }catch(e){
+        if(row)row.style.opacity='1';
+        if(btn){btn.disabled=false;btn.textContent='🗑️';}
+    }
+}
+
+async function updateFriendsBadge(){
+    if(!me)return;
+    try{
+        var r=await fetch('/api/friends/count?token='+encodeURIComponent(token));
+        var d=await r.json();
+        var n=d.count||0;
+        var el=document.getElementById('friendsBadge');
+        var deskIcon=document.querySelector('.desktop-icon[onclick="showFriends()"] .d-icon');
+        if(n>0){
+            if(!el&&deskIcon){
+                el=document.createElement('div');
+                el.id='friendsBadge';
+                el.className='user-badge-count';
+                deskIcon.appendChild(el);
+            }
+            if(el)el.textContent=n;
+        }else if(el){el.remove();}
+    }catch(e){}
+}
 
 async function showFriends(){
     currentChatType='friends';currentDMUser=null;currentChannelId=null;
@@ -711,28 +919,60 @@ async function showFriends(){
     document.getElementById('chatMembersBtn').style.display='none';
     document.getElementById('chatCallBtn').style.display='none';
     var ssb=document.getElementById('chatServerSettingsBtn');if(ssb)ssb.style.display='none';
-    document.getElementById('messagesBody').innerHTML='<div style="padding:20px"><div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"><button class="save-btn" style="margin:0;flex:1;min-width:130px" onclick="openUserSearch()">🔍 Поиск юзеров</button><button class="save-btn gray" style="margin:0;flex:1;min-width:130px" onclick="promptAddFriend()">➕ По нику</button></div><h3 style="color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:800;margin-bottom:12px">Друзья</h3><div id="friendsBodyList"><div style="text-align:center;color:var(--text-mute);padding:20px">Загрузка...</div></div></div>';
+    document.getElementById('messagesBody').innerHTML='<div style="padding:20px"><div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"><button class="save-btn" style="margin:0;flex:1;min-width:130px" onclick="openUserSearch()">🔍 Поиск юзеров</button><button class="save-btn gray" style="margin:0;flex:1;min-width:130px" onclick="promptAddFriend()">➕ По нику</button></div><div id="friendsBodyList"><div style="text-align:center;color:var(--text-mute);padding:20px">Загрузка...</div></div></div>';
     try{
         var r=await fetch('/api/friends/list?token='+encodeURIComponent(token));
-        var friends=await r.json();
+        var list_data=await r.json();
         var list=document.getElementById('friendsBodyList');
         if(!list)return;
         list.innerHTML='';
-        if(!friends.length){list.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-mute)">Нет друзей 😢<br><br>Найди кого-нибудь через поиск 👆</div>';return;}
-        friends.forEach(function(f){
+        var incoming=list_data.filter(function(f){return f.status==='incoming';});
+        var outgoing=list_data.filter(function(f){return f.status==='outgoing';});
+        var accepted=list_data.filter(function(f){return f.status==='accepted';});
+        if(incoming.length){
+            var h1=document.createElement('h3');h1.style.cssText='color:var(--accent);font-size:11px;text-transform:uppercase;font-weight:800;margin-bottom:10px';h1.textContent='📩 Входящие заявки ('+incoming.length+')';list.appendChild(h1);
+            incoming.forEach(function(f){
+                var row=document.createElement('div');row.className='chat-item';
+                var av=f.avatar?'<img src="'+f.avatar+'">':f.username.charAt(0).toUpperCase();
+                var ring=f.online?'<div class="avatar-online-ring"></div>':'';
+                row.innerHTML='<div class="avatar" style="position:relative">'+av+ring+'</div><div class="chat-item-info"><div class="chat-item-name">'+esc(f.username)+buildRoleBadge(f)+'</div><div class="chat-item-preview">хочет добавить тебя</div></div><div style="display:flex"><button class="save-btn green" style="margin:0;padding:6px 10px;width:auto;font-size:12px" onclick="event.stopPropagation();acceptFriend('+f.request_id+',this)">✓</button><button class="save-btn red" style="margin:0 0 0 4px;padding:6px 10px;width:auto;font-size:12px" onclick="event.stopPropagation();declineFriend('+f.request_id+',this)">✕</button></div>';
+                list.appendChild(row);
+            });
+        }
+        if(outgoing.length){
+            var h2=document.createElement('h3');h2.style.cssText='color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:800;margin:16px 0 10px';h2.textContent='📤 Исходящие ('+outgoing.length+')';list.appendChild(h2);
+            outgoing.forEach(function(f){
+                var row=document.createElement('div');row.className='chat-item';
+                var av=f.avatar?'<img src="'+f.avatar+'">':f.username.charAt(0).toUpperCase();
+                row.innerHTML='<div class="avatar" style="position:relative">'+av+'</div><div class="chat-item-info"><div class="chat-item-name">'+esc(f.username)+'</div><div class="chat-item-preview">⏳ ожидание</div></div><button class="save-btn gray" style="margin:0;padding:6px 10px;width:auto;font-size:11px" onclick="event.stopPropagation();cancelRequest('+f.request_id+',this)">✕ отменить</button>';
+                list.appendChild(row);
+            });
+        }
+        var h3=document.createElement('h3');h3.style.cssText='color:var(--text-dim);font-size:11px;text-transform:uppercase;font-weight:800;margin:16px 0 10px';h3.textContent='Друзья ('+accepted.length+')';list.appendChild(h3);
+        if(!accepted.length){
+            var empty=document.createElement('div');empty.style.cssText='padding:16px;text-align:center;color:var(--text-mute);font-size:13px';empty.textContent='Пока никого 😢';list.appendChild(empty);
+        }
+        accepted.forEach(function(f){
             var row=document.createElement('div');row.className='chat-item';
             var av=f.avatar?'<img src="'+f.avatar+'">':f.username.charAt(0).toUpperCase();
             var ring=f.online?'<div class="avatar-online-ring"></div>':'';
-            var actions='';
-            if(f.status==='pending'&&f.to_user===me.id){actions='<button class="save-btn green" style="margin:0;padding:6px 10px;width:auto;font-size:12px" onclick="event.stopPropagation();acceptFriend('+f.id+',this)">✓</button><button class="save-btn red" style="margin:0 0 0 4px;padding:6px 10px;width:auto;font-size:12px" onclick="event.stopPropagation();declineFriend('+f.id+',this)">✕</button>';}
-            else if(f.status==='pending'&&f.from_user===me.id){actions='<span style="font-size:11px;color:var(--text-mute)">⏳</span>';}
-            else if(f.status==='accepted'){actions='<button class="save-btn gray" style="margin:0;padding:6px 10px;width:auto;font-size:11px" onclick="event.stopPropagation();removeFriend('+f.id+',this)">🗑️</button>';}
-            row.innerHTML='<div class="avatar" style="position:relative">'+av+ring+'</div><div class="chat-item-info"><div class="chat-item-name">'+esc(f.username)+buildRoleBadge(f)+'</div><div class="chat-item-preview">'+(f.status==='accepted'?(f.online?'в сети':'не в сети'):'запрос')+'</div></div><div style="display:flex">'+actions+'</div>';
-            if(f.status==='accepted')row.onclick=function(){openDM(f.id,f.username,f.avatar);};
+            var status=f.online?'в сети':(f.last_seen?timeAgo(f.last_seen):'не в сети');
+            row.innerHTML='<div class="avatar" style="position:relative">'+av+ring+'</div><div class="chat-item-info"><div class="chat-item-name">'+esc(f.username)+buildRoleBadge(f)+'</div><div class="chat-item-preview">'+status+'</div></div><button class="save-btn gray" style="margin:0;padding:6px 10px;width:auto;font-size:11px" onclick="event.stopPropagation();removeFriend('+f.id+',this)">🗑️</button>';
+            row.onclick=function(){openDM(f.id,f.username,f.avatar);};
             list.appendChild(row);
         });
     }catch(e){var list=document.getElementById('friendsBodyList');if(list)list.innerHTML='<div style="text-align:center;color:#f43f5e;padding:20px">Ошибка загрузки</div>';}
+    updateFriendsBadge();
     if(window.innerWidth<=768)mobileShow('chat');
+}
+
+function timeAgo(iso){
+    var d=new Date(iso);
+    var s=Math.floor((Date.now()-d.getTime())/1000);
+    if(s<60)return 'только что';
+    if(s<3600)return Math.floor(s/60)+' мин назад';
+    if(s<86400)return Math.floor(s/3600)+' ч назад';
+    return Math.floor(s/86400)+' дн назад';
 }
 
 function openCreateMenu(){document.getElementById('createMenuModal').classList.add('open');}
@@ -744,7 +984,7 @@ async function loadServers(){try{var r=await fetch('/api/servers/list?token='+en
 async function openServer(id,name){openTab('server',id,name);await loadServerContent(id,name);}
 function renderChannelList(channels){var c=document.getElementById('chatListBody');if(!c)return;c.innerHTML='<div style="font-size:11px;text-transform:uppercase;color:var(--text-mute);font-weight:800;padding:12px 10px 6px">Каналы</div>';channels.forEach(function(ch){var d=document.createElement('div');d.className='chat-item'+(ch.id===currentChannelId?' active':'');d.innerHTML='<div class="avatar">'+(ch.type==='voice'?'🔊':'#')+'</div><div class="chat-item-info"><div class="chat-item-name">'+esc(ch.name)+'</div></div>';d.onclick=function(){openChannel(ch.id,ch.name);};c.appendChild(d);});}
 async function openChannel(id,name){openTab('channel',id,name);await doOpenChannel(id,name);}
-async function doOpenChannel(id,name){currentChannelId=id;currentDMUser=null;currentChatType='channel';document.getElementById('chatWindowTitle').textContent=name;document.getElementById('chatWindowAvatar').textContent='#';document.getElementById('messagesBody').innerHTML='';document.getElementById('chatMembersBtn').style.display='flex';document.getElementById('chatCallBtn').style.display='none';var ssb=document.getElementById('chatServerSettingsBtn');if(ssb)ssb.style.display='flex';try{var r=await fetch('/api/channels/'+id+'/messages?token='+encodeURIComponent(token));var msgs=await r.json();msgs.forEach(function(m){addMessage(m);});}catch(e){}if(window.innerWidth<=768)mobileShow('chat');}
+async function doOpenChannel(id,name){currentChannelId=id;currentDMUser=null;currentChatType='channel';document.getElementById('chatWindowTitle').textContent=name;document.getElementById('chatWindowAvatar').textContent='#';document.getElementById('messagesBody').innerHTML='';document.getElementById('chatMembersBtn').style.display='flex';document.getElementById('chatCallBtn').style.display='none';var ssb=document.getElementById('chatServerSettingsBtn');if(ssb)ssb.style.display='flex';try{var r=await fetch('/api/channels/'+id+'/messages?token='+encodeURIComponent(token));var msgs=await r.json();msgs.forEach(function(m){addMessage(m);});scrollBottom();}catch(e){}autoFocusInput();if(window.innerWidth<=768)mobileShow('chat');}
 
 function openServerSettings(){if(!currentServerData){showShopNotice('⚠️ Открой сервер','warn');return;}document.getElementById('serverNameInput').value=currentServerData.name||'';document.getElementById('serverDescInput').value=currentServerData.description||'';document.getElementById('serverInviteInput').value=currentServerData.invite_code||'';document.getElementById('newChannelInput').value='';document.getElementById('serverSettingsStatus').textContent='';document.getElementById('serverSettingsModal').classList.add('open');}
 async function saveServerSettings(){var s=document.getElementById('serverSettingsStatus');try{var r=await fetch('/api/servers/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,server_id:currentServerId,name:document.getElementById('serverNameInput').value,description:document.getElementById('serverDescInput').value})});if(r.ok){s.textContent='✅ Сохранено';s.style.color='#22d3ee';showShopNotice('✅ Сохранено');loadServers();if(currentServerData){currentServerData.name=document.getElementById('serverNameInput').value;currentServerData.description=document.getElementById('serverDescInput').value;}setTimeout(function(){document.getElementById('serverSettingsModal').classList.remove('open');},900);}else{var d=await r.json();s.textContent='❌ '+(d.detail||'Ошибка');s.style.color='#f43f5e';}}catch(e){}}
@@ -756,40 +996,346 @@ async function leaveServer(){if(!confirm('Выйти из сервера?'))retu
 function openMembers(){if(!currentServerId)return;fetch('/api/servers/'+currentServerId+'/members?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(members){var list=document.getElementById('membersList');list.innerHTML='';members.forEach(function(m){var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer';var av=m.avatar?'<img src="'+m.avatar+'" style="width:100%;height:100%;object-fit:cover">':m.username.charAt(0).toUpperCase();row.innerHTML='<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;overflow:hidden">'+av+'</div><div style="flex:1;display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+esc(m.username)+buildRoleBadge(m)+'</div>';row.onclick=function(){document.getElementById('membersModal').classList.remove('open');viewProfile(m.id);};list.appendChild(row);});document.getElementById('membersModal').classList.add('open');});}
 
 async function openDM(userId,username,avatar){openTab('dm',userId,username,avatar);await doOpenDM(userId,username,avatar);}
-async function doOpenDM(userId,username,avatar){currentDMUser={id:userId,username:username,avatar:avatar};currentChatType='dm';currentChannelId=null;if(unreadCounts[userId])delete unreadCounts[userId];var av=document.getElementById('chatWindowAvatar');if(avatar)av.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';else av.textContent=username.charAt(0).toUpperCase();document.getElementById('chatWindowTitle').textContent=username;document.getElementById('messagesBody').innerHTML='';document.getElementById('chatMembersBtn').style.display='none';document.getElementById('chatCallBtn').style.display='flex';var ssb=document.getElementById('chatServerSettingsBtn');if(ssb)ssb.style.display='none';try{var r=await fetch('/api/dm/'+userId+'/messages?token='+encodeURIComponent(token));var msgs=await r.json();msgs.forEach(function(m){addMessage(m);});}catch(e){}if(window.innerWidth<=768)mobileShow('chat');}
+async function doOpenDM(userId,username,avatar){currentDMUser={id:userId,username:username,avatar:avatar};currentChatType='dm';currentChannelId=null;if(unreadCounts[userId])delete unreadCounts[userId];var av=document.getElementById('chatWindowAvatar');if(avatar)av.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';else av.textContent=username.charAt(0).toUpperCase();document.getElementById('chatWindowTitle').textContent=username;document.getElementById('messagesBody').innerHTML='';document.getElementById('chatMembersBtn').style.display='none';document.getElementById('chatCallBtn').style.display='flex';var ssb=document.getElementById('chatServerSettingsBtn');if(ssb)ssb.style.display='none';try{var r=await fetch('/api/dm/'+userId+'/messages?token='+encodeURIComponent(token));var msgs=await r.json();msgs.forEach(function(m){addMessage(m);});scrollBottom();}catch(e){}autoFocusInput();if(window.innerWidth<=768)mobileShow('chat');}
 
-function buildRoleBadge(m){if(m.is_scam)return '<span class="role-badge role-scam">SCAM</span>';if(m.role==='owner')return '<span class="role-badge role-owner">Владелец</span>';if(m.is_admin)return '<span class="role-badge role-admin">Админ</span>';if(m.is_moderator)return '<span class="role-badge role-mod">Модер</span>';if(m.is_beta_tester)return '<span class="role-badge role-beta">Бета</span>';return '<span class="role-badge role-user">Юзер</span>';}
+function buildRoleBadge(m){if(!m)return '';if(m.is_scam)return '<span class="role-badge role-scam">SCAM</span>';if(m.role==='owner')return '<span class="role-badge role-owner">Владелец</span>';if(m.is_admin)return '<span class="role-badge role-admin">Админ</span>';if(m.is_moderator)return '<span class="role-badge role-mod">Модер</span>';if(m.is_beta_tester)return '<span class="role-badge role-beta">Бета</span>';return '<span class="role-badge role-user">Юзер</span>';}
 
-function buildMessageHTML(m){var pos=parsePos(m.avatar_pos);var uid=m.user_id||m.from_user||0;var isBanned=m.is_banned;var isOnline=me&&uid!==me.id&&onlineSet[uid];var av;if(isBanned)av='<div class="avatar" style="opacity:0.5"><div style="font-size:20px">😵</div></div>';else if(m.avatar)av='<div class="avatar'+(isOnline?' online':'')+'" onclick="viewProfile('+uid+')"><img src="'+m.avatar+'" style="object-position:'+pos.x+'% '+pos.y+'%"></div>';else av='<div class="avatar'+(isOnline?' online':'')+'" onclick="viewProfile('+uid+')">'+(m.username||'?').charAt(0).toUpperCase()+'</div>';var t=m.created_at?new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'';var rb=buildRoleBadge(m);var name=isBanned?'<span class="msg-author" style="opacity:0.5;text-decoration:line-through">(в бане)</span>':'<span class="msg-author" onclick="viewProfile('+uid+')">'+esc(m.username||'?')+'</span>'+rb;var fileHTML='';if(m.file_url){var isV=/\.(mp4|webm|mov)$/i.test(m.file_url);var isI=/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(m.file_url);if(isV)fileHTML='<video style="max-width:300px;max-height:200px;border-radius:12px;margin-top:8px" controls src="'+m.file_url+'"></video>';else if(isI)fileHTML='<img style="max-width:300px;max-height:200px;border-radius:12px;margin-top:8px" src="'+m.file_url+'">';else fileHTML='<a href="'+m.file_url+'" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-top:8px;color:var(--accent);text-decoration:none;font-weight:700;font-size:12px">📎 Скачать</a>';}var reactionsHTML='';if(m.reactions){try{var r=typeof m.reactions==='string'?JSON.parse(m.reactions):m.reactions;var keys=Object.keys(r);if(keys.length){reactionsHTML='<div class="msg-reactions">';keys.forEach(function(k){reactionsHTML+='<div class="reaction-pill" onclick="toggleReaction('+m.id+',\''+k+'\')">'+k+' '+r[k].length+'</div>';});reactionsHTML+='</div>';}}catch(e){}}var myMsg=uid===me.id;var actionsHTML=myMsg?'<div class="msg-actions"><button class="msg-action-btn" onclick="editMessage('+m.id+')" title="Редакт">✏️</button><button class="msg-action-btn" onclick="deleteMessage('+m.id+')" title="Удалить">🗑️</button></div>':'<div class="msg-actions"><button class="msg-action-btn" onclick="addReaction('+m.id+')" title="Реакция">😀</button></div>';return av+'<div class="msg-body"><div class="msg-head">'+name+'<span class="msg-time">'+t+'</span></div><div class="msg-content">'+linkify(m.text||'')+'</div>'+fileHTML+reactionsHTML+'</div>'+actionsHTML;}
-function addMessage(m){var chat=document.getElementById('messagesBody');if(!chat)return;var div=document.createElement('div');div.className='msg-row';div.id='msg-'+m.id;div.innerHTML=buildMessageHTML(m);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;}
-function send(){var inp=document.getElementById('inp');var t=inp.value.trim();if(!t||!ws||ws.readyState!==WebSocket.OPEN)return;checkEasterEgg(t);var tempId='temp-'+Date.now();var fakeMsg={id:tempId,user_id:me.id,username:me.username,avatar:me.avatar,text:t,created_at:new Date().toISOString(),is_admin:me.is_admin,is_moderator:me.is_moderator,is_beta_tester:me.is_beta_tester,role:me.role,is_scam:me.is_scam};var chat=document.getElementById('messagesBody');var div=document.createElement('div');div.className='msg-row pending';div.id='msg-'+tempId;div.innerHTML=buildMessageHTML(fakeMsg);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;if(currentChatType==='dm'&&currentDMUser)ws.send(JSON.stringify({type:'dm',to_user:currentDMUser.id,text:t,temp_id:tempId}));else if(currentChannelId)ws.send(JSON.stringify({type:'message',channel_id:currentChannelId,text:t,temp_id:tempId}));inp.value='';cancelReply();}
-var inpEl=document.getElementById('inp');if(inpEl)inpEl.addEventListener('keydown',function(e){if(e.key==='Enter')send();});
-if(inpEl)inpEl.addEventListener('input',function(){if(currentChatType==='dm'&&currentDMUser){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'typing_dm',to_user:currentDMUser.id}));}else if(currentChannelId){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'typing',channel_id:currentChannelId}));}});
-function cancelReply(){replyTo=null;var rb=document.getElementById('replyBox');if(rb)rb.style.display='none';}
-async function editMessage(id){var el=document.getElementById('msg-'+id);if(!el)return;var content=el.querySelector('.msg-content');var oldText=content.textContent;var newText=prompt('Редактировать:',oldText);if(newText===null||newText.trim()==='')return;try{var r=await fetch('/api/messages/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id,text:newText})});if(r.ok){content.textContent=newText;showShopNotice('✏️ Изменено');}}catch(e){}}
-async function deleteMessage(id){if(!confirm('Удалить сообщение?'))return;try{var r=await fetch('/api/messages/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id})});if(r.ok){var el=document.getElementById('msg-'+id);if(el)el.remove();}}catch(e){}}
-function addReaction(id){var emojis=['👍','❤️','🔥','😂','😮','😢','🎉','👏'];var pick=prompt('Реакция:\n1.👍 2.❤️ 3.🔥 4.😂 5.😮 6.😢 7.🎉 8.👏\nВведи номер:','1');var idx=parseInt(pick)-1;if(idx<0||idx>=emojis.length)return;toggleReaction(id,emojis[idx]);}
-async function toggleReaction(id,emoji){try{await fetch('/api/messages/reaction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id,emoji:emoji})});}catch(e){}}
-async function uploadFile(input){var f=input.files[0];if(!f)return;var fd=new FormData();fd.append('token',token);fd.append('file',f);try{var r=await fetch('/api/upload',{method:'POST',body:fd});var d=await r.json();if(d.url){if(currentChatType==='dm'&&currentDMUser)ws.send(JSON.stringify({type:'dm',to_user:currentDMUser.id,text:'',file_url:d.url}));else if(currentChannelId)ws.send(JSON.stringify({type:'message',channel_id:currentChannelId,text:'',file_url:d.url}));}}catch(e){}input.value='';}
-function openEmojiPicker(){document.querySelectorAll('.emoji-picker').forEach(function(p){p.remove();});var p=document.createElement('div');p.className='emoji-picker';p.style.cssText='position:fixed;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:12px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;bottom:100px;right:20px;max-width:340px;z-index:9999';MY_EMOJIS.forEach(function(e){var s=document.createElement('span');s.textContent=e;s.style.cssText='font-size:22px;cursor:pointer;padding:6px;border-radius:8px;text-align:center';s.onclick=function(){var inp=document.getElementById('inp');if(inp){inp.value+=e;p.remove();inp.focus();}};p.appendChild(s);});document.body.appendChild(p);setTimeout(function(){document.addEventListener('click',function(){p.remove();},{once:true});},100);}
+function buildMessageHTML(m){
+    var pos=parsePos(m.avatar_pos);
+    var uid=m.user_id||m.from_user||0;
+    var isBanned=m.is_banned;
+    var isOnline=me&&uid!==me.id&&onlineSet[uid];
+    var av;
+    if(isBanned)av='<div class="avatar" style="opacity:0.5"><div style="font-size:20px">😵</div></div>';
+    else if(m.avatar)av='<div class="avatar'+(isOnline?' online':'')+'" onclick="viewProfile('+uid+')"><img src="'+m.avatar+'" style="object-position:'+pos.x+'% '+pos.y+'%"></div>';
+    else av='<div class="avatar'+(isOnline?' online':'')+'" onclick="viewProfile('+uid+')">'+(m.username||'?').charAt(0).toUpperCase()+'</div>';
+    var t=m.created_at?new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'';
+    var rb=buildRoleBadge(m);
+    var name=isBanned?'<span class="msg-author" style="opacity:0.5;text-decoration:line-through">(в бане)</span>':'<span class="msg-author" onclick="viewProfile('+uid+')">'+esc(m.username||'?')+'</span>'+rb;
+    var fileHTML='';
+    if(m.file_url){
+        var isV=/\.(mp4|webm|mov)$/i.test(m.file_url);
+        var isI=/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(m.file_url);
+        if(isV)fileHTML='<video style="max-width:300px;max-height:200px;border-radius:12px;margin-top:8px" controls src="'+m.file_url+'"></video>';
+        else if(isI)fileHTML='<img style="max-width:300px;max-height:200px;border-radius:12px;margin-top:8px" src="'+m.file_url+'">';
+        else fileHTML='<a href="'+m.file_url+'" target="_blank" style="display:inline-block;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;margin-top:8px;color:var(--accent);text-decoration:none;font-weight:700;font-size:12px">📎 Скачать</a>';
+    }
+    var reactionsHTML='';
+    if(m.reactions){
+        try{
+            var r=typeof m.reactions==='string'?JSON.parse(m.reactions):m.reactions;
+            var keys=Object.keys(r);
+            if(keys.length){
+                reactionsHTML='<div class="msg-reactions">';
+                keys.forEach(function(k){if(r[k]&&r[k].length)reactionsHTML+='<div class="reaction-pill" onclick="toggleReaction('+m.id+',\''+k+'\')">'+k+' '+r[k].length+'</div>';});
+                reactionsHTML+='</div>';
+            }
+        }catch(e){}
+    }
+    var myMsg=uid===me.id;
+    var actionsHTML='<div class="msg-actions"><button class="msg-action-btn" onclick="showQuickReactions('+m.id+',this)" title="Реакция">😀</button>'+(myMsg?'<button class="msg-action-btn" onclick="editMessage('+m.id+')" title="Редакт">✏️</button><button class="msg-action-btn" onclick="deleteMessage('+m.id+')" title="Удалить">🗑️</button>':'')+'</div>';
+    return av+'<div class="msg-body"><div class="msg-head">'+name+'<span class="msg-time">'+t+'</span></div><div class="msg-content">'+linkify(m.text||'')+'</div>'+fileHTML+reactionsHTML+'</div>'+actionsHTML;
+}
 
-async function viewProfile(userId){if(!userId)return;try{var r=await fetch('/api/user/'+userId);if(!r.ok)return;var u=await r.json();var av=document.getElementById('viewAvatar');var pos=parsePos(u.avatar_pos);if(u.avatar)av.innerHTML='<img src="'+u.avatar+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pos.x+'% '+pos.y+'%">';else av.textContent=u.username.charAt(0).toUpperCase();var b=document.getElementById('viewBanner');var oi=b.querySelector('img');if(oi)oi.remove();if(u.banner){var img=document.createElement('img');var bp=parsePos(u.banner_pos);img.src=u.banner;img.style.width='100%';img.style.height='100%';img.style.objectFit='cover';img.style.objectPosition=bp.x+'% '+bp.y+'%';b.insertBefore(img,b.firstChild);}document.getElementById('viewName').textContent=u.username;var vs=document.getElementById('viewStats');if(vs)vs.textContent='📨 '+(u.messages_count||0)+' сообщений';document.getElementById('viewBadges').innerHTML=buildRoleBadge(u);var info='';if(u.bio)info+='<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>Bio:</b> '+esc(u.bio)+'</div>';if(u.fav_music)info+='<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">🎵 '+esc(u.fav_music)+'</div>';document.getElementById('viewInfo').innerHTML=info;var actions=document.getElementById('viewActions');actions.innerHTML='';if(userId!==me.id){var mb=document.createElement('button');mb.className='save-btn green';mb.style.cssText='flex:1;min-width:100px';mb.textContent='💬 Написать';mb.onclick=function(){document.getElementById('viewProfileModal').classList.remove('open');openDM(userId,u.username,u.avatar);};actions.appendChild(mb);var fr=await fetch('/api/friends/check/'+userId+'?token='+encodeURIComponent(token));var fd=await fr.json();if(fd.status==='accepted'){var btn=document.createElement('button');btn.className='save-btn gray';btn.style.cssText='flex:1;min-width:100px';btn.textContent='✓ В друзьях';btn.disabled=true;actions.appendChild(btn);}else if(fd.status==='pending'){var btn=document.createElement('button');btn.className='save-btn gray';btn.style.cssText='flex:1;min-width:100px';btn.textContent='⏳ Запрос';btn.disabled=true;actions.appendChild(btn);}else{var btn=document.createElement('button');btn.className='save-btn';btn.style.cssText='flex:1;min-width:100px';btn.textContent='👥 В друзья';btn.onclick=function(){addFriend(userId);};actions.appendChild(btn);}var rb=document.createElement('button');rb.className='save-btn red';rb.style.cssText='flex:1;min-width:100px';rb.textContent='⚠️ Жалоба';rb.onclick=function(){var t=prompt('Причина жалобы:');if(!t)return;fetch('/api/reports/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,target_id:userId,text:t})}).then(function(r){if(r.ok)showShopNotice('✅ Жалоба отправлена');});};actions.appendChild(rb);}document.getElementById('viewProfileModal').classList.add('open');}catch(e){}}
-async function addFriend(userId){try{var r=await fetch('/api/friends/request_by_id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,user_id:userId})});if(r.ok){showShopNotice('👥 Запрос в друзья отправлен');document.getElementById('viewProfileModal').classList.remove('open');}else{var d=await r.json();showShopNotice('❌ '+(d.detail||'Ошибка'),'error');}}catch(e){showShopNotice('❌ Ошибка','error');}}
+function showQuickReactions(msgId,btn){
+    document.querySelectorAll('.quick-reactions.show').forEach(function(q){q.remove();});
+    var q=document.createElement('div');
+    q.className='quick-reactions show';
+    var rect=btn.getBoundingClientRect();
+    q.style.left=Math.max(10,rect.left-100)+'px';
+    q.style.top=(rect.bottom+6)+'px';
+    q.style.position='fixed';
+    QUICK_REACTIONS.forEach(function(e){
+        var s=document.createElement('span');
+        s.textContent=e;
+        s.onclick=function(){toggleReaction(msgId,e);q.remove();};
+        q.appendChild(s);
+    });
+    document.body.appendChild(q);
+    setTimeout(function(){document.addEventListener('click',function(){q.remove();},{once:true});},100);
+}
+
+function scrollBottom(){
+    var c=document.getElementById('messagesBody');
+    if(!c)return;
+    setTimeout(function(){c.scrollTop=c.scrollHeight;},10);
+}
+
+function isNearBottom(){
+    var c=document.getElementById('messagesBody');
+    if(!c)return true;
+    return c.scrollHeight-c.scrollTop-c.clientHeight<120;
+}
+
+function addMessage(m){
+    var chat=document.getElementById('messagesBody');
+    if(!chat)return;
+    var stickBottom=isNearBottom();
+    var div=document.createElement('div');
+    div.className='msg-row';div.id='msg-'+m.id;div.innerHTML=buildMessageHTML(m);
+    chat.appendChild(div);
+    if(stickBottom)scrollBottom();
+}
+
+function autoFocusInput(){
+    var inp=document.getElementById('inp');
+    if(inp&&window.innerWidth>768){setTimeout(function(){inp.focus();},100);}
+}
+
+function send(){
+    var inp=document.getElementById('inp');
+    var t=inp.value.trim();
+    if(!t||!ws||ws.readyState!==WebSocket.OPEN)return;
+    checkEasterEgg(t);
+    var tempId='temp-'+Date.now();
+    var fakeMsg={id:tempId,user_id:me.id,username:me.username,avatar:me.avatar,text:t,created_at:new Date().toISOString(),is_admin:me.is_admin,is_moderator:me.is_moderator,is_beta_tester:me.is_beta_tester,role:me.role,is_scam:me.is_scam};
+    var chat=document.getElementById('messagesBody');
+    var div=document.createElement('div');
+    div.className='msg-row pending';div.id='msg-'+tempId;div.innerHTML=buildMessageHTML(fakeMsg);
+    chat.appendChild(div);scrollBottom();
+    if(currentChatType==='dm'&&currentDMUser)ws.send(JSON.stringify({type:'dm',to_user:currentDMUser.id,text:t,temp_id:tempId}));
+    else if(currentChannelId)ws.send(JSON.stringify({type:'message',channel_id:currentChannelId,text:t,temp_id:tempId}));
+    inp.value='';
+    inp.style.height='auto';
+}
+
+var inpEl=document.getElementById('inp');
+if(inpEl){
+    inpEl.addEventListener('keydown',function(e){
+        if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+    });
+    inpEl.addEventListener('input',function(){
+        this.style.height='auto';
+        this.style.height=Math.min(this.scrollHeight,120)+'px';
+        if(currentChatType==='dm'&&currentDMUser){
+            if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'typing_dm',to_user:currentDMUser.id}));
+        }else if(currentChannelId){
+            if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'typing',channel_id:currentChannelId}));
+        }
+    });
+}
+
+async function editMessage(id){
+    var el=document.getElementById('msg-'+id);if(!el)return;
+    var content=el.querySelector('.msg-content');
+    var oldText=content.textContent;
+    var newText=prompt('Редактировать:',oldText);
+    if(newText===null||newText.trim()==='')return;
+    try{
+        var r=await fetch('/api/messages/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id,text:newText})});
+        if(r.ok){content.textContent=newText;showShopNotice('✏️ Изменено');}
+    }catch(e){}
+}
+async function deleteMessage(id){
+    if(!confirm('Удалить сообщение?'))return;
+    try{
+        var r=await fetch('/api/messages/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id})});
+        if(r.ok){var el=document.getElementById('msg-'+id);if(el)el.remove();}
+    }catch(e){}
+}
+async function toggleReaction(id,emoji){
+    try{
+        var r=await fetch('/api/messages/reaction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id,emoji:emoji})});
+        if(r.ok){
+            var el=document.getElementById('msg-'+id);
+            if(el&&emoji==='🐱'&&Math.random()<0.3){
+                var cat=document.createElement('div');
+                cat.className='cat-jump';cat.textContent='🐱';
+                document.body.appendChild(cat);
+                catSound();
+                setTimeout(function(){cat.remove();},2500);
+            }
+        }
+    }catch(e){}
+}
+async function uploadFile(input){
+    var f=input.files[0];if(!f)return;
+    var fd=new FormData();fd.append('token',token);fd.append('file',f);
+    try{
+        var r=await fetch('/api/upload',{method:'POST',body:fd});
+        var d=await r.json();
+        if(d.url){
+            if(currentChatType==='dm'&&currentDMUser)ws.send(JSON.stringify({type:'dm',to_user:currentDMUser.id,text:'',file_url:d.url}));
+            else if(currentChannelId)ws.send(JSON.stringify({type:'message',channel_id:currentChannelId,text:'',file_url:d.url}));
+        }
+    }catch(e){}
+    input.value='';
+}
+function openEmojiPicker(){
+    document.querySelectorAll('.emoji-picker').forEach(function(p){p.remove();});
+    var p=document.createElement('div');
+    p.className='emoji-picker';
+    p.style.cssText='position:fixed;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:12px;background:var(--bg-window);border:1px solid var(--border);border-radius:14px;bottom:100px;right:20px;max-width:340px;z-index:9999';
+    MY_EMOJIS.forEach(function(e){
+        var s=document.createElement('span');
+        s.textContent=e;s.style.cssText='font-size:22px;cursor:pointer;padding:6px;border-radius:8px;text-align:center';
+        s.onclick=function(){var inp=document.getElementById('inp');if(inp){inp.value+=e;p.remove();inp.focus();}};
+        p.appendChild(s);
+    });
+    document.body.appendChild(p);
+    setTimeout(function(){document.addEventListener('click',function(){p.remove();},{once:true});},100);
+}
+
+async function viewProfile(userId){
+    if(!userId)return;
+    try{
+        var r=await fetch('/api/user/'+userId);
+        if(!r.ok)return;
+        var u=await r.json();
+        var av=document.getElementById('viewAvatar');
+        var pos=parsePos(u.avatar_pos);
+        if(u.avatar)av.innerHTML='<img src="'+u.avatar+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pos.x+'% '+pos.y+'%">';
+        else av.textContent=u.username.charAt(0).toUpperCase();
+        var b=document.getElementById('viewBanner');
+        var oi=b.querySelector('img');if(oi)oi.remove();
+        if(u.banner){
+            var img=document.createElement('img');var bp=parsePos(u.banner_pos);
+            img.src=u.banner;img.style.width='100%';img.style.height='100%';img.style.objectFit='cover';img.style.objectPosition=bp.x+'% '+bp.y+'%';
+            b.insertBefore(img,b.firstChild);
+        }
+        document.getElementById('viewName').textContent=u.username;
+        if(u.nickname_gradient){document.getElementById('viewName').style.background=u.nickname_gradient;document.getElementById('viewName').style.webkitBackgroundClip='text';document.getElementById('viewName').style.webkitTextFillColor='transparent';}
+        else if(u.nickname_color){document.getElementById('viewName').style.color=u.nickname_color;}
+        var vs=document.getElementById('viewStats');
+        if(vs)vs.textContent='📨 '+(u.messages_count||0)+' сообщений';
+        document.getElementById('viewBadges').innerHTML=buildRoleBadge(u);
+        var info='';
+        if(u.bio)info+='<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>Bio:</b> '+esc(u.bio)+'</div>';
+        if(u.fav_music)info+='<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">🎵 '+esc(u.fav_music)+'</div>';
+        document.getElementById('viewInfo').innerHTML=info;
+        var actions=document.getElementById('viewActions');
+        actions.innerHTML='';
+        if(userId!==me.id){
+            var mb=document.createElement('button');
+            mb.className='save-btn green';mb.style.cssText='flex:1;min-width:100px';
+            mb.textContent='💬 Написать';
+            mb.onclick=function(){document.getElementById('viewProfileModal').classList.remove('open');openDM(userId,u.username,u.avatar);};
+            actions.appendChild(mb);
+            var fr=await fetch('/api/friends/check/'+userId+'?token='+encodeURIComponent(token));
+            var fd=await fr.json();
+            if(fd.status==='accepted'){
+                var btn=document.createElement('button');
+                btn.className='save-btn gray';btn.style.cssText='flex:1;min-width:100px';
+                btn.textContent='✓ В друзьях';btn.disabled=true;
+                actions.appendChild(btn);
+            }else if(fd.status==='incoming'){
+                var btn=document.createElement('button');
+                btn.className='save-btn green';btn.style.cssText='flex:1;min-width:100px';
+                btn.textContent='✓ Принять заявку';
+                btn.onclick=function(){acceptFriend(fd.request_id,btn);document.getElementById('viewProfileModal').classList.remove('open');};
+                actions.appendChild(btn);
+            }else if(fd.status==='outgoing'){
+                var btn=document.createElement('button');
+                btn.className='save-btn gray';btn.style.cssText='flex:1;min-width:100px';
+                btn.textContent='⏳ Заявка отправлена';btn.disabled=true;
+                actions.appendChild(btn);
+            }else{
+                var btn=document.createElement('button');
+                btn.className='save-btn';btn.style.cssText='flex:1;min-width:100px';
+                btn.textContent='👥 В друзья';
+                btn.onclick=function(){addFriend(userId);};
+                actions.appendChild(btn);
+            }
+            var rb=document.createElement('button');
+            rb.className='save-btn red';rb.style.cssText='flex:1;min-width:100px';
+            rb.textContent='⚠️ Жалоба';
+            rb.onclick=function(){
+                var t=prompt('Причина жалобы:');
+                if(!t)return;
+                fetch('/api/reports/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,target_id:userId,text:t})})
+                .then(function(r){if(r.ok)showShopNotice('✅ Жалоба отправлена');});
+            };
+            actions.appendChild(rb);
+        }
+        document.getElementById('viewProfileModal').classList.add('open');
+    }catch(e){}
+}
+async function addFriend(userId){
+    try{
+        var r=await fetch('/api/friends/request_by_id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,user_id:userId})});
+        var d=await r.json();
+        if(r.ok){showShopNotice('👥 Запрос в друзья отправлен');document.getElementById('viewProfileModal').classList.remove('open');}
+        else showShopNotice('❌ '+(d.detail||'Ошибка'),'error');
+    }catch(e){showShopNotice('❌ Ошибка','error');}
+}
 
 function openMusicPlayer(){var p=document.getElementById('musicPlayer');if(!p){createMusicPlayer();p=document.getElementById('musicPlayer');}p.classList.toggle('open');}
 function createMusicPlayer(){var p=document.createElement('div');p.className='music-player';p.id='musicPlayer';p.innerHTML='<div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800"><span>🎵</span><span>Музыка</span><button style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px" onclick="openMusicPlayer()">✕</button></div><div style="display:flex;gap:6px"><input type="text" id="musicUrlInput" placeholder="Ссылка на mp3..." style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;outline:none"><button onclick="playMusicUrl()" style="background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:800;font-size:12px">Играть</button></div><div id="musicNow" style="font-size:12px;color:var(--text-dim);font-weight:700;padding:6px 10px;background:rgba(217,70,239,0.1);border-radius:8px;text-align:center">Ничего не играет</div><div style="display:flex;gap:8px"><button onclick="musicToggle()" style="flex:1;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:8px;cursor:pointer;font-size:16px">▶/⏸</button></div><div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim)"><span>🔊</span><input type="range" min="0" max="100" value="70" oninput="musicAudio.volume=this.value/100" style="flex:1;accent-color:var(--accent)"></div>';document.body.appendChild(p);musicAudio.volume=0.7;}
 function playMusicUrl(){var url=document.getElementById('musicUrlInput').value.trim();if(!url)return;var name=url.split('/').pop().split('?')[0];if(name.length>40)name=name.slice(0,37)+'...';currentTrack={url:url,name:name};musicAudio.src=url;musicAudio.play().catch(function(){showShopNotice('❌ Не удалось','error');});document.getElementById('musicNow').textContent='▶ '+name;}
 function musicToggle(){if(!currentTrack)return;if(musicAudio.paused)musicAudio.play();else musicAudio.pause();}
 
-function openShop(){document.getElementById('shopModal').classList.add('open');loadCoins();showShopTab('gifts');}
+function openShop(){document.getElementById('shopModal').classList.add('open');loadCoins();loadAllGifts();showShopTab('gifts');}
+async function loadAllGifts(){
+    try{
+        var r=await fetch('/api/gifts/all');
+        var d=await r.json();
+        if(Array.isArray(d)){GIFTS=d.map(function(g){return {id:g.gift_id,name:g.name,emoji:g.emoji,image:g.image,price:g.price};});}
+    }catch(e){}
+}
 function showShopTab(tab){document.querySelectorAll('#shopModal .shop-tab-btn').forEach(function(b){b.classList.remove('active');});var btn=document.querySelector('#shopModal .shop-tab-btn[data-tab="'+tab+'"]');if(btn)btn.classList.add('active');var c=document.getElementById('shopTabContent');if(tab==='gifts'){c.innerHTML='<div class="shop-section-title">🎁 Подарки</div><div class="gift-grid">'+GIFTS.map(function(g){return '<div class="gift-tile" onclick="openGiftSend(\''+g.id+'\')"><span class="gift-emoji">'+(g.image?'<img src="'+g.image+'">':g.emoji)+'</span><div class="gift-name">'+g.name+'</div><div class="gift-price">'+g.price.toLocaleString('ru-RU')+' 🏅</div></div>';}).join('')+'</div>';}else if(tab==='coins'){c.innerHTML='<div class="shop-section-title">📦 Пакеты Бекоинов</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px"><div class="shop-tile" onclick="requestCoins(200,100)"><span class="st-icon">🏅</span><div class="st-name">200 🏅</div><div class="st-price">100 ₽</div><button class="st-btn">Заявка</button></div><div class="shop-tile" onclick="requestCoins(1100,500)"><span class="st-icon">💰</span><div class="st-name">1100 🏅</div><div class="st-price">500 ₽</div><button class="st-btn">Заявка</button></div><div class="shop-tile" onclick="requestCoins(2500,1000)"><span class="st-icon">💎</span><div class="st-name">2500 🏅</div><div class="st-price">1000 ₽</div><button class="st-btn">Заявка</button></div><div class="shop-tile" onclick="requestCoins(15000,5000)"><span class="st-icon">👑</span><div class="st-name">15000 🏅</div><div class="st-price">5000 ₽</div><button class="st-btn">Заявка</button></div></div>';}}
 async function loadCoins(){try{var r=await fetch('/api/coins/balance?token='+encodeURIComponent(token));var d=await r.json();myCoins=d.coins||0;var el=document.getElementById('shopBalance');if(el)el.textContent=myCoins;}catch(e){}}
 async function requestCoins(c,p){if(!confirm('Заявка на '+c+' 🏅?'))return;try{var r=await fetch('/api/coins/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,coins:c,price:p})});if(r.ok)showShopNotice('✅ Заявка отправлена');}catch(e){}}
-async function openGiftSend(giftId){var gift=GIFTS.find(function(g){return g.id===giftId;});if(!gift)return;if(myCoins<gift.price){showShopNotice('❌ Не хватает','error');return;}selectedGift=gift;var friends=[];try{var r=await fetch('/api/friends/list?token='+encodeURIComponent(token));friends=await r.json();friends=friends.filter(function(f){return f.status==='accepted';});}catch(e){}var m=document.createElement('div');m.className='modal-overlay open';m.id='giftSendModal';m.style.zIndex='2000';var gIcon=gift.image?'<img src="'+gift.image+'" style="max-width:80px;max-height:80px;object-fit:contain">':gift.emoji;m.innerHTML='<div class="modal" style="max-width:440px"><button class="close-btn" onclick="document.getElementById(\'giftSendModal\').remove()">✕</button><div style="padding:28px 24px"><h2 style="text-align:center;font-size:20px;margin-bottom:10px">🎁 Подарить</h2><div style="text-align:center;font-size:64px;margin-bottom:8px">'+gIcon+'</div><div style="text-align:center;font-weight:800;font-size:16px;color:var(--gold);margin-bottom:16px">'+gift.name+' — '+gift.price.toLocaleString('ru-RU')+' 🏅</div><div class="shop-section-title">Кому</div>'+(friends.length===0?'<div style="text-align:center;color:var(--text-mute);padding:20px">Нет друзей 😢</div>':friends.map(function(f){return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer" onclick="confirmSendGift('+f.id+',\''+esc(f.username)+'\')"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;overflow:hidden">'+(f.avatar?'<img src="'+f.avatar+'" style="width:100%;height:100%;object-fit:cover">':f.username.charAt(0).toUpperCase())+'</div><div style="font-weight:700">'+esc(f.username)+'</div></div>';}).join(''))+'</div></div>';document.body.appendChild(m);}
-async function confirmSendGift(userId,username){if(!selectedGift)return;if(!confirm('Подарить '+selectedGift.name+' для '+username+'?'))return;try{var r=await fetch('/api/gifts/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,to_user:userId,gift:selectedGift.id})});var d=await r.json();if(r.ok){showShopNotice('🎁 Отправлено!');loadCoins();var m=document.getElementById('giftSendModal');if(m)m.remove();}else showShopNotice('❌ '+(d.detail||'Ошибка'),'error');}catch(e){showShopNotice('❌ Ошибка','error');}}
-function showGiftReceived(emoji,name,from,image){var g=document.createElement('div');g.className='gift-received';var icon=image?'<img src="'+image+'" style="max-width:200px;max-height:200px">':emoji;g.innerHTML='<div class="gift-big-emoji">'+icon+'</div><div class="gift-text">'+esc(from)+' подарил(а) '+esc(name)+'!</div>';document.body.appendChild(g);giftSound();setTimeout(function(){g.remove();},3500);}
-async function openGiftsCollection(){document.getElementById('giftsModal').classList.add('open');var c=document.getElementById('myGiftsList');c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-mute)">Загрузка...</div>';try{var r=await fetch('/api/gifts/list/'+me.id);var d=await r.json();var gifts=d.gifts||d;if(!gifts||!gifts.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-mute)">Нет подарков</div>';return;}var counts={};gifts.forEach(function(g){counts[g.gift]=(counts[g.gift]||0)+1;});var h='<div class="gifts-grid">';Object.keys(counts).forEach(function(gid){var gift=GIFTS.find(function(x){return x.id===gid;});if(gift){var icon=gift.image?'<img src="'+gift.image+'">':gift.emoji;var sp=Math.floor(gift.price*0.5);h+='<div class="gift-slot" title="'+gift.name+' — продать за '+sp+' 🏅" onclick="sellGift(\''+gid+'\','+sp+')">'+icon+(counts[gid]>1?'<span class="gift-count">x'+counts[gid]+'</span>':'')+'</div>';}});h+='</div>';c.innerHTML=h;}catch(e){c.innerHTML='<div style="text-align:center;color:var(--text-mute)">Ошибка</div>';}}
-async function sellGift(giftId,sellPrice){if(!confirm('Продать за '+sellPrice+' 🏅?'))return;try{var r=await fetch('/api/gifts/sell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,gift:giftId})});var d=await r.json();if(r.ok){showShopNotice('💰 +'+sellPrice+' 🏅');loadCoins();openGiftsCollection();}}catch(e){}}
+async function openGiftSend(giftId){
+    var gift=GIFTS.find(function(g){return g.id===giftId;});
+    if(!gift)return;
+    if(myCoins<gift.price){showShopNotice('❌ Не хватает','error');return;}
+    selectedGift=gift;
+    var friends=[];
+    try{var r=await fetch('/api/friends/list?token='+encodeURIComponent(token));friends=await r.json();friends=friends.filter(function(f){return f.status==='accepted';});}catch(e){}
+    var m=document.createElement('div');
+    m.className='modal-overlay open';m.id='giftSendModal';m.style.zIndex='2000';
+    var gIcon=gift.image?'<img src="'+gift.image+'" style="max-width:80px;max-height:80px;object-fit:contain">':gift.emoji;
+    m.innerHTML='<div class="modal" style="max-width:440px"><button class="close-btn" onclick="document.getElementById(\'giftSendModal\').remove()">✕</button><div style="padding:28px 24px"><h2 style="text-align:center;font-size:20px;margin-bottom:10px">🎁 Подарить</h2><div style="text-align:center;font-size:64px;margin-bottom:8px">'+gIcon+'</div><div style="text-align:center;font-weight:800;font-size:16px;color:var(--gold);margin-bottom:16px">'+gift.name+' — '+gift.price.toLocaleString('ru-RU')+' 🏅</div><div class="shop-section-title">Кому</div>'+(friends.length===0?'<div style="text-align:center;color:var(--text-mute);padding:20px">Нет друзей 😢</div>':friends.map(function(f){return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer" onclick="confirmSendGift('+f.id+',\''+esc(f.username)+'\')"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;overflow:hidden">'+(f.avatar?'<img src="'+f.avatar+'" style="width:100%;height:100%;object-fit:cover">':f.username.charAt(0).toUpperCase())+'</div><div style="font-weight:700">'+esc(f.username)+'</div></div>';}).join(''))+'</div></div>';
+    document.body.appendChild(m);
+}
+async function confirmSendGift(userId,username){
+    if(!selectedGift)return;
+    if(!confirm('Подарить '+selectedGift.name+' для '+username+'?'))return;
+    try{
+        var r=await fetch('/api/gifts/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,to_user:userId,gift:selectedGift.id})});
+        var d=await r.json();
+        if(r.ok){showShopNotice('🎁 Отправлено!');loadCoins();var m=document.getElementById('giftSendModal');if(m)m.remove();}
+        else showShopNotice('❌ '+(d.detail||'Ошибка'),'error');
+    }catch(e){showShopNotice('❌ Ошибка','error');}
+}
+function showGiftReceived(emoji,name,from,image){
+    var g=document.createElement('div');
+    g.className='gift-received';
+    var icon=image?'<img src="'+image+'" style="max-width:200px;max-height:200px">':emoji;
+    g.innerHTML='<div class="gift-big-emoji">'+icon+'</div><div class="gift-text">'+esc(from)+' подарил(а) '+esc(name)+'!</div>';
+    document.body.appendChild(g);
+    giftSound();
+    setTimeout(function(){g.remove();},3500);
+}
+async function openGiftsCollection(){
+    document.getElementById('giftsModal').classList.add('open');
+    var c=document.getElementById('myGiftsList');
+    c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-mute)">Загрузка...</div>';
+    try{
+        await loadAllGifts();
+        var r=await fetch('/api/gifts/list/'+me.id);
+        var d=await r.json();
+        var gifts=d.gifts||d;
+        if(!gifts||!gifts.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-mute)">Нет подарков</div>';return;}
+        var counts={};
+        gifts.forEach(function(g){counts[g.gift]=(counts[g.gift]||0)+1;});
+        var h='<div class="gifts-grid">';
+        Object.keys(counts).forEach(function(gid){
+            var gift=GIFTS.find(function(x){return x.id===gid;});
+            if(gift){
+                var icon=gift.image?'<img src="'+gift.image+'">':gift.emoji;
+                var sp=Math.floor(gift.price*0.5);
+                h+='<div class="gift-slot" title="'+gift.name+' — продать за '+sp+' 🏅" onclick="sellGift(\''+gid+'\','+sp+')">'+icon+(counts[gid]>1?'<span class="gift-count">x'+counts[gid]+'</span>':'')+'</div>';
+            }
+        });
+        h+='</div>';
+        c.innerHTML=h;
+    }catch(e){c.innerHTML='<div style="text-align:center;color:var(--text-mute)">Ошибка</div>';}
+}
+async function sellGift(giftId,sellPrice){
+    if(!confirm('Продать за '+sellPrice+' 🏅?'))return;
+    try{var r=await fetch('/api/gifts/sell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,gift:giftId})});var d=await r.json();if(r.ok){showShopNotice('💰 +'+sellPrice+' 🏅');loadCoins();openGiftsCollection();}}catch(e){}
+}
 
 function openNftMarket(){document.getElementById('nftMarketModal').classList.add('open');showNftTab('all');}
 async function showNftTab(tab,ev){if(ev)ev.target.parentNode.querySelectorAll('.shop-tab-btn').forEach(function(b){b.classList.remove('active');});if(ev)ev.target.classList.add('active');var c=document.getElementById('nftTabContent');c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-mute)">Загрузка...</div>';try{var url=tab==='my'?'/api/nft/my?token='+encodeURIComponent(token):'/api/nft/list';var r=await fetch(url);var nfts=await r.json();if(!nfts||!nfts.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-mute)">Пока нет NFT</div>';return;}var h='<div class="nft-grid">';nfts.forEach(function(n){var rc='rarity-'+(n.rarity||'common');var rn={common:'Обычный',rare:'Редкий',epic:'Эпический',legendary:'Легендарный'}[n.rarity]||'Обычный';var icon=n.image?'<img src="'+n.image+'">':(n.emoji||'🎨');h+='<div class="nft-card" onclick="buyNft('+n.id+')"><div class="nft-img">'+icon+'</div><div class="nft-rarity '+rc+'">'+rn+'</div><div class="nft-info"><div class="nft-name">'+esc(n.name)+'</div><div class="nft-num">#'+(n.number||1)+'/'+n.total+'</div><div class="nft-price">'+n.price.toLocaleString('ru-RU')+' 🏅</div></div></div>';});h+='</div>';c.innerHTML=h;}catch(e){c.innerHTML='<div style="text-align:center;color:var(--text-mute)">Ошибка</div>';}}
@@ -850,7 +1396,7 @@ async function createNftSeries(){var name=document.getElementById('nftName').val
 function ownerGiveNftTo(){ownerGetUser(function(u){var id=prompt('ID NFT:');if(!id)return;fetch('/api/owner/give_nft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,username:u,nft_id:parseInt(id)})}).then(function(r){if(r.ok)showShopNotice('🎁 NFT выдан');});});}
 function ownerDeleteNft(){var id=prompt('ID NFT:');if(!id)return;if(!confirm('Удалить?'))return;fetch('/api/owner/delete_nft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,nft_id:parseInt(id)})}).then(function(r){if(r.ok)showShopNotice('🗑️ Удалён');});}
 async function createGift(){var id=document.getElementById('giftId').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');var name=document.getElementById('giftName').value.trim();var emoji=document.getElementById('giftEmoji').value.trim()||'🎁';var price=parseInt(document.getElementById('giftPrice').value);if(!id||!name||!price){alert('Заполни всё');return;}try{var r=await fetch('/api/owner/create_gift',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,gift_id:id,name:name,emoji:emoji,image:giftImageData,price:price})});var d=await r.json();if(r.ok){showShopNotice('🎁 Подарок создан!');document.getElementById('giftCreateModal').classList.remove('open');var saved=giftImageData;giftImageData=null;GIFTS.push({id:id,name:name,emoji:emoji,image:saved,price:price});}else showShopNotice('❌ '+(d.detail||'Ошибка'),'error');}catch(e){showShopNotice('❌ Ошибка','error');}}
-async function ownerListGifts(){try{var r=await fetch('/api/gifts/all');var d=await r.json();if(!d.length)return alert('Нет кастомных подарков');var msg=d.map(function(g){return g.gift_id+': '+g.name+' '+g.price+' 🏅';}).join('\n');alert('Подарки:\n'+msg);}catch(e){}}
+async function ownerListGifts(){try{var r=await fetch('/api/gifts/all');var d=await r.json();if(!d.length)return alert('Нет подарков');var msg=d.map(function(g){return g.gift_id+': '+g.name+' '+g.price+' 🏅';}).join('\n');alert('Подарки:\n'+msg);}catch(e){}}
 function ownerDeleteGift(){var id=prompt('ID подарка:');if(!id)return;if(!confirm('Удалить подарок '+id+'?'))return;fetch('/api/owner/delete_gift',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,gift_id:id})}).then(function(r){if(r.ok)showShopNotice('🗑️ Удалён');});}
 function attachImageLoader(inputId,previewId,type){var inp=document.getElementById(inputId);if(!inp)return;inp.addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){if(type==='nft')nftImageData=ev.target.result;else giftImageData=ev.target.result;var prev=document.getElementById(previewId);if(prev)prev.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:contain">';};r.readAsDataURL(f);});}
 setTimeout(function(){attachImageLoader('nftImageInput','nftImagePreview','nft');attachImageLoader('giftImageInput','giftImagePreview','gift');},500);
@@ -892,7 +1438,7 @@ function showVote(){currentChatType='vote';document.getElementById('chatWindowTi
 function shareProfile(){var url=location.origin+'/?u='+me.id;if(navigator.share)navigator.share({title:'Belugacord',url:url});else{navigator.clipboard.writeText(url);showShopNotice('📋 Скопировано');}}
 function filterChatList(q){var items=document.querySelectorAll('.chat-item');q=q.toLowerCase();items.forEach(function(i){var n=(i.querySelector('.chat-item-name')||{}).textContent||'';i.style.display=n.toLowerCase().indexOf(q)!==-1?'flex':'none';});}
 
-function connectWS(){var proto=location.protocol==='https:'?'wss://':'ws://';ws=new WebSocket(proto+location.host+'/ws?token='+encodeURIComponent(token));ws.onmessage=function(event){var data;try{data=JSON.parse(event.data);}catch(e){return;}if(data.type==='message'){if(data.temp_id){var el=document.getElementById('msg-'+data.temp_id);if(el)el.remove();}if(data.channel_id===currentChannelId){addMessage(data);playMsgSound();}}else if(data.type==='dm'){if(data.temp_id){var el2=document.getElementById('msg-'+data.temp_id);if(el2)el2.remove();}if(currentDMUser&&(data.from_user===currentDMUser.id||data.to_user===currentDMUser.id)){addMessage(data);if(data.from_user!==me.id)playMsgSound();}else if(data.from_user!==me.id){unreadCounts[data.from_user]=(unreadCounts[data.from_user]||0)+1;showShopNotice('💬 '+data.username+': '+(data.text||'📎'));playMsgSound();}}else if(data.type==='gift_received'){showGiftReceived(data.gift_emoji,data.gift_name,data.from_name,data.gift_image);}else if(data.type==='coins_approved'){showShopNotice('🎉 Одобрено! +'+data.amount+' 🏅');loadCoins();}else if(data.type==='coins_rejected'){showShopNotice('❌ Отклонено','error');}else if(data.type==='banned'){showBannedModal(data.reason);}else if(data.type==='abuse'){showAbuseBanner(data.from_name,data.from_avatar,data.text);}else if(data.type==='event'){if(data.event==='confetti')showConfetti();else if(data.event==='balloons')showBalloons();else if(data.event==='cat_mode')showCatMode();}else if(data.type==='typing'){if(data.channel_id===currentChannelId)showTyping(data.username);}else if(data.type==='typing_dm'){if(currentDMUser&&data.from===currentDMUser.id)showTyping(data.username);}else if(data.type==='reaction_update'){var el3=document.getElementById('msg-'+data.id);if(el3){var r=el3.querySelector('.msg-reactions');if(!r){r=document.createElement('div');r.className='msg-reactions';el3.querySelector('.msg-body').appendChild(r);}r.innerHTML='';var keys=Object.keys(data.reactions||{});keys.forEach(function(k){if(data.reactions[k].length){var p=document.createElement('div');p.className='reaction-pill';p.textContent=k+' '+data.reactions[k].length;p.onclick=function(){toggleReaction(data.id,k);};r.appendChild(p);}});}}else if(data.type==='message_deleted'){var el4=document.getElementById('msg-'+data.id);if(el4)el4.remove();}else if(data.type==='friend_accepted'){showShopNotice('👥 '+data.username+' теперь в друзьях!');if(currentChatType==='friends')showFriends();}else if(data.type==='friend_request'){showShopNotice('👥 Новая заявка в друзья от '+data.username);if(currentChatType==='friends')showFriends();}else if(data.type==='online_list'){onlineSet={};(data.users||[]).forEach(function(id){onlineSet[id]=true;});}else if(data.type==='user_online'){onlineSet[data.user_id]=true;}else if(data.type==='user_offline'){delete onlineSet[data.user_id];}else if(data.type==='call_offer'){pendingOffer=data.sdp;pendingFrom={id:data.from,username:data.username,avatar:data.avatar};callTarget=pendingFrom;showCallOverlay('Входящий звонок','incoming');callRingSound();}else if(data.type==='call_answer'){if(callPC&&callType==='outgoing'){callPC.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(function(){startCallTimer();showCallOverlay('Разговор','active');});}}else if(data.type==='call_ice'){if(callPC&&data.candidate){callPC.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(function(){});}}else if(data.type==='call_decline'){showShopNotice('📵 Звонок отклонён','warn');cleanupCall();}else if(data.type==='call_end'){showShopNotice('📵 Звонок завершён','warn');cleanupCall();}};ws.onclose=function(){setTimeout(connectWS,2000);};}
+function connectWS(){var proto=location.protocol==='https:'?'wss://':'ws://';ws=new WebSocket(proto+location.host+'/ws?token='+encodeURIComponent(token));ws.onmessage=function(event){var data;try{data=JSON.parse(event.data);}catch(e){return;}if(data.type==='message'){if(data.temp_id){var el=document.getElementById('msg-'+data.temp_id);if(el)el.remove();}if(data.channel_id===currentChannelId){addMessage(data);playMsgSound();}}else if(data.type==='dm'){if(data.temp_id){var el2=document.getElementById('msg-'+data.temp_id);if(el2)el2.remove();}if(currentDMUser&&(data.from_user===currentDMUser.id||data.to_user===currentDMUser.id)){addMessage(data);if(data.from_user!==me.id)playMsgSound();}else if(data.from_user!==me.id){unreadCounts[data.from_user]=(unreadCounts[data.from_user]||0)+1;showShopNotice('💬 '+data.username+': '+(data.text||'📎'));playMsgSound();}}else if(data.type==='gift_received'){showGiftReceived(data.gift_emoji,data.gift_name,data.from_name,data.gift_image);}else if(data.type==='coins_approved'){showShopNotice('🎉 Одобрено! +'+data.amount+' 🏅');loadCoins();}else if(data.type==='coins_rejected'){showShopNotice('❌ Отклонено','error');}else if(data.type==='banned'){showBannedModal(data.reason);}else if(data.type==='abuse'){showAbuseBanner(data.from_name,data.from_avatar,data.text);}else if(data.type==='event'){if(data.event==='confetti')showConfetti();else if(data.event==='balloons')showBalloons();else if(data.event==='cat_mode')showCatMode();}else if(data.type==='typing'){if(data.channel_id===currentChannelId)showTyping(data.username);}else if(data.type==='typing_dm'){if(currentDMUser&&data.from===currentDMUser.id)showTyping(data.username);}else if(data.type==='reaction_update'){var el3=document.getElementById('msg-'+data.id);if(el3){var r=el3.querySelector('.msg-reactions');if(!r){r=document.createElement('div');r.className='msg-reactions';el3.querySelector('.msg-body').appendChild(r);}r.innerHTML='';var keys=Object.keys(data.reactions||{});keys.forEach(function(k){if(data.reactions[k]&&data.reactions[k].length){var p=document.createElement('div');p.className='reaction-pill';p.textContent=k+' '+data.reactions[k].length;p.onclick=function(){toggleReaction(data.id,k);};r.appendChild(p);}});}}else if(data.type==='message_deleted'){var el4=document.getElementById('msg-'+data.id);if(el4)el4.remove();}else if(data.type==='friend_accepted'){showShopNotice('👥 '+data.username+' теперь в друзьях!');if(currentChatType==='friends')showFriends();updateFriendsBadge();}else if(data.type==='friend_request'){showShopNotice('📩 Новая заявка от '+data.username);if(currentChatType==='friends')showFriends();updateFriendsBadge();}else if(data.type==='friend_declined'){showShopNotice('❌ '+data.username+' отклонил заявку','warn');if(currentChatType==='friends')showFriends();}else if(data.type==='friend_removed'){showShopNotice('🗑️ '+data.username+' удалил из друзей','warn');if(currentChatType==='friends')showFriends();updateFriendsBadge();}else if(data.type==='online_list'){onlineSet={};(data.users||[]).forEach(function(id){onlineSet[id]=true;});}else if(data.type==='user_online'){onlineSet[data.user_id]=true;}else if(data.type==='user_offline'){delete onlineSet[data.user_id];}else if(data.type==='call_offer'){pendingOffer=data.sdp;pendingFrom={id:data.from,username:data.username,avatar:data.avatar};callTarget=pendingFrom;showCallOverlay('Входящий звонок','incoming');callRingSound();}else if(data.type==='call_answer'){if(callPC&&callType==='outgoing'){callPC.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(function(){startCallTimer();showCallOverlay('Разговор','active');});}}else if(data.type==='call_ice'){if(callPC&&data.candidate){callPC.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(function(){});}}else if(data.type==='call_decline'){showShopNotice('📵 Звонок отклонён','warn');cleanupCall();}else if(data.type==='call_end'){showShopNotice('📵 Звонок завершён','warn');cleanupCall();}};ws.onclose=function(){setTimeout(connectWS,2000);};}
 function showTyping(name){var el=document.getElementById('typingIndicator');if(!el)return;el.textContent=name+' печатает...';clearTimeout(currentTyping.typingIndicator);currentTyping.typingIndicator=setTimeout(function(){el.textContent='';},3000);}
 
 function openGamesMenu(){document.getElementById('gamesMenuModal').classList.add('open');}
@@ -923,7 +1469,7 @@ document.addEventListener('keydown',function(e){if(!document.getElementById('gam
 
 (function(){var a=document.createElement('audio');a.id='callRemoteAudio';a.autoplay=true;document.body.appendChild(a);})();
 
-console.log('🐱 Belugacord Beta 1.7 loaded');
+console.log('🐱 Belugacord Beta 1.8 loaded');
 boot();
 </script>
 </body>
