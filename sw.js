@@ -1,40 +1,35 @@
-// Belugacord Service Worker
-const CACHE_NAME = 'belugacord-v1';
-const urlsToCache = [
-  '/',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache).catch(() => {});
-    })
-  );
+self.addEventListener('install',e=>{
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
-  );
-  self.clients.claim();
+self.addEventListener('activate',e=>{
+  e.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-  // API и WebSocket — не кешируем
-  if (event.request.url.includes('/api/') || event.request.url.includes('/ws')) {
-    return;
-  }
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request).catch(() => caches.match('/'));
-    })
-  );
+self.addEventListener('fetch',e=>{
+  // Пропускаем всё через сеть (никакого кэша — чтобы апдейты сразу прилетали)
+  e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));
+});
+
+// Пуш-уведомления (на будущее)
+self.addEventListener('push',e=>{
+  var data={title:'Belugacord',body:'Новое сообщение'};
+  try{if(e.data)data=e.data.json();}catch(err){}
+  e.waitUntil(self.registration.showNotification(data.title,{
+    body:data.body,
+    icon:'/uploads/icon.png',
+    badge:'/uploads/icon.png',
+    vibrate:[200,100,200]
+  }));
+});
+
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window'}).then(function(clientList){
+    for(var i=0;i<clientList.length;i++){
+      var c=clientList[i];
+      if(c.url.includes(self.registration.scope)&&'focus' in c)return c.focus();
+    }
+    if(clients.openWindow)return clients.openWindow('/');
+  }));
 });
