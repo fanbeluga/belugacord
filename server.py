@@ -14,13 +14,13 @@ SECRET_KEY=os.environ.get("SECRET_KEY","belugacord_secret_2026")
 RESEND_API_KEY=os.environ.get("RESEND_API_KEY","")
 ADMIN_USERNAME="_fan_beluga_"
 OWNER_PASSWORD="12344321"
-CURRENT_VERSION="2.0"
+CURRENT_VERSION="2.1"
 LIMITS={None:{"file":10*1024*1024,"msg":2000,"servers":10,"channels":20},"premium":{"file":50*1024*1024,"msg":4000,"servers":50,"channels":100},"pro":{"file":200*1024*1024,"msg":10000,"servers":999,"channels":999}}
 DEFAULT_GIFTS={"rose":{"name":"Роза","emoji":"🌹","price":15},"bear":{"name":"Мишка","emoji":"🧸","price":25},"cake":{"name":"Торт","emoji":"🎂","price":50},"diamond":{"name":"Алмаз","emoji":"💎","price":100},"crown":{"name":"Корона","emoji":"👑","price":500},"dragon":{"name":"Дракон","emoji":"🐉","price":1000},"legend":{"name":"Легендарка","emoji":"💠","price":5000},"alien":{"name":"Инопланетянин","emoji":"👽","price":10000},"galaxy":{"name":"Галактика","emoji":"🌌","price":100000},"goldcat":{"name":"Золотой Белуга","emoji":"🐱","price":1000000},"universe":{"name":"Мультивселенная","emoji":"💫","price":1000000000}}
 EASTER_EGGS=["song","cat","beluga"]
 GAME_LIST=["penguin","minesweeper","snake","2048","flappy","tetris","memory","reaction","tictactoe","rps","battleship","duel"]
 ACHIEVEMENTS={"first_msg":{"name":"Первое слово","emoji":"💬","desc":"Отправь первое сообщение"},"msg_100":{"name":"Болтун","emoji":"🗣️","desc":"100 сообщений"},"msg_1000":{"name":"Оратор","emoji":"🎤","desc":"1000 сообщений"},"msg_10000":{"name":"Легенда чата","emoji":"📢","desc":"10000 сообщений"},"first_friend":{"name":"Дружелюбный","emoji":"👥","desc":"Первый друг"},"friend_10":{"name":"Тусовщик","emoji":"🎉","desc":"10 друзей"},"first_gift":{"name":"Щедрый","emoji":"🎁","desc":"Первый подарок"},"first_nft":{"name":"Коллекционер","emoji":"🎨","desc":"Первый NFT"},"snake_100":{"name":"Змеелов","emoji":"🐍","desc":"100 очков в Змейке"},"flappy_50":{"name":"Летун","emoji":"🐦","desc":"50 очков в Flappy"},"first_server":{"name":"Основатель","emoji":"🏠","desc":"Создай сервер"},"coins_10k":{"name":"Богач","emoji":"💰","desc":"10000 бекоинов"},"rating_100":{"name":"Щедрая душа","emoji":"💎","desc":"Соц.рейтинг 100"},"rating_10000":{"name":"Меценат","emoji":"👑","desc":"Соц.рейтинг 10000"}}
-CHANGELOG={"2.0":{"title":"Belugacord Beta 2.0","items":["📞 Новые звонки: плашка сверху","💬 Чат видно при звонке","👍 Социальный рейтинг","📧 Верификация email","🎮 4 новые игры","🌈 Свои темы и обои","👤 Подпись до 64 символов","🟢 Фильтр друзей онлайн","🔧 Оптимизация"]},"1.9":{"title":"Belugacord Beta 1.9","items":["🎨 Тема CS 1.6","👥 Группы","💬 Reply, пин, поиск","😴 Статусы","🚫 Блок-лист","🏆 Достижения","💰 Рынок NFT","🎁 Кейсы"]}}
+CHANGELOG={"2.1":{"title":"Belugacord Beta 2.1","items":["🐛 Фикс звонков (звук собеседника)","🎥 Привилегия Стример","✍️ Абьюз: написать всем + старт","🔊 Отдельный аудио-канал для звонков","🌐 TURN-сервер для NAT","📊 ICE-логи","✨ Мелкие фиксы"]},"2.0":{"title":"Belugacord Beta 2.0","items":["📞 Новые звонки: плашка сверху","💬 Чат видно при звонке","👍 Социальный рейтинг","📧 Верификация email","🎮 4 новые игры","🌈 Свои темы и обои","👤 Подпись до 64 символов"]},"1.9":{"title":"Belugacord Beta 1.9","items":["🎨 Тема CS 1.6","👥 Группы","💬 Reply, пин, поиск","😴 Статусы","🚫 Блок-лист","🏆 Достижения","💰 Рынок NFT","🎁 Кейсы"]}}
 
 app=FastAPI()
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_methods=["*"],allow_headers=["*"])
@@ -51,8 +51,8 @@ async def get_pool():
 async def init_db():
     p=await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("""CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,username VARCHAR(32) UNIQUE NOT NULL,password_hash VARCHAR(128) NOT NULL,avatar TEXT,banner TEXT,avatar_pos TEXT DEFAULT '50% 50%',banner_pos TEXT DEFAULT '50% 50%',email VARCHAR(128),email_verified BOOLEAN DEFAULT FALSE,email_code VARCHAR(16),email_code_expires TIMESTAMP,is_admin BOOLEAN DEFAULT FALSE,is_moderator BOOLEAN DEFAULT FALSE,is_beta_tester BOOLEAN DEFAULT FALSE,is_scam BOOLEAN DEFAULT FALSE,is_dev BOOLEAN DEFAULT FALSE,premium_tier VARCHAR(8),is_banned BOOLEAN DEFAULT FALSE,ban_reason VARCHAR(256),mute_until TIMESTAMP,nickname_color VARCHAR(32),nickname_gradient VARCHAR(128),custom_status VARCHAR(128),online_status VARCHAR(16) DEFAULT 'online',bio VARCHAR(256),fav_music VARCHAR(128),gifts_hidden BOOLEAN DEFAULT FALSE,easter_found TEXT DEFAULT '[]',easter_rewarded BOOLEAN DEFAULT FALSE,admin_password VARCHAR(128),coins INTEGER DEFAULT 0,social_rating INTEGER DEFAULT 0,messages_count INTEGER DEFAULT 0,frozen BOOLEAN DEFAULT FALSE,is_legend BOOLEAN DEFAULT FALSE,wallpaper TEXT,font_choice VARCHAR(32),compact_mode BOOLEAN DEFAULT FALSE,achievements TEXT DEFAULT '[]',last_seen TIMESTAMP DEFAULT NOW(),created_at TIMESTAMP DEFAULT NOW())""")
-        for c,t in [("email_verified","BOOLEAN DEFAULT FALSE"),("email_code","VARCHAR(16)"),("email_code_expires","TIMESTAMP"),("social_rating","INTEGER DEFAULT 0")]:
+        await conn.execute("""CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,username VARCHAR(32) UNIQUE NOT NULL,password_hash VARCHAR(128) NOT NULL,avatar TEXT,banner TEXT,avatar_pos TEXT DEFAULT '50% 50%',banner_pos TEXT DEFAULT '50% 50%',email VARCHAR(128),email_verified BOOLEAN DEFAULT FALSE,email_code VARCHAR(16),email_code_expires TIMESTAMP,is_admin BOOLEAN DEFAULT FALSE,is_moderator BOOLEAN DEFAULT FALSE,is_beta_tester BOOLEAN DEFAULT FALSE,is_scam BOOLEAN DEFAULT FALSE,is_dev BOOLEAN DEFAULT FALSE,is_streamer BOOLEAN DEFAULT FALSE,premium_tier VARCHAR(8),is_banned BOOLEAN DEFAULT FALSE,ban_reason VARCHAR(256),mute_until TIMESTAMP,nickname_color VARCHAR(32),nickname_gradient VARCHAR(128),custom_status VARCHAR(128),online_status VARCHAR(16) DEFAULT 'online',bio VARCHAR(256),fav_music VARCHAR(128),gifts_hidden BOOLEAN DEFAULT FALSE,easter_found TEXT DEFAULT '[]',easter_rewarded BOOLEAN DEFAULT FALSE,admin_password VARCHAR(128),coins INTEGER DEFAULT 0,social_rating INTEGER DEFAULT 0,messages_count INTEGER DEFAULT 0,frozen BOOLEAN DEFAULT FALSE,is_legend BOOLEAN DEFAULT FALSE,wallpaper TEXT,font_choice VARCHAR(32),compact_mode BOOLEAN DEFAULT FALSE,achievements TEXT DEFAULT '[]',last_seen TIMESTAMP DEFAULT NOW(),created_at TIMESTAMP DEFAULT NOW())""")
+        for c,t in [("email_verified","BOOLEAN DEFAULT FALSE"),("email_code","VARCHAR(16)"),("email_code_expires","TIMESTAMP"),("social_rating","INTEGER DEFAULT 0"),("is_streamer","BOOLEAN DEFAULT FALSE")]:
             try: await conn.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {c} {t}")
             except: pass
         await conn.execute("UPDATE users SET is_admin=TRUE WHERE username=$1",ADMIN_USERNAME)
@@ -79,7 +79,9 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS cases(id SERIAL PRIMARY KEY,name VARCHAR(64) NOT NULL,emoji VARCHAR(8),image TEXT,price INTEGER NOT NULL,is_active BOOLEAN DEFAULT TRUE,created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS case_prizes(id SERIAL PRIMARY KEY,case_id INTEGER REFERENCES cases(id) ON DELETE CASCADE,kind VARCHAR(16) NOT NULL,item_id VARCHAR(64),item_name VARCHAR(64),item_emoji VARCHAR(8),item_image TEXT,chance INTEGER NOT NULL,coins_min INTEGER DEFAULT 0,coins_max INTEGER DEFAULT 0)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS case_opens(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,case_id INTEGER REFERENCES cases(id) ON DELETE CASCADE,prize_text TEXT,created_at TIMESTAMP DEFAULT NOW())""")
-        await conn.execute("""CREATE TABLE IF NOT EXISTS abuse_grants(user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,granted_by INTEGER REFERENCES users(id) ON DELETE SET NULL,can_gift BOOLEAN DEFAULT TRUE,can_nft BOOLEAN DEFAULT TRUE,can_coins BOOLEAN DEFAULT TRUE,can_online BOOLEAN DEFAULT TRUE,can_timer BOOLEAN DEFAULT TRUE,expires_at TIMESTAMP NOT NULL,created_at TIMESTAMP DEFAULT NOW())""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS abuse_grants(user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,granted_by INTEGER REFERENCES users(id) ON DELETE SET NULL,can_gift BOOLEAN DEFAULT TRUE,can_nft BOOLEAN DEFAULT TRUE,can_coins BOOLEAN DEFAULT TRUE,can_online BOOLEAN DEFAULT TRUE,can_timer BOOLEAN DEFAULT TRUE,can_write BOOLEAN DEFAULT TRUE,expires_at TIMESTAMP NOT NULL,created_at TIMESTAMP DEFAULT NOW())""")
+        try: await conn.execute("ALTER TABLE abuse_grants ADD COLUMN IF NOT EXISTS can_write BOOLEAN DEFAULT TRUE")
+        except: pass
         await conn.execute("""CREATE TABLE IF NOT EXISTS game_scores(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,game VARCHAR(32) NOT NULL,score INTEGER NOT NULL,created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS game_tournament(id SERIAL PRIMARY KEY,game VARCHAR(32),started_at TIMESTAMP DEFAULT NOW(),active BOOLEAN DEFAULT FALSE)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS ban_requests(id SERIAL PRIMARY KEY,from_admin INTEGER REFERENCES users(id) ON DELETE SET NULL,target_user INTEGER REFERENCES users(id) ON DELETE CASCADE,reason TEXT,evidence TEXT,status VARCHAR(16) DEFAULT 'pending',resolved_by INTEGER REFERENCES users(id) ON DELETE SET NULL,created_at TIMESTAMP DEFAULT NOW(),resolved_at TIMESTAMP)""")
@@ -182,6 +184,7 @@ def get_role(row):
     if row.get("is_dev"): return "dev"
     if row.get("is_admin"): return "admin"
     if row.get("is_moderator"): return "moderator"
+    if row.get("is_streamer"): return "streamer"
     if row.get("is_beta_tester"): return "beta"
     return "user"
 
@@ -190,7 +193,7 @@ def user_public(row,viewer_id=None):
     uid=row["id"]
     is_online=uid in online_users and status!="invisible"
     if status=="invisible" and viewer_id!=uid: is_online=False
-    return {"id":row["id"],"username":row["username"],"avatar":row["avatar"],"banner":row["banner"],"avatar_pos":row["avatar_pos"],"banner_pos":row["banner_pos"],"is_admin":row["is_admin"],"is_moderator":row["is_moderator"],"is_beta_tester":row.get("is_beta_tester",False),"is_scam":row.get("is_scam",False),"is_dev":row.get("is_dev",False),"premium_tier":row.get("premium_tier"),"nickname_color":row.get("nickname_color"),"nickname_gradient":row.get("nickname_gradient"),"custom_status":row.get("custom_status"),"online_status":status,"bio":row.get("bio"),"fav_music":row.get("fav_music"),"coins":row.get("coins",0),"social_rating":row.get("social_rating",0),"messages_count":row.get("messages_count",0),"is_legend":row.get("is_legend",False),"email":row.get("email"),"email_verified":row.get("email_verified",False),"has_admin_pass":bool(row.get("admin_password")),"wallpaper":row.get("wallpaper"),"font_choice":row.get("font_choice"),"compact_mode":row.get("compact_mode",False),"achievements":json.loads(row.get("achievements") or "[]"),"created_at":row["created_at"].isoformat() if row.get("created_at") else None,"role":get_role(row),"online":is_online}
+    return {"id":row["id"],"username":row["username"],"avatar":row["avatar"],"banner":row["banner"],"avatar_pos":row["avatar_pos"],"banner_pos":row["banner_pos"],"is_admin":row["is_admin"],"is_moderator":row["is_moderator"],"is_beta_tester":row.get("is_beta_tester",False),"is_scam":row.get("is_scam",False),"is_dev":row.get("is_dev",False),"is_streamer":row.get("is_streamer",False),"premium_tier":row.get("premium_tier"),"nickname_color":row.get("nickname_color"),"nickname_gradient":row.get("nickname_gradient"),"custom_status":row.get("custom_status"),"online_status":status,"bio":row.get("bio"),"fav_music":row.get("fav_music"),"coins":row.get("coins",0),"social_rating":row.get("social_rating",0),"messages_count":row.get("messages_count",0),"is_legend":row.get("is_legend",False),"email":row.get("email"),"email_verified":row.get("email_verified",False),"has_admin_pass":bool(row.get("admin_password")),"wallpaper":row.get("wallpaper"),"font_choice":row.get("font_choice"),"compact_mode":row.get("compact_mode",False),"achievements":json.loads(row.get("achievements") or "[]"),"created_at":row["created_at"].isoformat() if row.get("created_at") else None,"role":get_role(row),"online":is_online}
 
 async def get_all_gifts():
     gifts=dict(DEFAULT_GIFTS)
@@ -212,7 +215,7 @@ async def is_blocked(user_id,other_id):
 
 async def has_abuse_access(user):
     if not user: return None
-    if user["username"]==ADMIN_USERNAME: return {"owner":True,"can_gift":True,"can_nft":True,"can_coins":True,"can_online":True,"can_timer":True}
+    if user["username"]==ADMIN_USERNAME: return {"owner":True,"can_gift":True,"can_nft":True,"can_coins":True,"can_online":True,"can_timer":True,"can_write":True}
     try:
         p=await get_pool()
         async with p.acquire() as conn:
@@ -364,7 +367,7 @@ async def set_status(data:dict):
 async def get_user(user_id:int):
     p=await get_pool()
     async with p.acquire() as conn:
-        row=await conn.fetchrow("SELECT id,username,avatar,banner,avatar_pos,banner_pos,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,premium_tier,nickname_color,nickname_gradient,bio,fav_music,custom_status,online_status,messages_count,is_legend,achievements,social_rating,coins,created_at,last_seen FROM users WHERE id=$1",user_id)
+        row=await conn.fetchrow("SELECT id,username,avatar,banner,avatar_pos,banner_pos,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,nickname_color,nickname_gradient,bio,fav_music,custom_status,online_status,messages_count,is_legend,achievements,social_rating,coins,created_at,last_seen FROM users WHERE id=$1",user_id)
     if not row: raise HTTPException(404,"Не найден")
     d=dict(row)
     d["created_at"]=d["created_at"].isoformat() if d.get("created_at") else None
@@ -394,7 +397,7 @@ async def users_search(q:str,token:str):
     if len(q)<2: return []
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT id,username,avatar,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,online_status FROM users WHERE username ILIKE $1 AND id!=$2 ORDER BY username LIMIT 20",f"%{q}%",user["id"])
+        rows=await conn.fetch("SELECT id,username,avatar,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,online_status FROM users WHERE username ILIKE $1 AND id!=$2 ORDER BY username LIMIT 20",f"%{q}%",user["id"])
     out=[]
     for r in rows:
         d=dict(r); d["role"]=get_role(r); d["online"]=r["id"] in online_users and (r.get("online_status") or "online")!="invisible"; out.append(d)
@@ -418,15 +421,15 @@ async def friends_list(token:str):
     p=await get_pool()
     async with p.acquire() as conn:
         frows=await conn.fetch("SELECT id,user_a,user_b FROM friendships WHERE user_a=$1 OR user_b=$1",uid)
-        inc=await conn.fetch("SELECT r.id,r.from_user,u.username,u.avatar,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev FROM friend_requests r JOIN users u ON u.id=r.from_user WHERE r.to_user=$1 ORDER BY r.created_at DESC",uid)
+        inc=await conn.fetch("SELECT r.id,r.from_user,u.username,u.avatar,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev,u.is_streamer FROM friend_requests r JOIN users u ON u.id=r.from_user WHERE r.to_user=$1 ORDER BY r.created_at DESC",uid)
         out=await conn.fetch("SELECT r.id,r.to_user,u.username,u.avatar FROM friend_requests r JOIN users u ON u.id=r.to_user WHERE r.from_user=$1 ORDER BY r.created_at DESC",uid)
         result=[]
         for r in frows:
             oid=r["user_b"] if r["user_a"]==uid else r["user_a"]
-            o=await conn.fetchrow("SELECT id,username,avatar,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,last_seen,online_status,custom_status FROM users WHERE id=$1",oid)
+            o=await conn.fetchrow("SELECT id,username,avatar,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,last_seen,online_status,custom_status FROM users WHERE id=$1",oid)
             if not o: continue
-            result.append({"id":o["id"],"username":o["username"],"avatar":o["avatar"],"status":"accepted","friend_row_id":r["id"],"online":o["id"] in online_users and (o.get("online_status") or "online")!="invisible","last_seen":o["last_seen"].isoformat() if o.get("last_seen") else None,"is_admin":o["is_admin"],"is_moderator":o["is_moderator"],"is_beta_tester":o["is_beta_tester"],"is_scam":o["is_scam"],"custom_status":o.get("custom_status"),"online_status":o.get("online_status") or "online","role":get_role(o)})
-        for r in inc: result.append({"id":r["from_user"],"username":r["username"],"avatar":r["avatar"],"status":"incoming","request_id":r["id"],"online":r["from_user"] in online_users,"is_admin":r["is_admin"],"is_moderator":r["is_moderator"],"is_beta_tester":r["is_beta_tester"],"is_scam":r["is_scam"],"role":get_role(r)})
+            result.append({"id":o["id"],"username":o["username"],"avatar":o["avatar"],"status":"accepted","friend_row_id":r["id"],"online":o["id"] in online_users and (o.get("online_status") or "online")!="invisible","last_seen":o["last_seen"].isoformat() if o.get("last_seen") else None,"is_admin":o["is_admin"],"is_moderator":o["is_moderator"],"is_beta_tester":o["is_beta_tester"],"is_scam":o["is_scam"],"is_streamer":o.get("is_streamer",False),"custom_status":o.get("custom_status"),"online_status":o.get("online_status") or "online","role":get_role(o)})
+        for r in inc: result.append({"id":r["from_user"],"username":r["username"],"avatar":r["avatar"],"status":"incoming","request_id":r["id"],"online":r["from_user"] in online_users,"is_admin":r["is_admin"],"is_moderator":r["is_moderator"],"is_beta_tester":r["is_beta_tester"],"is_scam":r["is_scam"],"is_streamer":r.get("is_streamer",False),"role":get_role(r)})
         for r in out: result.append({"id":r["to_user"],"username":r["username"],"avatar":r["avatar"],"status":"outgoing","request_id":r["id"],"online":r["to_user"] in online_users,"is_admin":False,"is_moderator":False,"is_beta_tester":False,"is_scam":False,"role":"user"})
     return result
 
@@ -627,7 +630,7 @@ async def group_messages(group_id:int,token:str):
     async with p.acquire() as conn:
         m=await conn.fetchrow("SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2",group_id,user["id"])
         if not m: raise HTTPException(403,"Не участник")
-        rows=await conn.fetch("SELECT gm.id,gm.text,gm.file_url,gm.created_at,gm.user_id,u.username,u.avatar,u.avatar_pos,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev FROM group_messages gm JOIN users u ON u.id=gm.user_id WHERE gm.group_id=$1 ORDER BY gm.id ASC LIMIT 200",group_id)
+        rows=await conn.fetch("SELECT gm.id,gm.text,gm.file_url,gm.created_at,gm.user_id,u.username,u.avatar,u.avatar_pos,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev,u.is_streamer FROM group_messages gm JOIN users u ON u.id=gm.user_id WHERE gm.group_id=$1 ORDER BY gm.id ASC LIMIT 200",group_id)
     out=[]
     for r in rows:
         d=dict(r); d["created_at"]=d["created_at"].isoformat() if d.get("created_at") else None; d["role"]=get_role(r); out.append(d)
@@ -639,7 +642,7 @@ async def group_members_get(group_id:int,token:str):
     if not user: raise HTTPException(401,"Не авторизован")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT u.id,u.username,u.avatar,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev FROM users u JOIN group_members gm ON gm.user_id=u.id WHERE gm.group_id=$1",group_id)
+        rows=await conn.fetch("SELECT u.id,u.username,u.avatar,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev,u.is_streamer FROM users u JOIN group_members gm ON gm.user_id=u.id WHERE gm.group_id=$1",group_id)
     out=[]
     for r in rows:
         d=dict(r); d["role"]=get_role(r); out.append(d)
@@ -766,7 +769,7 @@ async def server_members(server_id:int,token:str):
     if not user: raise HTTPException(401,"Не авторизован")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT u.id,u.username,u.avatar,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev FROM users u JOIN server_members sm ON sm.user_id=u.id WHERE sm.server_id=$1",server_id)
+        rows=await conn.fetch("SELECT u.id,u.username,u.avatar,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev,u.is_streamer FROM users u JOIN server_members sm ON sm.user_id=u.id WHERE sm.server_id=$1",server_id)
     out=[]
     for r in rows:
         d=dict(r); d["role"]=get_role(r); out.append(d)
@@ -832,7 +835,7 @@ async def channel_messages(channel_id:int,token:str):
     if not user: raise HTTPException(401,"Не авторизован")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT m.id,m.text,m.file_url,m.reactions,m.edited,m.reply_to,m.pinned,m.created_at,m.user_id,u.username,u.avatar,u.avatar_pos,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev FROM messages m JOIN users u ON u.id=m.user_id WHERE m.channel_id=$1 ORDER BY m.id ASC LIMIT 200",channel_id)
+        rows=await conn.fetch("SELECT m.id,m.text,m.file_url,m.reactions,m.edited,m.reply_to,m.pinned,m.created_at,m.user_id,u.username,u.avatar,u.avatar_pos,u.is_admin,u.is_moderator,u.is_beta_tester,u.is_scam,u.is_dev,u.is_streamer FROM messages m JOIN users u ON u.id=m.user_id WHERE m.channel_id=$1 ORDER BY m.id ASC LIMIT 200",channel_id)
         pinned=await conn.fetch("SELECT m.id,m.text,m.user_id,u.username FROM messages m JOIN users u ON u.id=m.user_id WHERE m.channel_id=$1 AND m.pinned=TRUE ORDER BY m.id DESC LIMIT 5",channel_id)
     out=[]
     for r in rows:
@@ -981,7 +984,7 @@ async def admin_users(token:str):
     if not user or not user.get("is_admin"): raise HTTPException(403,"Не админ")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT id,username,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,premium_tier,is_banned,coins,social_rating FROM users ORDER BY id")
+        rows=await conn.fetch("SELECT id,username,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,is_banned,coins,social_rating FROM users ORDER BY id")
     return [dict(r) for r in rows]
 
 @app.post("/api/admin/action")
@@ -1001,6 +1004,7 @@ async def admin_action(data:dict):
         elif action=="grant_premium" and is_owner: await conn.execute("UPDATE users SET premium_tier='premium' WHERE id=$1",tid)
         elif action=="grant_pro" and is_owner: await conn.execute("UPDATE users SET premium_tier='pro' WHERE id=$1",tid)
         elif action=="scam" and is_owner: await conn.execute("UPDATE users SET is_scam=TRUE WHERE id=$1",tid)
+        elif action=="toggle_streamer" and is_owner: await conn.execute("UPDATE users SET is_streamer=NOT is_streamer WHERE id=$1",tid)
     await log_admin(user["id"],action,tid)
     return {"ok":True}
 
@@ -1095,6 +1099,15 @@ async def ban_requests_resolve(data:dict):
             try: await manager.send_to(r["from_admin"],{"type":"ban_request_resolved","status":"rejected"})
             except: pass
     return {"ok":True}
+
+@app.get("/api/ban_requests/check/{target_id}")
+async def ban_requests_check(target_id:int,token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        r=await conn.fetchrow("SELECT id FROM ban_requests WHERE target_user=$1 AND status='pending'",target_id)
+    return {"pending":bool(r),"request_id":r["id"] if r else None}
 
 async def check_mod(user):
     if not user: raise HTTPException(401,"Не авторизован")
@@ -1315,19 +1328,24 @@ async def owner_give_all(data:dict):
         await conn.execute("UPDATE users SET coins=coins+$1",int(data.get("amount",10)))
     return {"ok":True}
 
+@app.post("/api/owner/toggle_streamer")
+async def owner_toggle_streamer(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await conn.fetchrow("SELECT id,is_streamer FROM users WHERE username=$1",data.get("username"))
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET is_streamer=NOT is_streamer WHERE id=$1",t["id"])
+        new_status=not t["is_streamer"]
+    await manager.broadcast({"type":"streamer_update","user_id":t["id"],"is_streamer":new_status})
+    return {"ok":True,"is_streamer":new_status}
+
 @app.post("/api/owner/announce")
 async def owner_announce(data:dict):
     user=await get_current_user(data.get("token"))
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     await manager.broadcast({"type":"abuse","from_name":user["username"],"from_avatar":user.get("avatar"),"text":data.get("text","")})
-    return {"ok":True}
-
-@app.post("/api/owner/mass_dm")
-async def owner_mass_dm(data:dict):
-    user=await get_current_user(data.get("token"))
-    if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
-    for uid in list(online_users):
-        await manager.send_to(uid,{"type":"abuse","from_name":user["username"],"from_avatar":user.get("avatar"),"text":data.get("text","")})
     return {"ok":True}
 
 @app.post("/api/owner/change_nick")
@@ -1671,6 +1689,7 @@ async def abuse_broadcast(data:dict):
     user=await get_current_user(data.get("token"))
     acc=await has_abuse_access(user)
     if not acc: raise HTTPException(403,"Нет доступа")
+    if not acc.get("can_write"): raise HTTPException(403,"Нет права писать")
     text=(data.get("text") or "").strip()
     if not text: raise HTTPException(400,"Пусто")
     if len(text)>500: text=text[:500]
@@ -1682,6 +1701,7 @@ async def abuse_start(data:dict):
     user=await get_current_user(data.get("token"))
     acc=await has_abuse_access(user)
     if not acc: raise HTTPException(403,"Нет доступа")
+    if not acc.get("can_write"): raise HTTPException(403,"Нет права писать")
     await manager.broadcast({"type":"abuse","from_name":user["username"],"from_avatar":user.get("avatar"),"text":"🚀 НАЧИНАЕМ! 🚀"})
     return {"ok":True}
 
@@ -1690,7 +1710,7 @@ async def abuse_access(token:str):
     user=await get_current_user(token)
     acc=await has_abuse_access(user)
     if not acc: return {"access":False}
-    return {"access":True,"owner":acc.get("owner",False),"can_gift":acc.get("can_gift",False),"can_nft":acc.get("can_nft",False),"can_coins":acc.get("can_coins",False),"can_online":acc.get("can_online",False),"can_timer":acc.get("can_timer",False)}
+    return {"access":True,"owner":acc.get("owner",False),"can_gift":acc.get("can_gift",False),"can_nft":acc.get("can_nft",False),"can_coins":acc.get("can_coins",False),"can_online":acc.get("can_online",False),"can_timer":acc.get("can_timer",False),"can_write":acc.get("can_write",True)}
 
 @app.get("/api/abuse/online")
 async def abuse_online(token:str):
@@ -1794,12 +1814,12 @@ async def abuse_coop_start(data:dict):
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     target_name=(data.get("username") or "").strip()
     minutes=int(data.get("minutes",60))
-    cg=bool(data.get("can_gift",True)); cn=bool(data.get("can_nft",True)); cc=bool(data.get("can_coins",True)); co=bool(data.get("can_online",True)); ct=bool(data.get("can_timer",True))
+    cg=bool(data.get("can_gift",True)); cn=bool(data.get("can_nft",True)); cc=bool(data.get("can_coins",True)); co=bool(data.get("can_online",True)); ct=bool(data.get("can_timer",True)); cw=bool(data.get("can_write",True))
     p=await get_pool()
     async with p.acquire() as conn:
         t=await conn.fetchrow("SELECT id,username FROM users WHERE username=$1",target_name)
         if not t: raise HTTPException(404,"Не найден")
-        await conn.execute("""INSERT INTO abuse_grants(user_id,granted_by,can_gift,can_nft,can_coins,can_online,can_timer,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,NOW()+INTERVAL '1 minute' * $8) ON CONFLICT (user_id) DO UPDATE SET can_gift=$3,can_nft=$4,can_coins=$5,can_online=$6,can_timer=$7,expires_at=NOW()+INTERVAL '1 minute' * $8""",t["id"],user["id"],cg,cn,cc,co,ct,minutes)
+        await conn.execute("""INSERT INTO abuse_grants(user_id,granted_by,can_gift,can_nft,can_coins,can_online,can_timer,can_write,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,NOW()+INTERVAL '1 minute' * $9) ON CONFLICT (user_id) DO UPDATE SET can_gift=$3,can_nft=$4,can_coins=$5,can_online=$6,can_timer=$7,can_write=$8,expires_at=NOW()+INTERVAL '1 minute' * $9""",t["id"],user["id"],cg,cn,cc,co,ct,cw,minutes)
     await manager.send_to(t["id"],{"type":"coop_started","minutes":minutes,"username":user["username"]})
     return {"ok":True,"target":t["username"],"minutes":minutes}
 
@@ -1809,8 +1829,8 @@ async def abuse_coop_grants(token:str):
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT g.user_id,g.can_gift,g.can_nft,g.can_coins,g.can_online,g.can_timer,g.expires_at,u.username FROM abuse_grants g JOIN users u ON u.id=g.user_id WHERE g.expires_at>NOW() ORDER BY g.expires_at DESC")
-    return [{"user_id":r["user_id"],"username":r["username"],"can_gift":r["can_gift"],"can_nft":r["can_nft"],"can_coins":r["can_coins"],"can_online":r["can_online"],"can_timer":r["can_timer"],"expires_at":r["expires_at"].isoformat()} for r in rows]
+        rows=await conn.fetch("SELECT g.user_id,g.can_gift,g.can_nft,g.can_coins,g.can_online,g.can_timer,g.can_write,g.expires_at,u.username FROM abuse_grants g JOIN users u ON u.id=g.user_id WHERE g.expires_at>NOW() ORDER BY g.expires_at DESC")
+    return [{"user_id":r["user_id"],"username":r["username"],"can_gift":r["can_gift"],"can_nft":r["can_nft"],"can_coins":r["can_coins"],"can_online":r["can_online"],"can_timer":r["can_timer"],"can_write":r["can_write"],"expires_at":r["expires_at"].isoformat()} for r in rows]
 
 @app.post("/api/abuse/coop_revoke")
 async def abuse_coop_revoke(data:dict):
@@ -2216,18 +2236,6 @@ async def cases_open(data:dict):
         await conn.execute("INSERT INTO case_opens(user_id,case_id,prize_text) VALUES($1,$2,$3)",user["id"],cid,prize_text)
     return {"ok":True,"prize":prize_text}
 
-@app.get("/api/drafts/get")
-async def draft_get(key:str,token:str):
-    user=await get_current_user(token)
-    if not user: raise HTTPException(401,"Не авторизован")
-    return {"text":""}
-
-@app.post("/api/drafts/save")
-async def draft_save(data:dict):
-    user=await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401,"Не авторизован")
-    return {"ok":True}
-
 class ConnectionManager:
     def __init__(self): self.connections={}
     async def connect(self,uid,ws):
@@ -2285,7 +2293,7 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 if mc==100: await grant_achievement(uid,"msg_100")
                 if mc==1000: await grant_achievement(uid,"msg_1000")
                 if mc==10000: await grant_achievement(uid,"msg_10000")
-                payload={"type":"message","id":msg["id"],"channel_id":int(ch),"user_id":uid,"username":user["username"],"avatar":user.get("avatar"),"avatar_pos":user.get("avatar_pos"),"text":text,"file_url":furl,"reply_to":reply,"created_at":msg["created_at"].isoformat(),"is_admin":user.get("is_admin"),"is_moderator":user.get("is_moderator"),"is_beta_tester":user.get("is_beta_tester"),"is_scam":user.get("is_scam"),"role":get_role(user),"temp_id":tid}
+                payload={"type":"message","id":msg["id"],"channel_id":int(ch),"user_id":uid,"username":user["username"],"avatar":user.get("avatar"),"avatar_pos":user.get("avatar_pos"),"text":text,"file_url":furl,"reply_to":reply,"created_at":msg["created_at"].isoformat(),"is_admin":user.get("is_admin"),"is_moderator":user.get("is_moderator"),"is_beta_tester":user.get("is_beta_tester"),"is_scam":user.get("is_scam"),"is_streamer":user.get("is_streamer"),"role":get_role(user),"temp_id":tid}
                 for m in members: await manager.send_to(m["user_id"],payload)
             elif t=="dm":
                 to_id=int(data.get("to_user",0)); text=(data.get("text") or "")[:2000]
@@ -2356,7 +2364,7 @@ async def websocket_endpoint(ws:WebSocket,token:str):
 
 @app.get("/manifest.json")
 async def manifest():
-    return {"name":"Belugacord Beta 2.0","short_name":"Belugacord","start_url":"/","display":"standalone","background_color":"#0a0a12","theme_color":"#0a0a12","icons":[{"src":"/uploads/icon.png","sizes":"192x192","type":"image/png"}]}
+    return {"name":"Belugacord Beta 2.1","short_name":"Belugacord","start_url":"/","display":"standalone","background_color":"#0a0a12","theme_color":"#0a0a12","icons":[{"src":"/uploads/icon.png","sizes":"192x192","type":"image/png"}]}
 
 @app.get("/sw.js")
 async def sw():
