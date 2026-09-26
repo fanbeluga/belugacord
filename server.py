@@ -20,7 +20,7 @@ DEFAULT_GIFTS={"rose":{"name":"Роза","emoji":"🌹","price":15},"bear":{"nam
 EASTER_EGGS=["song","cat","beluga"]
 GAME_LIST=["penguin","minesweeper","snake","2048","flappy","tetris","memory","reaction","tictactoe","rps","battleship","duel"]
 ACHIEVEMENTS={"first_msg":{"name":"Первое слово","emoji":"💬","desc":"Отправь первое сообщение"},"msg_100":{"name":"Болтун","emoji":"🗣️","desc":"100 сообщений"},"msg_1000":{"name":"Оратор","emoji":"🎤","desc":"1000 сообщений"},"msg_10000":{"name":"Легенда чата","emoji":"📢","desc":"10000 сообщений"},"first_friend":{"name":"Дружелюбный","emoji":"👥","desc":"Первый друг"},"friend_10":{"name":"Тусовщик","emoji":"🎉","desc":"10 друзей"},"first_gift":{"name":"Щедрый","emoji":"🎁","desc":"Первый подарок"},"first_nft":{"name":"Коллекционер","emoji":"🎨","desc":"Первый NFT"},"snake_100":{"name":"Змеелов","emoji":"🐍","desc":"100 очков в Змейке"},"flappy_50":{"name":"Летун","emoji":"🐦","desc":"50 очков в Flappy"},"first_server":{"name":"Основатель","emoji":"🏠","desc":"Создай сервер"},"coins_10k":{"name":"Богач","emoji":"💰","desc":"10000 бекоинов"},"rating_100":{"name":"Щедрая душа","emoji":"💎","desc":"Соц.рейтинг 100"},"rating_10000":{"name":"Меценат","emoji":"👑","desc":"Соц.рейтинг 10000"}}
-CHANGELOG={"2.0":{"title":"Belugacord Beta 2.0","items":["📞 Новые звонки: плашка сверху, большие авы","💬 Чат остаётся видимым при звонке","👍 Социальный рейтинг (за подарки)","📧 Верификация email","🎮 4 новые игры","🌈 Свои темы и обои","👤 Подпись до 64 символов","🟢 Фильтр друзей онлайн","🔧 Оптимизация"]},"1.9":{"title":"Belugacord Beta 1.9","items":["🎨 Тема CS 1.6","👥 Группы","💬 Reply, пин, поиск","😴 Статусы","🚫 Блок-лист","🏆 Достижения","💰 Рынок NFT","🎁 Кейсы"]}}
+CHANGELOG={"2.0":{"title":"Belugacord Beta 2.0","items":["📞 Новые звонки: плашка сверху","💬 Чат видно при звонке","👍 Социальный рейтинг","📧 Верификация email","🎮 4 новые игры","🌈 Свои темы и обои","👤 Подпись до 64 символов","🟢 Фильтр друзей онлайн","🔧 Оптимизация"]},"1.9":{"title":"Belugacord Beta 1.9","items":["🎨 Тема CS 1.6","👥 Группы","💬 Reply, пин, поиск","😴 Статусы","🚫 Блок-лист","🏆 Достижения","💰 Рынок NFT","🎁 Кейсы"]}}
 
 app=FastAPI()
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_methods=["*"],allow_headers=["*"])
@@ -287,7 +287,7 @@ async def register(data:dict):
         try:
             async with p.acquire() as conn:
                 await conn.execute("UPDATE users SET email_code=$1,email_code_expires=NOW()+INTERVAL '1 hour' WHERE id=$2",code,row["id"])
-            asyncio.create_task(send_email(em,"Belugacord - подтверждение почты",f"<h2>Привет, {u}!</h2><p>Код: <b style='font-size:24px;color:#d946ef'>{code}</b></p>"))
+            asyncio.create_task(send_email(em,"Belugacord - подтверждение",f"<h2>Привет, {u}!</h2><p>Код: <b style='font-size:24px;color:#d946ef'>{code}</b></p>"))
         except: pass
     return {"token":make_token(row["id"],row["username"]),"user":user_public(row,row["id"])}
 
@@ -319,7 +319,7 @@ async def email_send_code(data:dict):
     p=await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET email=$1,email_code=$2,email_code_expires=NOW()+INTERVAL '1 hour',email_verified=FALSE WHERE id=$3",em,code,user["id"])
-    r=await send_email(em,"Belugacord - подтверждение почты",f"<h2>Привет, {user['username']}!</h2><p>Код: <b style='font-size:24px;color:#d946ef'>{code}</b></p>")
+    r=await send_email(em,"Belugacord - подтверждение",f"<h2>Привет, {user['username']}!</h2><p>Код: <b style='font-size:24px;color:#d946ef'>{code}</b></p>")
     if r.get("ok"): return {"ok":True,"sent":True}
     return {"ok":True,"sent":False,"code_hint":code,"error":r.get("error","")}
 
@@ -703,7 +703,6 @@ async def group_update(data:dict):
         await conn.execute("UPDATE groups SET name=COALESCE($1,name),description=COALESCE($2,description),avatar=COALESCE($3,avatar) WHERE id=$4",data.get("name"),data.get("description"),data.get("avatar"),gid)
         row=await conn.fetchrow("SELECT * FROM groups WHERE id=$1",gid)
     return dict(row)
-
 @app.get("/api/servers/list")
 async def servers_list(token:str):
     user=await get_current_user(token)
@@ -943,6 +942,7 @@ async def easter_found(data:dict):
         else:
             await conn.execute("UPDATE users SET easter_found=$1 WHERE id=$2",json.dumps(found),user["id"])
     return {"found":len(found),"total":len(EASTER_EGGS),"all_found":af,"already_rewarded":ar}
+
 @app.post("/api/admin/set_password")
 async def admin_set_password(data:dict):
     user=await get_current_user(data.get("token"))
@@ -1095,15 +1095,6 @@ async def ban_requests_resolve(data:dict):
             try: await manager.send_to(r["from_admin"],{"type":"ban_request_resolved","status":"rejected"})
             except: pass
     return {"ok":True}
-
-@app.get("/api/ban_requests/check/{target_id}")
-async def ban_requests_check(target_id:int,token:str):
-    user=await get_current_user(token)
-    if not user: raise HTTPException(401,"Не авторизован")
-    p=await get_pool()
-    async with p.acquire() as conn:
-        r=await conn.fetchrow("SELECT id FROM ban_requests WHERE target_user=$1 AND status='pending'",target_id)
-    return {"pending":bool(r),"request_id":r["id"] if r else None}
 
 async def check_mod(user):
     if not user: raise HTTPException(401,"Не авторизован")
@@ -1270,12 +1261,6 @@ async def owner_spy(user_id:int,token:str):
         rows=await conn.fetch("SELECT m.text,m.created_at,c.name AS channel_name FROM messages m LEFT JOIN channels c ON c.id=m.channel_id WHERE m.user_id=$1 ORDER BY m.id DESC LIMIT 100",user_id)
         dms=await conn.fetch("SELECT d.text,d.created_at,u.username AS to_name FROM dms d LEFT JOIN users u ON u.id=d.to_user WHERE d.from_user=$1 ORDER BY d.id DESC LIMIT 100",user_id)
     return {"messages":[{"text":r["text"],"channel":r["channel_name"],"at":r["created_at"].isoformat() if r["created_at"] else None} for r in rows],"dms":[{"text":r["text"],"to":r["to_name"],"at":r["created_at"].isoformat() if r["created_at"] else None} for r in dms]}
-
-@app.get("/api/owner/online_hours")
-async def owner_online_hours(token:str):
-    user=await get_current_user(token)
-    if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
-    return {"hours":[0]*24,"current_online":len(online_users)}
 
 @app.post("/api/owner/auto_abuse")
 async def owner_auto_abuse(data:dict):
@@ -1855,10 +1840,7 @@ async def games_leaders(game:str):
     if game not in GAME_LIST: raise HTTPException(400,"Неизвестная игра")
     p=await get_pool()
     async with p.acquire() as conn:
-        if active_tournament.get("game")==game and active_tournament.get("started_at"):
-            rows=await conn.fetch("SELECT u.username,MAX(gs.score) AS best FROM game_scores gs JOIN users u ON u.id=gs.user_id WHERE gs.game=$1 AND gs.created_at >= $2 GROUP BY u.id,u.username ORDER BY best DESC LIMIT 20",game,active_tournament["started_at"])
-        else:
-            rows=await conn.fetch("SELECT u.username,MAX(gs.score) AS best FROM game_scores gs JOIN users u ON u.id=gs.user_id WHERE gs.game=$1 GROUP BY u.id,u.username ORDER BY best DESC LIMIT 20",game)
+        rows=await conn.fetch("SELECT u.username,MAX(gs.score) AS best FROM game_scores gs JOIN users u ON u.id=gs.user_id WHERE gs.game=$1 GROUP BY u.id,u.username ORDER BY best DESC LIMIT 20",game)
     return [{"username":r["username"],"score":r["best"]} for r in rows]
 
 @app.get("/api/games/tournament")
@@ -2233,6 +2215,18 @@ async def cases_open(data:dict):
         else: prize_text=f"❓ {chosen['item_name'] or '???'}"
         await conn.execute("INSERT INTO case_opens(user_id,case_id,prize_text) VALUES($1,$2,$3)",user["id"],cid,prize_text)
     return {"ok":True,"prize":prize_text}
+
+@app.get("/api/drafts/get")
+async def draft_get(key:str,token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    return {"text":""}
+
+@app.post("/api/drafts/save")
+async def draft_save(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    return {"ok":True}
 
 class ConnectionManager:
     def __init__(self): self.connections={}
