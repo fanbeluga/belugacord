@@ -1,0 +1,81 @@
+<!-- BELUGACORD 2.5 — MODULE: SOCIAL (сторис + звонки) -->
+
+<!-- ==================== СТОРИС ЛЕНТА ==================== -->
+<div class="modal-overlay" id="storiesFeedModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('storiesFeedModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">📸 Сторис</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">24 часа и исчезнет</div>
+      <button class="save-btn green" onclick="openCreateStory()">➕ Создать сторис</button>
+      <div id="storiesFeedList" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ПРОСМОТР СТОРИС ==================== -->
+<div class="modal-overlay" id="storiesModal">
+  <div class="modal" style="max-width:480px;background:transparent;border:none;box-shadow:none">
+    <button class="close-btn" style="background:rgba(0,0,0,0.8)" onclick="closeStories()">✕</button>
+    <div class="story-viewer" id="storyViewer">
+      <div class="story-progress"><div class="story-progress-fill" id="storyProgressFill"></div></div>
+      <div class="story-header">
+        <div class="story-avatar" id="storyAvatar">?</div>
+        <div class="story-name" id="storyName">Юзер</div>
+        <div class="story-time" id="storyTime">2ч назад</div>
+      </div>
+      <div class="story-content" id="storyContent">
+        <img id="storyImage" src="" style="display:none">
+        <div id="storyText"></div>
+      </div>
+      <div class="story-nav-left" onclick="prevStory()"></div>
+      <div class="story-nav-right" onclick="nextStory()"></div>
+      <div class="story-reactions" id="storyReactions"></div>
+      <div class="story-reply">
+        <input type="text" id="storyReplyInput" placeholder="Ответить...">
+        <button onclick="sendStoryReply()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== СОЗДАНИЕ СТОРИС ==================== -->
+<div class="modal-overlay" id="createStoryModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('createStoryModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">📸 Создать сторис</h2>
+      <label class="label">Фото (URL)</label>
+      <input type="text" id="storyImageUrl" class="input-field" placeholder="https://..." style="margin-bottom:10px">
+      <label class="label">Или загрузить</label>
+      <input type="file" id="storyImageFile" accept="image/*" style="width:100%;margin-bottom:10px">
+      <label class="label">Текст</label>
+      <textarea id="storyTextInput" class="input-field" placeholder="Что написать..." style="margin-bottom:10px"></textarea>
+      <label class="label">Фон</label>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <div class="story-bg-pick" style="background:#d946ef" onclick="pickStoryBg('#d946ef')"></div>
+        <div class="story-bg-pick" style="background:#22d3ee" onclick="pickStoryBg('#22d3ee')"></div>
+        <div class="story-bg-pick" style="background:#22c55e" onclick="pickStoryBg('#22c55e')"></div>
+        <div class="story-bg-pick" style="background:#f43f5e" onclick="pickStoryBg('#f43f5e')"></div>
+        <div class="story-bg-pick" style="background:#000" onclick="pickStoryBg('#000')"></div>
+      </div>
+      <button class="save-btn green" onclick="publishStory()">📤 Опубликовать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ГРУППОВОЙ ЗВОНОК ==================== -->
+<div class="modal-overlay" id="groupCallModal">
+  <div class="modal" style="max-width:900px">
+    <button class="close-btn" onclick="closeGroupCall()">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">📞 Групповой звонок</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:12px" id="groupCallCode"></div>
+      <div id="groupCallTileWrap" style="position:relative">
+        <span class="call-participants-count" id="groupCallCount" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800;z-index:3">0/30</span>
+        <div id="groupCallGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px" id="groupCallControls"></div>
+    </div>
+  </div>
+</div>
