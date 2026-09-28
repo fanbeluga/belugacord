@@ -22,7 +22,6 @@ var ws = null;
 
 var MODULES = [
   'releases',
-  'core',
   'chat',
   'social',
   'gifts',
@@ -132,7 +131,7 @@ updateClock();
    ============================================================ */
 async function loadModule(name){
   try {
-    var htmlRes = await fetch('/features/' + name + '/' + name + '.html');
+    var htmlRes = await fetch('/futures/' + name + '/' + name + '.html');
     if(htmlRes.ok) {
       var html = await htmlRes.text();
       var container = document.getElementById('features-modals');
@@ -140,7 +139,7 @@ async function loadModule(name){
     }
     await new Promise(function(resolve){
       var s = document.createElement('script');
-      s.src = '/features/' + name + '/' + name + '.js';
+      s.src = '/futures/' + name + '/' + name + '.js';
       s.onload = resolve;
       s.onerror = function(){ console.warn('[BC] module not loaded:', name); resolve(); };
       document.body.appendChild(s);
