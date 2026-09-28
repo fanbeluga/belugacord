@@ -1,0 +1,142 @@
+<!-- BELUGACORD 2.5 — MODULE: ECONOMY -->
+
+<!-- СУНДУК -->
+<div class="modal-overlay" id="chestModal">
+  <div class="modal" style="max-width:440px">
+    <button class="close-btn" onclick="document.getElementById('chestModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🎁 Сундук дня</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">Раз в 24 часа · streak множитель</div>
+      <div style="font-size:100px;text-align:center;margin:20px 0;animation:chestFloat 2s infinite ease-in-out" id="chestVisual">📦</div>
+      <div style="text-align:center;font-family:monospace;font-size:22px;font-weight:900;color:var(--gold);margin:10px 0" id="chestTimer">Загрузка...</div>
+      <div style="text-align:center;font-size:13px;color:var(--text-dim);margin-bottom:14px" id="chestStreak">🔥 Streak: 0 дней</div>
+      <button class="daily-bonus-btn" id="chestOpenBtn" onclick="openChestAction()" style="width:100%">🎁 Открыть сундук</button>
+    </div>
+  </div>
+</div>
+
+<!-- ЛОТЕРЕЯ -->
+<div class="modal-overlay" id="lotteryModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('lotteryModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🎟️ Лотерея</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">Билет 100 🏅 · розыгрыш каждый час</div>
+      <div class="lottery-jackpot">
+        <div style="font-size:11px;font-weight:900;color:var(--gold);letter-spacing:2px">💰 ДЖЕКПОТ</div>
+        <div style="font-size:36px;font-weight:900;color:var(--gold);margin-top:6px" id="lotteryJackpot">0 🏅</div>
+      </div>
+      <div style="background:var(--bg-input);border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;line-height:2">
+        <div>⏰ До розыгрыша: <span id="lotteryTimer">--:--</span></div>
+        <div>🎟️ Билетов: <span id="lotteryTickets">0</span></div>
+        <div>👥 Участников: <span id="lotteryPlayers">0</span></div>
+      </div>
+      <button class="save-btn gold" onclick="buyLotteryTicket()">🎟️ Купить билет (100 🏅)</button>
+      <div id="lotteryHistory" style="margin-top:16px;max-height:150px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- БАНК -->
+<div class="modal-overlay" id="bankModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('bankModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🏦 Банк</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">Вклад под 1.5% в сутки</div>
+      <div class="bank-balance"><div style="font-size:12px;color:var(--text-mute)">Вклад:</div><div class="bank-balance-value" id="bankDeposit">0 🏅</div></div>
+      <div class="bank-balance"><div style="font-size:12px;color:var(--text-mute)">Проценты:</div><div class="bank-balance-value" id="bankInterest">0 🏅</div></div>
+      <input type="number" id="bankAmount" class="input-field" placeholder="Сумма" style="margin-bottom:10px">
+      <button class="save-btn green" onclick="bankDeposit()">💰 Положить</button>
+      <button class="save-btn gold" onclick="bankWithdraw()">💸 Забрать всё</button>
+    </div>
+  </div>
+</div>
+
+<!-- АУКЦИОН -->
+<div class="modal-overlay" id="auctionModal">
+  <div class="modal" style="max-width:700px">
+    <button class="close-btn" onclick="document.getElementById('auctionModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🔨 Аукцион</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">Лот 5 минут · кто больше дал</div>
+      <div id="auctionCurrent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- КВЕСТЫ -->
+<div class="modal-overlay" id="questsModal">
+  <div class="modal" style="max-width:560px">
+    <button class="close-btn" onclick="document.getElementById('questsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">📋 Ежедневные квесты</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">Обновляются каждый день</div>
+      <div class="quest-kp-total">
+        <div style="font-size:34px;font-weight:900;line-height:1" id="questKpTotal">0</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-top:4px">🪙 Квест-поинты</div>
+      </div>
+      <div id="questsList"></div>
+      <button class="save-btn gold" onclick="openQuestExchange()" style="margin-top:14px">💎 Обменять КП на премиум</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОБМЕН КП -->
+<div class="modal-overlay" id="questExchangeModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('questExchangeModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">💎 Обмен КП → Премиум</h2>
+      <div class="premium-plan-card" onclick="exchangeKp('1day')">
+        <div class="premium-plan-info"><div class="premium-plan-name">1 день</div><div class="premium-plan-desc">Попробовать премиум</div></div>
+        <div class="premium-plan-price">1400 <small>КП</small></div>
+      </div>
+      <div class="premium-plan-card best" onclick="exchangeKp('3days')">
+        <div class="premium-plan-info"><div class="premium-plan-name">3 дня ★</div><div class="premium-plan-desc">Оптимально</div></div>
+        <div class="premium-plan-price">7500 <small>КП</small></div>
+      </div>
+      <div class="premium-plan-card" onclick="exchangeKp('7days')">
+        <div class="premium-plan-info"><div class="premium-plan-name">7 дней</div><div class="premium-plan-desc">Неделя</div></div>
+        <div class="premium-plan-price">10000 <small>КП</small></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- БОЕВОЙ ПРОПУСК -->
+<div class="modal-overlay" id="battlePassModal">
+  <div class="modal" style="max-width:800px">
+    <button class="close-btn" onclick="document.getElementById('battlePassModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px" id="bpTitle">🏆 Сезон</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px" id="bpDescription"></div>
+      <div class="bp-progress">
+        <div class="bp-level" id="bpLevel">Ур. 1</div>
+        <div class="bp-progress-bar"><div class="bp-progress-fill" id="bpProgressFill"></div></div>
+        <div class="bp-xp" id="bpXP">0 / 1000</div>
+      </div>
+      <div class="shop-tabs">
+        <button class="shop-tab-btn active" onclick="showBpTab('quests',event)">📋 Задания</button>
+        <button class="shop-tab-btn" onclick="showBpTab('rewards',event)">🎁 Награды</button>
+      </div>
+      <div id="bpContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ДЕЙЛИ БОНУС -->
+<div class="modal-overlay" id="dailyBonusModal">
+  <div class="modal" style="max-width:440px">
+    <button class="close-btn" onclick="document.getElementById('dailyBonusModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">💰 Ежедневный бонус</h2>
+      <div class="daily-bonus-card">
+        <span style="font-size:56px;margin-bottom:8px;display:block">🏅</span>
+        <div style="font-size:16px;font-weight:900;color:var(--gold);margin-bottom:6px">1 бекоин в день</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Для премиума ×3</div>
+        <button class="daily-bonus-btn" onclick="claimDailyBonus()">🎁 Забрать</button>
+      </div>
+    </div>
+  </div>
+</div>
