@@ -1,20 +1,22 @@
 # BELUGACORD 2.5 — api/core.py
-# Auth, profile, email, version, release (hot-swap)
-import os, json, random, time, datetime
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import HTMLResponse
+# Auth, profile, email, version, release, upload, themes, titles, commands
+import os, json, random, time, datetime, secrets
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 
 from api._shared import (
     get_pool, get_current_user, hash_password, verify_password,
     make_token, user_public, is_valid_email, send_email, is_premium,
+    get_role, online_users, manager,
     EMAIL_CODE_TTL_MINUTES, EMAIL_CODE_MAX_ATTEMPTS, EMAIL_RESEND_COOLDOWN,
-    CURRENT_VERSION, CHANGELOG, email_last_sent
+    CURRENT_VERSION, CHANGELOG, ACHIEVEMENTS, LIMITS, email_last_sent
 )
 
 router = APIRouter()
 
+UPLOAD_DIR = "uploads"
+
 # ============================================================
-# ГЛОБАЛЬНОЕ СОСТОЯНИЕ РЕЛИЗА
+# ГЛОБАЛЬНОЕ СОСТОЯНИЕ РЕЛИЗА (hot-swap)
 # ============================================================
 RELEASE_STATE = {
     "current_version": CURRENT_VERSION,
@@ -30,8 +32,6 @@ RELEASE_STATE = {
 @router.get("/changelog")
 async def changelog():
     return {"current": CURRENT_VERSION, "all": CHANGELOG}
-
-from api._shared import ACHIEVEMENTS
 
 @router.get("/achievements/all")
 async def achievements_all():
@@ -56,6 +56,7 @@ async def register(data: dict):
     pw = data.get("password") or ""
     em = (data.get("email") or "").strip() or None
     ref = (data.get("referrer") or "").strip()[:32] or None
+
     if len(u) < 2 or len(u) > 32: raise HTTPException(400, "Ник 2-32")
     if len(pw) < 4: raise HTTPException(400, "Пароль мин 4")
     if em and not is_valid_email(em): raise HTTPException(400, "Плохой email")
@@ -76,7 +77,8 @@ async def register(data: dict):
                     "UPDATE users SET email_code=$1, email_code_expires=NOW()+INTERVAL '1 minute' * $2, email_code_attempts=0 WHERE id=$3",
                     code, EMAIL_CODE_TTL_MINUTES, row["id"]
                 )
-        except: pass
+        except:
+            pass
     return {"token": make_token(row["id"], row["username"]), "user": user_public(row, row["id"])}
 
 # ============================================================
@@ -112,7 +114,8 @@ async def update_profile(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
     premium = is_premium(user)
-    gif_av = data.get("gif_avatar"); gif_bn = data.get("gif_banner")
+    gif_av = data.get("gif_avatar")
+    gif_bn = data.get("gif_banner")
     if (gif_av or gif_bn) and not premium:
         raise HTTPException(403, "GIF только для премиума")
     p = await get_pool()
@@ -148,9 +151,14 @@ async def set_status(data: dict):
     custom = (data.get("custom_status") or "")[:64]
     p = await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("UPDATE users SET online_status=$1, custom_status=$2 WHERE id=$3", st, custom or None, user["id"])
-    from api._shared import manager
-    await manager.broadcast({"type": "status_update", "user_id": user["id"], "online_status": st, "custom_status": custom or None})
+        await conn.execute(
+            "UPDATE users SET online_status=$1, custom_status=$2 WHERE id=$3",
+            st, custom or None, user["id"]
+        )
+    await manager.broadcast({
+        "type": "status_update", "user_id": user["id"],
+        "online_status": st, "custom_status": custom or None
+    })
     return {"ok": True}
 
 # ============================================================
@@ -167,7 +175,6 @@ async def get_user(user_id: int):
             coins,quest_points,active_frame,title,reputation,level,xp,created_at,last_seen
             FROM users WHERE id=$1""", user_id)
     if not row: raise HTTPException(404, "Не найден")
-    from api._shared import get_role, is_premium, online_users
     d = dict(row)
     d["created_at"] = d["created_at"].isoformat() if d.get("created_at") else None
     d["last_seen"] = d["last_seen"].isoformat() if d.get("last_seen") else None
@@ -193,7 +200,6 @@ async def users_search(q: str, token: str):
             is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,premium_expires,online_status,title
             FROM users WHERE username ILIKE $1 AND id!=$2 ORDER BY username LIMIT 20""",
             f"%{q}%", user["id"])
-    from api._shared import get_role, is_premium, online_users
     out = []
     for r in rows:
         d = dict(r)
@@ -251,7 +257,10 @@ async def email_verify(data: dict):
         raise HTTPException(400, "Код — 6 цифр")
     p = await get_pool()
     async with p.acquire() as conn:
-        row = await conn.fetchrow("SELECT email_code,email_code_expires,email_code_attempts FROM users WHERE id=$1", user["id"])
+        row = await conn.fetchrow(
+            "SELECT email_code,email_code_expires,email_code_attempts FROM users WHERE id=$1",
+            user["id"]
+        )
         if not row or not row["email_code"]:
             raise HTTPException(400, "Сначала запроси код")
         if row["email_code_expires"] and row["email_code_expires"] < datetime.datetime.now(datetime.timezone.utc):
@@ -259,13 +268,15 @@ async def email_verify(data: dict):
             raise HTTPException(400, "Код истёк. Запроси новый.")
         attempts = row["email_code_attempts"] or 0
         if attempts >= EMAIL_CODE_MAX_ATTEMPTS:
-            await conn.execute("UPDATE users SET email_code=NULL,email_code_expires=NULL,email_code_attempts=0 WHERE id=$1", user["id"])
+            await conn.execute("""UPDATE users SET email_code=NULL,email_code_expires=NULL,
+                email_code_attempts=0 WHERE id=$1""", user["id"])
             raise HTTPException(400, "Слишком много попыток. Запроси новый код.")
         if row["email_code"] != code:
             await conn.execute("UPDATE users SET email_code_attempts=email_code_attempts+1 WHERE id=$1", user["id"])
             left = EMAIL_CODE_MAX_ATTEMPTS - attempts - 1
             raise HTTPException(400, f"Неверный код. Осталось попыток: {left}")
-        await conn.execute("UPDATE users SET email_verified=TRUE, email_code=NULL, email_code_expires=NULL, email_code_attempts=0 WHERE id=$1", user["id"])
+        await conn.execute("""UPDATE users SET email_verified=TRUE,email_code=NULL,
+            email_code_expires=NULL,email_code_attempts=0 WHERE id=$1""", user["id"])
     return {"ok": True}
 
 # ============================================================
@@ -287,12 +298,6 @@ async def version():
 # ============================================================
 # UPLOAD FILE
 # ============================================================
-from fastapi import UploadFile, File, Form
-import secrets as _sec
-from api._shared import LIMITS, UPLOAD_DIR if False else None  # placeholder
-
-UPLOAD_DIR = "uploads"
-
 @router.post("/upload")
 async def upload(token: str = Form(...), file: UploadFile = File(...)):
     user = await get_current_user(token)
@@ -301,12 +306,13 @@ async def upload(token: str = Form(...), file: UploadFile = File(...)):
     content = await file.read()
     if len(content) > lim: raise HTTPException(400, "Файл большой")
     ext = os.path.splitext(file.filename or "")[1][:8]
-    name = f"{_sec.token_hex(8)}{ext}"
-    with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
+    name = f"{secrets.token_hex(8)}{ext}"
+    with open(os.path.join(UPLOAD_DIR, name), "wb") as f:
+        f.write(content)
     return {"url": f"/uploads/{name}"}
 
 # ============================================================
-# THEMES — LIST
+# THEMES
 # ============================================================
 @router.get("/themes/list")
 async def themes_list():
@@ -317,15 +323,19 @@ async def themes_list():
         return [{"id":r["id"], "name":r["name"], "emoji":r["emoji"],
                  "vars":json.loads(r["vars"] or "{}"), "bg_image":r["bg_image"],
                  "border_radius":r["border_radius"], "blur":r["blur"]} for r in rows]
-    except: return []
+    except:
+        return []
 
 # ============================================================
 # TITLES
 # ============================================================
 TITLES_DEFAULT = [
-    {"name":"Легенда","emoji":"🏅"},{"name":"Стример","emoji":"🎥"},
-    {"name":"Олдфаг","emoji":"👴"},{"name":"Бета","emoji":"🧪"},
-    {"name":"Админ","emoji":"🛡️"},{"name":"Меценат","emoji":"💰"}
+    {"name": "Легенда", "emoji": "🏅"},
+    {"name": "Стример", "emoji": "🎥"},
+    {"name": "Олдфаг", "emoji": "👴"},
+    {"name": "Бета", "emoji": "🧪"},
+    {"name": "Админ", "emoji": "🛡️"},
+    {"name": "Меценат", "emoji": "💰"}
 ]
 
 @router.get("/titles/list")
@@ -399,8 +409,10 @@ async def blocks_add(data: dict):
     if tid == user["id"]: raise HTTPException(400, "Себя нельзя")
     p = await get_pool()
     async with p.acquire() as conn:
-        try: await conn.execute("INSERT INTO blocks(blocker,blocked) VALUES($1,$2)", user["id"], tid)
-        except: pass
+        try:
+            await conn.execute("INSERT INTO blocks(blocker,blocked) VALUES($1,$2)", user["id"], tid)
+        except:
+            pass
         await conn.execute("DELETE FROM friendships WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)", user["id"], tid)
         await conn.execute("DELETE FROM friend_requests WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)", user["id"], tid)
     return {"ok": True}
@@ -421,11 +433,12 @@ async def blocks_list(token: str):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("SELECT b.blocked AS id, u.username, u.avatar FROM blocks b JOIN users u ON u.id=b.blocked WHERE b.blocker=$1 ORDER BY b.created_at DESC", user["id"])
+        rows = await conn.fetch("""SELECT b.blocked AS id, u.username, u.avatar FROM blocks b
+            JOIN users u ON u.id=b.blocked WHERE b.blocker=$1 ORDER BY b.created_at DESC""", user["id"])
     return [dict(r) for r in rows]
 
 # ============================================================
-# REP
+# REPUTATION
 # ============================================================
 @router.post("/rep/give")
 async def rep_give(data: dict):
@@ -435,11 +448,11 @@ async def rep_give(data: dict):
     if tid == user["id"]: raise HTTPException(400, "Себя нельзя")
     p = await get_pool()
     async with p.acquire() as conn:
-        exists = await conn.fetchrow("SELECT id FROM rep_given WHERE from_user=$1 AND to_user=$2 AND created_at>NOW()-INTERVAL '24 hours'", user["id"], tid)
+        exists = await conn.fetchrow("""SELECT id FROM rep_given WHERE from_user=$1 AND to_user=$2
+            AND created_at>NOW()-INTERVAL '24 hours'""", user["id"], tid)
         if exists: raise HTTPException(400, "Уже давал сегодня")
         await conn.execute("INSERT INTO rep_given(from_user,to_user) VALUES($1,$2)", user["id"], tid)
         await conn.execute("UPDATE users SET reputation=reputation+1 WHERE id=$1", tid)
-    from api._shared import manager
     await manager.send_to(tid, {"type": "rep_update", "from": user["username"]})
     return {"ok": True}
 
@@ -455,7 +468,10 @@ async def report_submit(data: dict):
     tid = data.get("target_id")
     p = await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("INSERT INTO reports(from_user,target_user,text) VALUES($1,$2,$3)", user["id"], tid, txt)
+        await conn.execute(
+            "INSERT INTO reports(from_user,target_user,text) VALUES($1,$2,$3)",
+            user["id"], tid, txt
+        )
     return {"ok": True}
 
 @router.post("/appeal/submit")
@@ -475,9 +491,11 @@ async def appeal_submit(data: dict):
 async def premium_status(token: str):
     user = await get_current_user(token)
     if not user: raise HTTPException(401, "Не авторизован")
-    from api._shared import is_premium
-    return {"is_premium": is_premium(user), "tier": user.get("premium_tier"),
-            "expires": user["premium_expires"].isoformat() if user.get("premium_expires") else None}
+    return {
+        "is_premium": is_premium(user),
+        "tier": user.get("premium_tier"),
+        "expires": user["premium_expires"].isoformat() if user.get("premium_expires") else None
+    }
 
 @router.post("/premium/buy")
 async def premium_buy(data: dict):
@@ -491,12 +509,16 @@ async def premium_buy(data: dict):
     p = await get_pool()
     async with p.acquire() as conn:
         row = await conn.fetchrow("SELECT coins,premium_expires FROM users WHERE id=$1", user["id"])
-        if (row["coins"] or 0) < price: raise HTTPException(400, f"Нужно {price} 🏅")
+        if (row["coins"] or 0) < price:
+            raise HTTPException(400, f"Нужно {price} 🏅")
         now = datetime.datetime.now(datetime.timezone.utc)
         base = row["premium_expires"] if row["premium_expires"] and row["premium_expires"] > now else now
         new_exp = base + datetime.timedelta(days=days)
-        await conn.execute("UPDATE users SET coins=coins-$1, premium_tier='premium', premium_expires=$2 WHERE id=$3", price, new_exp, user["id"])
-        await conn.execute("INSERT INTO premium_log(user_id,tier,days,paid_coins,method) VALUES($1,'premium',$2,$3,'coins')", user["id"], days, price)
+        await conn.execute("""UPDATE users SET coins=coins-$1,
+            premium_tier='premium', premium_expires=$2 WHERE id=$3""",
+            price, new_exp, user["id"])
+        await conn.execute("""INSERT INTO premium_log(user_id,tier,days,paid_coins,method)
+            VALUES($1,'premium',$2,$3,'coins')""", user["id"], days, price)
     return {"ok": True, "premium_until": new_exp.isoformat(), "days": days, "price": price}
 
 # ============================================================
@@ -520,22 +542,28 @@ async def frames_buy(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
     fid = data.get("frame_id")
-    from api._shared import is_premium
     p = await get_pool()
     async with p.acquire() as conn:
         f = await conn.fetchrow("SELECT * FROM frames_catalog WHERE frame_id=$1", fid)
         if not f: raise HTTPException(404, "Нет рамки")
         owned = json.loads(user.get("frame_owned") or "[]")
         if fid in owned: raise HTTPException(400, "Уже есть")
-        if f["is_premium"] and not is_premium(user): raise HTTPException(403, "Только для премиума")
+        if f["is_premium"] and not is_premium(user):
+            raise HTTPException(403, "Только для премиума")
         method = data.get("method", "coins")
         if method == "coins" and f["price_coins"]:
-            if (user.get("coins") or 0) < f["price_coins"]: raise HTTPException(400, "Не хватает 🏅")
-            await conn.execute("UPDATE users SET coins=coins-$1, frame_owned=$2 WHERE id=$3", f["price_coins"], json.dumps(owned + [fid]), user["id"])
+            if (user.get("coins") or 0) < f["price_coins"]:
+                raise HTTPException(400, "Не хватает 🏅")
+            await conn.execute("""UPDATE users SET coins=coins-$1, frame_owned=$2
+                WHERE id=$3""", f["price_coins"], json.dumps(owned + [fid]), user["id"])
         elif method == "kp" and f["price_kp"]:
-            if (user.get("quest_points") or 0) < f["price_kp"]: raise HTTPException(400, "Не хватает КП")
-            await conn.execute("UPDATE users SET quest_points=quest_points-$1, frame_owned=$2 WHERE id=$3", f["price_kp"], json.dumps(owned + [fid]), user["id"])
-        else: raise HTTPException(400, "Способ оплаты не подходит")
+            if (user.get("quest_points") or 0) < f["price_kp"]:
+                raise HTTPException(400, "Не хватает КП")
+            await conn.execute("""UPDATE users SET quest_points=quest_points-$1,
+                frame_owned=$2 WHERE id=$3""",
+                f["price_kp"], json.dumps(owned + [fid]), user["id"])
+        else:
+            raise HTTPException(400, "Способ оплаты не подходит")
     return {"ok": True}
 
 @router.post("/frames/set")
@@ -543,7 +571,6 @@ async def frames_set(data: dict):
     user = await get_current_user(data.get("token"))
     if not user: raise HTTPException(401, "Не авторизован")
     fid = data.get("frame_id", "none")
-    from api._shared import is_premium
     p = await get_pool()
     async with p.acquire() as conn:
         f = await conn.fetchrow("SELECT * FROM frames_catalog WHERE frame_id=$1", fid)
@@ -551,12 +578,14 @@ async def frames_set(data: dict):
         if fid != "none":
             owned = json.loads(user.get("frame_owned") or "[]")
             if fid not in owned: raise HTTPException(403, "Не куплена")
-            if f["is_premium"] and not is_premium(user): raise HTTPException(403, "Только для премиума")
-        await conn.execute("UPDATE users SET active_frame=$1 WHERE id=$2", fid if fid != "none" else None, user["id"])
+            if f["is_premium"] and not is_premium(user):
+                raise HTTPException(403, "Только для премиума")
+        await conn.execute("UPDATE users SET active_frame=$1 WHERE id=$2",
+            fid if fid != "none" else None, user["id"])
     return {"ok": True}
 
 # ============================================================
-# DAILY / QUESTS
+# DAILY BONUS
 # ============================================================
 @router.post("/daily/bonus")
 async def daily_bonus(data: dict):
@@ -565,28 +594,36 @@ async def daily_bonus(data: dict):
     from api._shared import check_daily_bonus
     r = await check_daily_bonus(user["id"])
     if not r.get("ok"):
-        if r.get("reason") == "already": raise HTTPException(429, f"Через {r['next_in']} сек")
+        if r.get("reason") == "already":
+            raise HTTPException(429, f"Через {r['next_in']} сек")
         raise HTTPException(400, r.get("reason", "Ошибка"))
     return r
 
+# ============================================================
+# QUESTS
+# ============================================================
 @router.get("/quests/list")
 async def quests_list(token: str):
     user = await get_current_user(token)
     if not user: raise HTTPException(401, "Не авторизован")
-    from api._shared import get_pool, QUEST_TEMPLATES, get_today_key
+    from api._shared import QUEST_TEMPLATES, get_today_key
     p = await get_pool()
     async with p.acquire() as conn:
-        row = await conn.fetchrow("SELECT quest_day,quest_progress,quest_claimed,quest_points FROM users WHERE id=$1", user["id"])
+        row = await conn.fetchrow("""SELECT quest_day,quest_progress,quest_claimed,quest_points
+            FROM users WHERE id=$1""", user["id"])
     today = get_today_key()
-    prog = {}; claimed = []
+    prog = {}
+    claimed = []
     if row["quest_day"] == today:
         prog = json.loads(row["quest_progress"] or "{}")
         claimed = json.loads(row["quest_claimed"] or "[]")
     result = []
     for q in QUEST_TEMPLATES:
-        result.append({"key":q["key"], "name":q["name"], "desc":q["desc"], "emoji":q["emoji"],
-                       "goal":q["goal"], "reward_kp":q["reward_kp"],
-                       "progress":prog.get(q["key"], 0), "claimed": q["key"] in claimed})
+        result.append({
+            "key": q["key"], "name": q["name"], "desc": q["desc"], "emoji": q["emoji"],
+            "goal": q["goal"], "reward_kp": q["reward_kp"],
+            "progress": prog.get(q["key"], 0), "claimed": q["key"] in claimed
+        })
     return {"quests": result, "quest_points": row["quest_points"] or 0}
 
 @router.post("/quests/exchange")
@@ -600,11 +637,14 @@ async def quests_exchange(data: dict):
     p = await get_pool()
     async with p.acquire() as conn:
         row = await conn.fetchrow("SELECT quest_points,premium_expires FROM users WHERE id=$1", user["id"])
-        if (row["quest_points"] or 0) < info["cost"]: raise HTTPException(400, f"Нужно {info['cost']} КП")
+        if (row["quest_points"] or 0) < info["cost"]:
+            raise HTTPException(400, f"Нужно {info['cost']} КП")
         now = datetime.datetime.now(datetime.timezone.utc)
         base = row["premium_expires"] if row["premium_expires"] and row["premium_expires"] > now else now
         new_exp = base + datetime.timedelta(days=info["days"])
-        await conn.execute("UPDATE users SET quest_points=quest_points-$1, premium_tier='premium', premium_expires=$2 WHERE id=$3", info["cost"], new_exp, user["id"])
+        await conn.execute("""UPDATE users SET quest_points=quest_points-$1,
+            premium_tier='premium', premium_expires=$2 WHERE id=$3""",
+            info["cost"], new_exp, user["id"])
     return {"ok": True, "premium_until": new_exp.isoformat(), "days": info["days"]}
 
 # ============================================================
@@ -614,17 +654,22 @@ async def quests_exchange(data: dict):
 async def levels_me(token: str):
     user = await get_current_user(token)
     if not user: raise HTTPException(401, "Не авторизован")
-    return {"level": user.get("level", 1), "xp": user.get("xp", 0), "next_xp": user.get("level", 1) * 100}
+    return {
+        "level": user.get("level", 1),
+        "xp": user.get("xp", 0),
+        "next_xp": user.get("level", 1) * 100
+    }
 
 @router.get("/levels/leaders")
 async def levels_leaders():
     p = await get_pool()
     async with p.acquire() as conn:
-        rows = await conn.fetch("SELECT username,level,xp FROM users ORDER BY level DESC, xp DESC LIMIT 20")
+        rows = await conn.fetch("""SELECT username,level,xp FROM users
+            ORDER BY level DESC, xp DESC LIMIT 20""")
     return [dict(r) for r in rows]
 
 # ============================================================
-# LEGACY ACHIEVEMENTS ENDPOINT (доп)
+# ACHIEVEMENTS ME
 # ============================================================
 @router.get("/achievements/me")
 async def achievements_me(token: str):
