@@ -1,0 +1,194 @@
+<!-- BELUGACORD 2.5 — MODULE: ADMIN -->
+
+<!-- ==================== ЛОГИН ВЛАДЕЛЬЦА ==================== -->
+<div class="modal-overlay" id="ownerLoginModal">
+  <div class="modal" style="max-width:420px">
+    <button class="close-btn" onclick="document.getElementById('ownerLoginModal').classList.remove('open')">✕</button>
+    <div style="padding:44px 26px 26px;text-align:center">
+      <div style="font-size:64px;margin-bottom:10px">👑</div>
+      <h2 class="owner-gui-title" style="font-size:28px;margin-bottom:6px">BOG-ADMIN</h2>
+      <p style="color:var(--text-mute);font-size:12px;margin-bottom:20px">Только для владельца</p>
+      <input type="password" id="ownerPassword" class="input-field" placeholder="Пароль">
+      <button class="save-btn purple" onclick="verifyOwner()" style="margin-top:14px">🚀 ВОЙТИ</button>
+      <div id="ownerError" style="color:#f43f5e;font-size:13px;text-align:center;min-height:18px;margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== БОГ-ГУИ ==================== -->
+<div class="modal-overlay" id="ownerGuiModal">
+  <div class="modal" style="max-width:1200px">
+    <button class="close-btn" onclick="document.getElementById('ownerGuiModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h1 class="owner-gui-title" style="font-size:32px;margin-bottom:4px">👑 BOG-ADMIN</h1>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px">Владелец Белугакорда</div>
+      <div id="ownerStats" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:18px"></div>
+      <div class="shop-tabs" style="flex-wrap:wrap">
+        <button class="shop-tab-btn active" onclick="showOwnerSec('users',event)">👥 Юзеры</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('economy',event)">💰 Экономика</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('nft',event)">🎨 NFT</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('gifts',event)">🎀 Подарки</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('cases',event)">🎁 Кейсы</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('bp',event)">🏆 БП</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('events',event)">🎯 Ивенты</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('abuse',event)">😈 Абьюз</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('troll',event)">😈 Тролль</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('releases',event)">🚀 Релизы</button>
+        <button class="shop-tab-btn" onclick="showOwnerSec('system',event)">🛠️ Система</button>
+      </div>
+      <div id="ownerBody" style="min-height:400px;max-height:60vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== АДМИН ЛОГИН ==================== -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal" style="max-width:400px">
+    <button class="close-btn" onclick="document.getElementById('adminLoginModal').classList.remove('open')">✕</button>
+    <div style="padding:44px 26px 26px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">🛡️ Админка</h2>
+      <input type="password" id="adminPassword" class="input-field" placeholder="Пароль">
+      <button class="save-btn gold" onclick="verifyAdmin()">Войти</button>
+      <button class="save-btn gray" onclick="openAdminPassSetup()">🔑 Установить пароль</button>
+      <div id="adminError" style="color:#f43f5e;font-size:13px;text-align:center;min-height:18px;margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminPassSetupModal">
+  <div class="modal" style="max-width:400px">
+    <button class="close-btn" onclick="document.getElementById('adminPassSetupModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:14px">🔑 Пароль админки</h2>
+      <input type="password" id="newAdminPass" class="input-field" placeholder="Новый" style="margin-bottom:10px">
+      <input type="password" id="newAdminPass2" class="input-field" placeholder="Повтори">
+      <button class="save-btn green" onclick="saveAdminPassword()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== АДМИН-ПАНЕЛЬ ==================== -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal" style="max-width:900px">
+    <button class="close-btn" onclick="document.getElementById('adminModal').classList.remove('open')">✕</button>
+    <div style="padding:22px 24px 0"><h2 style="font-size:22px">🛡️ Админ-панель</h2></div>
+    <div id="adminStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px 0"></div>
+    <div class="admin-tabs" style="display:flex;gap:6px;padding:14px 24px 0;border-bottom:1px solid var(--border);overflow-x:auto">
+      <button class="admin-tab active" onclick="showAdminTab('users',this)">👥 Юзеры</button>
+      <button class="admin-tab" onclick="showAdminTab('reports',this)">⚠️ Жалобы</button>
+      <button class="admin-tab" onclick="showAdminTab('logs',this)">📜 Логи</button>
+    </div>
+    <div id="adminBody" style="padding:20px 24px;min-height:400px"></div>
+  </div>
+</div>
+
+<!-- ==================== СПИСОК ЮЗЕРОВ ==================== -->
+<div class="modal-overlay" id="usersListModal">
+  <div class="modal" style="max-width:1100px">
+    <button class="close-btn" onclick="document.getElementById('usersListModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">📋 Все юзеры</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px" id="usersListCount">Загрузка...</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <input type="text" id="usersSearchInput" class="input-field" placeholder="🔍 Поиск по нику / email" oninput="filterUsersList()" style="flex:1;min-width:220px">
+        <select id="usersFilterSelect" class="input-field" onchange="filterUsersList()" style="cursor:pointer">
+          <option value="all">🌐 Все</option>
+          <option value="online">🟢 Онлайн</option>
+          <option value="banned">🔨 Забаненные</option>
+          <option value="scam">🎭 SCAM</option>
+          <option value="premium">💎 Премиум</option>
+          <option value="promo">🎁 Промо</option>
+        </select>
+        <button class="save-btn gold" style="margin:0;width:auto;padding:10px 16px;font-size:12px" onclick="exportUsersCsv()">📊 CSV</button>
+      </div>
+      <div id="usersMassActions" style="display:none;background:linear-gradient(135deg,rgba(217,70,239,0.15),rgba(139,92,246,0.1));border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:12px;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:800;color:var(--accent)">Выбрано: <span id="usersSelectedCount">0</span></span>
+        <button class="save-btn red" style="margin:0;width:auto;padding:6px 12px;font-size:11px" onclick="massAction('ban')">🔨 Бан</button>
+        <button class="save-btn green" style="margin:0;width:auto;padding:6px 12px;font-size:11px" onclick="massAction('unban')">✅ Разбан</button>
+        <button class="save-btn red" style="margin:0;width:auto;padding:6px 12px;font-size:11px" onclick="massAction('scam')">🎭 SCAM</button>
+        <button class="save-btn gold" style="margin:0;width:auto;padding:6px 12px;font-size:11px" onclick="massAction('premium')">💎 Premium</button>
+        <button class="save-btn gray" style="margin:0;width:auto;padding:6px 12px;font-size:11px" onclick="massAction('clear')">✖ Снять</button>
+      </div>
+      <div id="usersListBody" style="max-height:60vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ПРОМО-ПАНЕЛЬ ==================== -->
+<div class="modal-overlay" id="promoPanelModal">
+  <div class="modal" style="max-width:900px">
+    <button class="close-btn" onclick="document.getElementById('promoPanelModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🎁 Промо-панель</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">Рефералы по ссылке <b style="color:var(--accent)">/fanchipromo</b></div>
+      <div style="background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(217,70,239,0.1));border:2px solid var(--gold);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px">
+        <div style="font-size:11px;color:var(--gold);font-weight:900;letter-spacing:2px;text-transform:uppercase">Всего зарегано</div>
+        <div style="font-size:48px;font-weight:900;color:var(--gold);line-height:1.1" id="promoTotalCount">0</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="save-btn" style="margin:0;width:auto;padding:10px 16px;font-size:12px" onclick="copyPromoLink()">📋 Ссылка</button>
+        <button class="save-btn purple" style="margin:0;width:auto;padding:10px 16px;font-size:12px" onclick="promoSelectRandom(10)">🎲 Выбрать 10</button>
+        <button class="save-btn gold" style="margin:0;width:auto;padding:10px 16px;font-size:12px" onclick="promoGivePremiumSelected()">💎 Premium выделенным</button>
+        <button class="save-btn gray" style="margin:0;width:auto;padding:10px 16px;font-size:12px" onclick="exportPromoCsv()">📊 CSV</button>
+      </div>
+      <div id="promoSelectedInfo" style="display:none;background:var(--bg-input);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:12px;font-weight:800;color:var(--accent)"></div>
+      <div id="promoListBody" style="max-height:55vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== РЕДАКТОР БП ==================== -->
+<div class="modal-overlay" id="bpEditorModal">
+  <div class="modal" style="max-width:800px">
+    <button class="close-btn" onclick="document.getElementById('bpEditorModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🏆 Редактор БП</h2>
+      <div class="shop-tabs">
+        <button class="shop-tab-btn active" onclick="showBpEditorTab('season',event)">🎯 Сезон</button>
+        <button class="shop-tab-btn" onclick="showBpEditorTab('quests',event)">📋 Задания</button>
+        <button class="shop-tab-btn" onclick="showBpEditorTab('rewards',event)">🎁 Награды</button>
+      </div>
+      <div id="bpEditorBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== РЕЛИЗЫ ==================== -->
+<div class="modal-overlay" id="releasesPanelModal">
+  <div class="modal" style="max-width:640px">
+    <button class="close-btn" onclick="document.getElementById('releasesPanelModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🚀 Управление релизами</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">Включи новую версию — все юзеры получат уведомление</div>
+      <div id="releasesBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== КООП-АБЬЮЗ ==================== -->
+<div class="modal-overlay" id="coopModal">
+  <div class="modal" style="max-width:560px">
+    <button class="close-btn" onclick="document.getElementById('coopModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🤝 Кооп-абьюз</h2>
+      <div id="coopOnlineList" style="max-height:200px;overflow-y:auto;margin-bottom:16px"></div>
+      <div id="coopSelectedBox" style="display:none">
+        <div class="shop-section-title">Выбран: <span id="coopSelectedName" style="color:var(--accent)"></span></div>
+        <label class="label">Время (минут)</label>
+        <input type="number" id="coopMinutes" class="input-field" value="60" style="margin-bottom:12px">
+        <button class="save-btn purple" onclick="grantCoop()" style="margin-top:14px">🚀 Выдать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== АБЬЮЗ-ПАНЕЛЬ ==================== -->
+<div class="modal-overlay" id="abusePanelModal">
+  <div class="modal" style="max-width:640px">
+    <button class="close-btn" onclick="document.getElementById('abusePanelModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:24px;margin-bottom:4px;background:linear-gradient(135deg,#ff00ff,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900">😈 ADMIN ABUSE</h2>
+      <div class="owner-section-grid" id="abuseCards"></div>
+    </div>
+  </div>
+</div>
