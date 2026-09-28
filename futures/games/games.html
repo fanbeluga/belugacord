@@ -1,0 +1,251 @@
+<!-- BELUGACORD 2.5 — MODULE: GAMES -->
+
+<!-- ==================== МЕНЮ ИГР ==================== -->
+<div class="modal-overlay" id="gamesMenuModal">
+  <div class="modal" style="max-width:700px">
+    <button class="close-btn" onclick="document.getElementById('gamesMenuModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🎮 Игры</h2>
+      <div id="tournamentBanner" style="display:none;text-align:center;padding:10px;background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(217,70,239,0.15));border:1px solid var(--gold);border-radius:12px;margin-bottom:16px;font-size:13px;font-weight:800"></div>
+      <div id="top3Games" style="margin-bottom:16px"></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div class="shop-tile" onclick="openTicTacToe()"><div class="st-icon">❌</div><div class="st-name">Крестики</div></div>
+        <div class="shop-tile" onclick="openRps()"><div class="st-icon">✊</div><div class="st-name">КНБ</div></div>
+        <div class="shop-tile" onclick="openBattleship()"><div class="st-icon">🚢</div><div class="st-name">Морской бой</div></div>
+        <div class="shop-tile" onclick="openDuel()"><div class="st-icon">⚔️</div><div class="st-name">Дуэль</div></div>
+        <div class="shop-tile" onclick="openSnake()"><div class="st-icon">🐍</div><div class="st-name">Змейка</div></div>
+        <div class="shop-tile" onclick="openFlappy()"><div class="st-icon">🐦</div><div class="st-name">Flappy</div></div>
+        <div class="shop-tile" onclick="openTetris()"><div class="st-icon">🧱</div><div class="st-name">Тетрис</div></div>
+        <div class="shop-tile" onclick="open2048()"><div class="st-icon">🔢</div><div class="st-name">2048</div></div>
+        <div class="shop-tile" onclick="openMemory()"><div class="st-icon">🧠</div><div class="st-name">Memory</div></div>
+        <div class="shop-tile" onclick="openReaction()"><div class="st-icon">⚡</div><div class="st-name">Реакция</div></div>
+        <div class="shop-tile" onclick="openMinesweeper()"><div class="st-icon">💣</div><div class="st-name">Сапёр</div></div>
+        <div class="shop-tile" onclick="openDoom()"><div class="st-icon">💀</div><div class="st-name">DOOM</div></div>
+        <div class="game-tile-2" onclick="openItch()"><div style="font-size:32px">🎮</div><div style="font-size:11px;font-weight:800;margin-top:6px">itch.io</div></div>
+        <div class="game-tile-2" onclick="openPenguin3D()"><div style="font-size:32px">🐧</div><div style="font-size:11px;font-weight:800;margin-top:6px">Пингвин</div></div>
+      </div>
+      <button class="save-btn gold" onclick="openTournament()">🏆 Турнир</button>
+      <button class="save-btn gray" onclick="openGamesLeaders()">📊 Топ игроков</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== КРЕСТИКИ ==================== -->
+<div class="modal-overlay" id="tictactoeModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('tictactoeModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">❌⭕ Крестики-нолики</h2>
+      <div class="game-players">
+        <div>Ты: <span>❌</span></div>
+        <div id="tttStatus" style="color:var(--gold);font-weight:900">Твой ход</div>
+        <div>Бот: <span>⭕</span></div>
+      </div>
+      <div class="game-board" id="tttBoard"></div>
+      <button class="save-btn green" onclick="startTicTacToe()">🔄 Новая</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== КНБ ==================== -->
+<div class="modal-overlay" id="rpsModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('rpsModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">✊✋✌️ КНБ</h2>
+      <div class="rps-choices">
+        <div class="rps-choice" onclick="playRps('rock')">✊</div>
+        <div class="rps-choice" onclick="playRps('paper')">✋</div>
+        <div class="rps-choice" onclick="playRps('scissors')">✌️</div>
+      </div>
+      <div id="rpsResult" style="font-size:16px;font-weight:800;min-height:30px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== МОРСКОЙ БОЙ ==================== -->
+<div class="modal-overlay" id="battleshipModal">
+  <div class="modal" style="max-width:700px">
+    <button class="close-btn" onclick="document.getElementById('battleshipModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🚢 Морской бой</h2>
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
+        <div><div style="font-weight:800;margin-bottom:8px">Твоё поле</div><div class="battleship-board" id="bsMine"></div></div>
+        <div><div style="font-weight:800;margin-bottom:8px">Поле врага</div><div class="battleship-board" id="bsEnemy"></div></div>
+      </div>
+      <div id="bsStatus" style="margin-top:14px;font-weight:800"></div>
+      <button class="save-btn green" onclick="startBattleship()">🔄 Новая</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ДУЭЛЬ ==================== -->
+<div class="modal-overlay" id="duelModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('duelModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">⚔️ Дуэль</h2>
+      <div class="duel-arena">
+        <div style="font-size:14px;color:var(--text-dim);margin-bottom:14px">Просто кликни и узнай результат</div>
+        <button class="duel-btn" onclick="fireDuel()">🎯 ОГОНЬ</button>
+        <div id="duelResult" style="margin-top:16px;font-size:16px;font-weight:900;min-height:30px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ЗМЕЙКА ==================== -->
+<div class="modal-overlay" id="snakeModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('snakeModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🐍 Змейка</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:10px">Очки: <span id="snakeScore">0</span> · Рекорд: <span id="snakeBest">0</span></div>
+      <canvas id="snakeCanvas" width="400" height="400"></canvas>
+      <button class="save-btn green" onclick="startSnake()" style="margin-top:12px">▶ Старт</button>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:8px">Стрелки / WASD</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FLAPPY ==================== -->
+<div class="modal-overlay" id="flappyModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('flappyModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🐦 Flappy</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:10px">Очки: <span id="flappyScore">0</span></div>
+      <canvas id="flappyCanvas" width="400" height="500"></canvas>
+      <button class="save-btn green" onclick="startFlappy()" style="margin-top:12px">▶ Старт</button>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:8px">Пробел / клик</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТЕТРИС ==================== -->
+<div class="modal-overlay" id="tetrisModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('tetrisModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🧱 Тетрис</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:10px">Очки: <span id="tetrisScore">0</span> · Линии: <span id="tetrisLines">0</span></div>
+      <canvas id="tetrisCanvas" width="300" height="500"></canvas>
+      <button class="save-btn green" onclick="startTetris()" style="margin-top:12px">▶ Старт</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 2048 ==================== -->
+<div class="modal-overlay" id="game2048Modal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('game2048Modal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🔢 2048</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:10px">Очки: <span id="g2048Score">0</span></div>
+      <div id="g2048Board"></div>
+      <button class="save-btn green" onclick="start2048()" style="margin-top:12px">▶ Новая</button>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:8px">Стрелки</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MEMORY ==================== -->
+<div class="modal-overlay" id="memoryModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('memoryModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🧠 Memory</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:10px">Ходы: <span id="memoryMoves">0</span> · Найдено: <span id="memoryFound">0</span>/8</div>
+      <div id="memoryBoard"></div>
+      <button class="save-btn green" onclick="startMemory()" style="margin-top:12px">▶ Новая</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== РЕАКЦИЯ ==================== -->
+<div class="modal-overlay" id="reactionModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('reactionModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">⚡ Реакция</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:14px">Лучшее: <span id="reactionBest">—</span> мс</div>
+      <div id="reactionArea">Нажми, чтобы начать</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== САПЁР ==================== -->
+<div class="modal-overlay" id="minesweeperModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('minesweeperModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">💣 Сапёр</h2>
+      <div style="color:var(--gold);font-weight:900;font-size:18px;margin-bottom:10px">Флаги: <span id="minesFlags">0</span>/10 · Время: <span id="minesTime">0</span>с</div>
+      <div style="display:inline-block"><div id="minesweeperBoard"></div></div>
+      <button class="save-btn green" onclick="startMinesweeper()" style="margin-top:12px">▶ Новая</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ПИНГВИН 3D ==================== -->
+<div class="modal-overlay" id="penguin3dModal">
+  <div class="modal" style="max-width:700px">
+    <button class="close-btn" onclick="document.getElementById('penguin3dModal').classList.remove('open')">✕</button>
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-size:22px;margin-bottom:14px">🐧 Пингвин 3D</h2>
+      <div id="penguin3dArea"></div>
+      <button class="save-btn green" onclick="startPenguin3D()" style="margin-top:12px">▶ Старт</button>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:8px">Стрелки / WASD</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DOOM ==================== -->
+<div class="modal-overlay" id="doomModal">
+  <div class="modal" style="max-width:1000px">
+    <button class="close-btn" onclick="document.getElementById('doomModal').classList.remove('open')">✕</button>
+    <div style="padding:20px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:14px">💀 DOOM</h2>
+      <div id="doomEmbed" class="doom-iframe"></div>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-mute)">Не грузится? <a href="https://dos.zone/doom-dec-1993/" target="_blank" style="color:var(--accent);font-weight:700">Открыть в новой вкладке →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ITCH ==================== -->
+<div class="modal-overlay" id="itchModal">
+  <div class="modal" style="max-width:900px">
+    <button class="close-btn" onclick="document.getElementById('itchModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:14px">🎮 Игры</h2>
+      <div id="itchGameList"></div>
+      <div id="itchEmbed" class="itch-embed" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТУРНИР ==================== -->
+<div class="modal-overlay" id="tournamentModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('tournamentModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:18px">🏆 Турнир</h2>
+      <div id="tournamentGames" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px"></div>
+      <div id="tournamentStatus" style="text-align:center;font-size:13px;color:var(--text-dim);margin-bottom:16px"></div>
+      <div id="tournamentLeaders"></div>
+      <button class="save-btn red" onclick="resetTournament()">🗑️ Сбросить</button>
+      <button class="save-btn gray" onclick="clearTournament()">❌ Выключить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТОП ИГРОКОВ ==================== -->
+<div class="modal-overlay" id="gamesLeadersModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('gamesLeadersModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:14px">📊 Топ игроков</h2>
+      <div id="gamesLeadersBody"></div>
+    </div>
+  </div>
+</div>
