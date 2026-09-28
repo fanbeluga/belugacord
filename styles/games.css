@@ -1,1 +1,277 @@
+/* ============================================================
+   BELUGACORD 2.5 — GAMES.CSS
+   Игры: доски, канвасы, карточки
+   ============================================================ */
 
+/* ============================================================
+   ОБЩЕЕ
+   ============================================================ */
+.game-board{
+  display:grid;grid-template-columns:repeat(3,80px);gap:4px;
+  justify-content:center;margin:16px 0;
+}
+.game-cell{
+  width:80px;height:80px;background:var(--bg-input);
+  border:2px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;cursor:pointer;font-weight:900;transition:all 0.15s;
+}
+.game-cell:hover{background:rgba(217,70,239,0.1)}
+.game-cell.x{color:#22d3ee}
+.game-cell.o{color:#f43f5e}
+
+.game-players{
+  display:flex;justify-content:space-around;
+  margin-bottom:16px;font-size:13px;font-weight:800;
+}
+
+/* ============================================================
+   МОРСКОЙ БОЙ
+   ============================================================ */
+.battleship-board{
+  display:grid;grid-template-columns:repeat(10,32px);gap:2px;
+  justify-content:center;margin:10px 0;
+}
+.battleship-cell{
+  width:32px;height:32px;background:#1e40af;
+  border-radius:4px;cursor:pointer;transition:background 0.15s;
+}
+.battleship-cell:hover{background:#2563eb}
+.battleship-cell.hit{background:#dc2626}
+.battleship-cell.miss{background:#64748b}
+.battleship-cell.ship{background:#22c55e}
+
+/* ============================================================
+   КНБ
+   ============================================================ */
+.rps-choices{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin:16px 0;
+}
+.rps-choice{
+  padding:20px;background:var(--bg-input);
+  border:2px solid var(--border);border-radius:14px;
+  cursor:pointer;text-align:center;font-size:36px;
+  transition:all 0.15s;
+}
+.rps-choice:hover{border-color:var(--accent);transform:scale(1.05)}
+
+/* ============================================================
+   ДУЭЛЬ
+   ============================================================ */
+.duel-arena{
+  text-align:center;padding:30px;
+  background:var(--bg-input);border-radius:16px;margin:16px 0;
+}
+.duel-btn{
+  padding:20px 40px;font-size:24px;font-weight:900;
+  background:linear-gradient(135deg,#f43f5e,#dc2626);
+  color:#fff;border:none;border-radius:16px;cursor:pointer;
+  box-shadow:0 8px 20px rgba(244,63,94,0.4);
+  transition:all 0.15s;font-family:inherit;
+}
+.duel-btn:hover{transform:translateY(-2px)}
+.duel-btn:active{transform:translateY(0)}
+.duel-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+/* ============================================================
+   КАНВАСЫ ИГР
+   ============================================================ */
+#snakeCanvas,#tetrisCanvas,#flappyCanvas{
+  border:2px solid var(--accent);border-radius:12px;
+  background:#000;max-width:100%;display:block;margin:0 auto;
+}
+#snakeCanvas{width:400px;height:400px}
+#tetrisCanvas{width:300px;height:500px;background:#000}
+#flappyCanvas{width:400px;height:500px;background:#0a0a2a}
+
+/* ============================================================
+   2048
+   ============================================================ */
+#g2048Board{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  background:var(--bg-input);padding:10px;border-radius:12px;
+  max-width:400px;margin:0 auto;
+}
+
+/* ============================================================
+   MEMORY
+   ============================================================ */
+#memoryBoard{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  max-width:400px;margin:0 auto;
+}
+
+/* ============================================================
+   РЕАКЦИЯ
+   ============================================================ */
+#reactionArea{
+  width:100%;height:300px;background:var(--bg-input);
+  border:2px solid var(--border);border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;cursor:pointer;
+  transition:background 0.2s,color 0.2s;user-select:none;
+}
+#reactionArea:hover{background:rgba(217,70,239,0.05)}
+
+/* ============================================================
+   САПЁР
+   ============================================================ */
+#minesweeperBoard{
+  display:inline-grid;grid-template-columns:repeat(10,32px);gap:2px;
+  background:var(--bg-input);padding:8px;border-radius:12px;
+}
+
+/* ============================================================
+   ПИНГВИН 3D
+   ============================================================ */
+#penguin3dArea{
+  position:relative;width:100%;height:400px;
+  background:linear-gradient(180deg,#0a2a4a,#1a4a6a);
+  border-radius:16px;overflow:hidden;border:2px solid var(--accent);
+}
+
+/* ============================================================
+   ИГРОВЫЕ КАРТОЧКИ (меню)
+   ============================================================ */
+.game-tile-2{
+  background:var(--bg-input);border:2px solid var(--border);
+  border-radius:14px;padding:14px 10px;text-align:center;
+  cursor:pointer;transition:all 0.15s;
+}
+.game-tile-2:hover{border-color:var(--accent);transform:translateY(-2px)}
+
+/* ============================================================
+   DOOM / ITCH
+   ============================================================ */
+.doom-iframe{
+  width:100%;height:500px;background:#000;
+  border:2px solid var(--accent);border-radius:12px;
+  margin-top:12px;overflow:hidden;
+}
+.doom-iframe iframe{width:100%;height:100%;border:none;display:block}
+
+.itch-embed{
+  width:100%;height:400px;background:#1a0a2a;
+  border:2px solid var(--accent-2);border-radius:12px;margin-top:12px;
+}
+
+/* ============================================================
+   КЕЙСЫ (рулетка-анимация)
+   ============================================================ */
+.case-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;
+}
+.case-tile{
+  background:var(--bg-input);border:1px solid var(--border);
+  border-radius:16px;padding:18px 12px;text-align:center;
+  cursor:pointer;transition:all 0.2s;position:relative;
+}
+.case-tile:hover{border-color:var(--gold);transform:translateY(-4px)}
+.case-tile .case-emoji{
+  font-size:56px;display:flex;align-items:center;justify-content:center;
+  height:70px;margin-bottom:8px;
+}
+.case-tile .case-emoji img{width:64px;height:64px;object-fit:contain}
+.case-tile .case-name{font-size:14px;font-weight:800;margin-bottom:6px}
+.case-tile .case-price{
+  font-size:15px;color:var(--gold);font-weight:900;margin-bottom:8px;
+}
+.case-tile .case-open{
+  background:linear-gradient(135deg,#ffd700,#ff8c00);
+  color:#1a0a2e;border:none;padding:10px;
+  border-radius:10px;font-weight:900;font-size:12px;
+  cursor:pointer;width:100%;font-family:inherit;
+}
+
+.case-roulette{
+  position:fixed;inset:0;background:rgba(5,0,15,0.95);
+  z-index:9999;display:none;align-items:center;
+  justify-content:center;flex-direction:column;
+  gap:20px;padding:20px;
+}
+.case-roulette.open{display:flex}
+.case-roulette-strip{
+  width:100%;max-width:600px;height:140px;
+  background:var(--bg-window);border:2px solid var(--gold);
+  border-radius:16px;overflow:hidden;position:relative;
+}
+.case-roulette-inner{
+  position:absolute;top:0;left:0;height:100%;
+  display:flex;align-items:center;gap:10px;padding:10px;
+  transition:transform 4s cubic-bezier(0.2,0.9,0.3,1);
+}
+.case-roulette-inner .cr-item{
+  min-width:100px;height:120px;background:var(--bg-input);
+  border-radius:12px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;padding:10px;
+}
+.case-roulette-inner .cr-item .cr-emoji{font-size:42px}
+.case-roulette-inner .cr-item .cr-name{
+  font-size:10px;font-weight:800;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;max-width:90px;
+}
+.case-roulette-pointer{
+  position:absolute;top:0;bottom:0;left:50%;width:4px;
+  background:linear-gradient(180deg,#ffd700,#ff8c00);
+  transform:translateX(-50%);z-index:5;
+}
+.case-roulette-result{
+  font-size:24px;font-weight:900;color:var(--gold);
+  text-align:center;opacity:0;transition:opacity 0.5s;
+  padding:14px 24px;background:rgba(0,0,0,0.5);border-radius:16px;
+}
+.case-roulette-result.show{opacity:1}
+
+/* ============================================================
+   АПГРЕЙДЕР 2.0 (круг-мишень)
+   ============================================================ */
+.ug-circle-wrap{
+  position:relative;width:280px;height:280px;margin:20px auto;
+}
+.ug-circle-svg{
+  width:100%;height:100%;display:block;
+  filter:drop-shadow(0 0 20px rgba(217,70,239,0.3));
+}
+.ug-arrow{
+  position:absolute;top:-14px;left:50%;
+  transform:translateX(-50%) rotate(0deg);
+  transform-origin:50% 154px;
+  font-size:32px;color:var(--gold);
+  filter:drop-shadow(0 0 10px rgba(255,215,0,0.9));
+  transition:transform 4s cubic-bezier(0.15,0.85,0.25,1);
+  pointer-events:none;
+}
+.ug-chance-display{
+  text-align:center;font-size:16px;font-weight:900;
+  color:var(--gold);margin:10px 0;
+  letter-spacing:1px;
+}
+
+/* ============================================================
+   МОБИЛЬНОЕ
+   ============================================================ */
+@media (max-width:768px){
+  .game-board{grid-template-columns:repeat(3,60px)}
+  .game-cell{width:60px;height:60px;font-size:28px}
+  .battleship-board{grid-template-columns:repeat(10,28px)}
+  .battleship-cell{width:28px;height:28px}
+  .doom-iframe{height:400px}
+  .itch-embed{height:300px}
+  .case-grid{grid-template-columns:repeat(2,1fr)}
+  #snakeCanvas{width:340px;height:340px}
+  #tetrisCanvas{width:250px;height:420px}
+  #flappyCanvas{width:340px;height:420px}
+  .ug-circle-wrap{width:220px;height:220px}
+  .ug-arrow{font-size:26px;transform-origin:50% 120px}
+}
+
+@media (max-width:480px){
+  .doom-iframe{height:320px}
+  .itch-embed{height:250px}
+  #snakeCanvas{width:280px;height:280px}
+  #tetrisCanvas{width:220px;height:360px}
+  #flappyCanvas{width:280px;height:360px}
+  .ug-circle-wrap{width:180px;height:180px}
+}
