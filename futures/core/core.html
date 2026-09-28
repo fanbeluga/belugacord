@@ -1,0 +1,316 @@
+<!-- ============================================================
+     BELUGACORD 2.5 — MODULE: CORE
+     HTML ядра: профиль, настройки, темы, языки, релизы, email,
+     changelog, статус, ник-стиль, ачивки, топы, команды, уровни,
+     премиум, квесты, рамки, титулы, скины, эффекты
+     ============================================================ -->
+
+<!-- ==================== ПРОФИЛЬ ==================== -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="max-width:560px;overflow:hidden">
+    <button class="close-btn" onclick="closeProfile()">✕</button>
+    <div class="banner" id="bannerPreview">
+      <button class="banner-edit" onclick="document.getElementById('bannerInput').click()">Изменить</button>
+    </div>
+    <div class="profile-avatar" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">?</div>
+    <div style="padding:60px 26px 26px">
+      <h2 id="profileName" style="font-size:22px;margin-bottom:8px">Профиль</h2>
+      <div id="profileStats" style="color:var(--text-mute);font-size:12px;margin-bottom:10px"></div>
+      <div id="profileRating" style="color:var(--gold);font-size:13px;font-weight:800;margin-bottom:10px"></div>
+      <div id="profilePremium" style="margin-bottom:10px"></div>
+
+      <div id="emailBanner" style="background:rgba(255,215,0,0.15);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;display:none;align-items:center;gap:8px;cursor:pointer" onclick="openEmailVerify()">
+        <span>⚠️</span>
+        <span style="flex:1">Email не подтверждён — нажми чтобы подтвердить</span>
+        <span style="font-weight:800">→</span>
+      </div>
+
+      <label class="label">Bio</label>
+      <input type="text" id="bioInput" class="input-field" maxlength="128" placeholder="О себе..." style="margin-bottom:10px">
+
+      <label class="label">Музыка</label>
+      <input type="text" id="musicInput" class="input-field" maxlength="64" placeholder="Что слушаешь?">
+
+      <button class="save-btn green" onclick="saveProfile()">💾 Сохранить</button>
+      <button class="save-btn gray" onclick="openNickStyle()">🎨 Стиль ника</button>
+      <button class="save-btn gray" onclick="openEmailVerify()">📧 Подтвердить email</button>
+      <button class="save-btn gray" onclick="openSettings()">⚙️ Настройки</button>
+      <button class="save-btn red" onclick="logout()">Выйти</button>
+
+      <button class="save-btn gold" id="adminBtn" style="display:none" onclick="closeProfile();openAdminLogin()">🛡️ Админка</button>
+      <button class="save-btn purple" id="ownerBtn" style="display:none" onclick="closeProfile();openOwnerGui()">👑 БОГ-ГУИ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== НАСТРОЙКИ ==================== -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:600px">
+    <button class="close-btn" onclick="document.getElementById('settingsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:20px">⚙️ Настройки</h2>
+      <button class="settings-tab active" data-tab="theme" onclick="showSettingsTab('theme',event)">🎨 Тема</button>
+      <button class="settings-tab" data-tab="custom" onclick="showSettingsTab('custom',event)">🌈 Кастомные</button>
+      <button class="settings-tab" data-tab="ui" onclick="showSettingsTab('ui',event)">🖥️ Интерфейс</button>
+      <button class="settings-tab" data-tab="blocks" onclick="showSettingsTab('blocks',event)">🚫 Блок-лист</button>
+      <div id="settingsContent" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== СТАТУС ==================== -->
+<div class="modal-overlay" id="statusMenuModal">
+  <div class="modal" style="max-width:400px">
+    <button class="close-btn" onclick="document.getElementById('statusMenuModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:16px">💭 Мой статус</h2>
+      <div class="shop-section-title">Онлайн-статус</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+        <button class="save-btn green" onclick="setOnlineStatus('online')">🟢 Онлайн</button>
+        <button class="save-btn red" onclick="setOnlineStatus('dnd')">🔴 DND</button>
+        <button class="save-btn gray" onclick="setOnlineStatus('invisible')">👻 Невидимка</button>
+      </div>
+      <div class="shop-section-title">Кастомный статус</div>
+      <input type="text" id="customStatusInput" class="input-field" placeholder="🎮 Играю..." maxlength="64" style="margin-bottom:12px">
+      <button class="save-btn green" onclick="saveCustomStatus()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== СТИЛЬ НИКА ==================== -->
+<div class="modal-overlay" id="nickStyleModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('nickStyleModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:18px">🎨 Стиль ника</h2>
+      <div id="nickPreview" style="text-align:center;font-size:26px;font-weight:900;padding:16px;background:var(--bg-input);border-radius:12px;margin-bottom:16px">Твой ник</div>
+      <div class="shop-section-title">Цвета</div>
+      <div class="color-picker-grid" id="colorGrid"></div>
+      <div class="shop-section-title">Градиенты</div>
+      <div class="color-picker-grid" id="gradientGrid"></div>
+      <button class="save-btn green" onclick="saveNickStyle()">💾 Сохранить</button>
+      <button class="save-btn gray" onclick="resetNickStyle()">🗑️ Сбросить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ЧУЖОЙ ПРОФИЛЬ ==================== -->
+<div class="modal-overlay" id="viewProfileModal">
+  <div class="modal" style="max-width:520px;overflow:hidden">
+    <button class="close-btn" onclick="document.getElementById('viewProfileModal').classList.remove('open')">✕</button>
+    <div class="banner" id="viewBanner"></div>
+    <div class="profile-avatar" id="viewAvatar">?</div>
+    <div style="padding:56px 26px 26px">
+      <h2 id="viewName" style="font-size:22px;margin-bottom:8px">Юзер</h2>
+      <div id="viewStats" style="color:var(--text-mute);font-size:12px;margin-bottom:8px"></div>
+      <div id="viewRating" style="color:var(--gold);font-size:13px;font-weight:800;margin-bottom:8px"></div>
+      <div id="viewBadges" style="margin-bottom:14px;display:flex;gap:4px;flex-wrap:wrap"></div>
+      <div id="viewInfo"></div>
+      <div id="viewActions" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EMAIL VERIFY ==================== -->
+<div class="modal-overlay" id="emailVerifyModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="closeEmailVerify()">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">📧 Подтверждение почты</h2>
+      <div id="emailVerifyBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CHANGELOG ==================== -->
+<div class="modal-overlay" id="changelogModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('changelogModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:24px;margin-bottom:4px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900">🐱 Belugacord 2.5</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px">Что нового</div>
+      <div id="changelogBody" style="max-height:55vh;overflow-y:auto"></div>
+      <button class="save-btn green" onclick="document.getElementById('changelogModal').classList.remove('open')" style="margin-top:14px">Понятно 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ЯЗЫК ==================== -->
+<div class="modal-overlay" id="languageModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('languageModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">🌐 Язык</h2>
+      <div class="lang-grid" id="langGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ДОСТИЖЕНИЯ ==================== -->
+<div class="modal-overlay" id="achievementsModal">
+  <div class="modal" style="max-width:700px">
+    <button class="close-btn" onclick="document.getElementById('achievementsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:18px">🏆 Достижения</h2>
+      <div id="achievementsBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТОП БОГАЧЕЙ ==================== -->
+<div class="modal-overlay" id="leadersModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('leadersModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:18px">🥇 Топ богачей</h2>
+      <div id="leadersList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== УРОВНИ ==================== -->
+<div class="modal-overlay" id="levelsModal">
+  <div class="modal" style="max-width:600px">
+    <button class="close-btn" onclick="document.getElementById('levelsModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">📊 Уровни и XP</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:16px">За активность в чате</div>
+      <div class="level-card">
+        <div class="level-circle" id="levelCircle">1</div>
+        <div class="level-info">
+          <div class="level-name" id="levelName">Уровень 1</div>
+          <div class="level-progress-bar">
+            <div class="level-progress-fill" id="levelProgressFill"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-mute);margin-top:4px" id="levelXPText">0 / 100 XP</div>
+        </div>
+      </div>
+      <div id="levelLeaderboard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ПРЕМИУМ ==================== -->
+<div class="modal-overlay" id="premiumModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('premiumModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">💎 Премиум</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">Больше возможностей</div>
+      <div id="premiumStatusCard"></div>
+      <div class="premium-plan-card" onclick="buyPremium('month')">
+        <div class="premium-plan-info">
+          <div class="premium-plan-name">📅 Месяц</div>
+          <div class="premium-plan-desc">30 дней премиума</div>
+        </div>
+        <div class="premium-plan-price">1500 <small>🏅</small></div>
+      </div>
+      <div class="premium-plan-card best" onclick="buyPremium('year')">
+        <div class="premium-plan-info">
+          <div class="premium-plan-name">🎆 Год ★</div>
+          <div class="premium-plan-desc">365 дней</div>
+        </div>
+        <div class="premium-plan-price">18000 <small>🏅</small></div>
+      </div>
+      <div class="premium-features-list">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-mute);font-weight:800;letter-spacing:1px;margin-bottom:8px">Что даёт:</div>
+        <div class="premium-feature"><span class="premium-feature-icon">✓</span><span>GIF-аватарки и баннеры</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">✓</span><span>Групповые звонки до 30 человек</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">✓</span><span>Группы до 30 участников</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">✓</span><span>Анимированные рамки</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">✓</span><span>Бонус ×3 к ежедневному</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== РАМКИ ==================== -->
+<div class="modal-overlay" id="framesModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('framesModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">🖼️ Рамки аватара</h2>
+      <div id="framesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТИТУЛЫ ==================== -->
+<div class="modal-overlay" id="titlesModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('titlesModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">👑 Титулы</h2>
+      <div class="titles-grid" id="titlesGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== СКИНЫ ЧАТА ==================== -->
+<div class="modal-overlay" id="chatSkinModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('chatSkinModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">🎭 Скин чата</h2>
+      <div class="chat-skins-grid" id="chatSkinsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ЭФФЕКТЫ СООБЩЕНИЙ ==================== -->
+<div class="modal-overlay" id="msgEffectModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('msgEffectModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">✨ Эффекты сообщений</h2>
+      <div class="msg-effects-grid" id="msgEffectsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== КОМАНДЫ ==================== -->
+<div class="modal-overlay" id="commandsModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('commandsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">⚡ Команды</h2>
+      <input type="text" id="commandFilter" class="input-field" placeholder="Поиск команды..." oninput="filterCommands(this.value)" style="margin-bottom:10px">
+      <div id="commandsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== USER SEARCH ==================== -->
+<div class="modal-overlay" id="userSearchModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('userSearchModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:16px">🔍 Поиск юзеров</h2>
+      <input type="text" id="userSearchInput" class="input-field" placeholder="Ник..." oninput="doUserSearch(this.value)" autocomplete="off" style="margin-bottom:12px">
+      <div id="userSearchResults" style="max-height:50vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SAVED MESSAGES ==================== -->
+<div class="modal-overlay" id="savedMessagesModal">
+  <div class="modal" style="max-width:600px">
+    <button class="close-btn" onclick="document.getElementById('savedMessagesModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">💾 Сохранённые</h2>
+      <div id="savedMessagesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MSG SEARCH ==================== -->
+<div class="modal-overlay" id="msgSearchModal">
+  <div class="modal" style="max-width:600px">
+    <button class="close-btn" onclick="document.getElementById('msgSearchModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:16px">🔍 Поиск по сообщениям</h2>
+      <input type="text" id="msgSearchInput" class="input-field" placeholder="Что искать..." oninput="doMsgSearch(this.value)" style="margin-bottom:10px">
+      <div id="msgSearchResults" style="max-height:60vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
