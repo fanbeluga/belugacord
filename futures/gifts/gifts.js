@@ -27,6 +27,311 @@ async function loadAllGifts(){
   }
 }
 
+/* ============================================================
+   АПГРЕЙДЕР 2.0 — СПИН
+   ============================================================ */
+async function doUpgradeSpin(){
+  if(ugSpinning) return;
+  if(!ugFromGift || !ugToGift){ showNotice('⚠️ Выбери подарки', 'warn'); return; }
+  if(ugChance <= 0){ showNotice('⚠️ Шанс 0%', 'warn'); return; }
+
+  ugSpinning = true;
+  var btn = document.getElementById('ugSpinBtn');
+  btn.disabled = true;
+  btn.textContent = '🎰 Крутим...';
+
+  var arrow = document.getElementById('ugArrow');
+  // Стрелка снаружи круга бежит на 360° * 6 оборотов + рандом
+  var spins = 5 + Math.random() * 3;
+  var finalDeg = spins * 360 + Math.random() * 360;
+  arrow.style.transform = 'translateX(-50%) rotate(' + finalDeg + 'deg)';
+
+  // Отправляем запрос на сервер
+  try {
+    var res = await api('/gifts/upgrade_wheel', {method:'POST', body:{
+      token: token,
+      from_gift: ugFromGift,
+      to_gift: ugToGift,
+      multiplier: ugMultiplier,
+      chance: ugChance
+    }});
+
+    setTimeout(function(){
+      // Сброс стрелки
+      arrow.style.transition = 'none';
+      arrow.style.transform = 'translateX(-50%) rotate(0deg)';
+      setTimeout(function(){ arrow.style.transition = ''; }, 50);
+
+      if(!res.ok){
+        showNotice('❌ ' + res.error, 'error');
+        ugSpinning = false;
+        btn.disabled = false;
+        btn.textContent = '🎰 КРУТИТЬ';
+        return;
+      }
+
+      var d = res.data;
+      if(d.success){
+        showNotice('🎉 УСПЕХ! Получил ' + d.got_name);
+        if(BC.giftSound) BC.giftSound();
+        BC.showConfetti();
+        BC.showBalloons();
+      } else {
+        showNotice('😢 Не повезло · шанс был ' + d.chance.toFixed(1) + '%', 'warn');
+      }
+
+      // Обновляем инвентарь
+      ugLoadInventory().then(function(){
+        ugPopulateSelects();
+        if(ugFromGift) document.getElementById('ugFromSelect').value = ugFromGift;
+        ugRecalc();
+      });
+      loadCoins();
+
+      ugSpinning = false;
+      btn.disabled = false;
+      btn.textContent = '🎰 КРУТИТЬ';
+    }, 4200);
+  } catch(e){
+    setTimeout(function(){
+      ugSpinning = false;
+      btn.disabled = false;
+      btn.textContent = '🎰 КРУТИТЬ';
+      showNotice('❌ Сеть', 'error');
+    }, 4200);
+  }
+}
+
+/* ============================================================
+   NFT
+   ============================================================ */
+function openNftMarket(){
+  document.getElementById('nftMarketModal').classList.add('open');
+  showNftTab('all');
+}
+
+function showNftTab(tab, ev){
+  if(ev){
+    document.querySelectorAll('#nftMarketModal .shop-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    ev.target.classList.add('active');
+  }
+  var c = document.getElementById('nftTabContent');
+  c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute)">Загрузка...</div>';
+
+  if(tab === 'all'){
+    api('/nft/list').then(function(res){
+      if(!res.ok || !res.data.length){
+        c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute)">🎨 Нет NFT</div>';
+        return;
+      }
+      c.innerHTML = '<div class="nft-grid">' + res.data.map(function(n){
+        return '<div class="nft-card" onclick="buyNft(' + n.id + ')">' +
+          '<div class="nft-img">' + (n.image ? '<img src="' + n.image + '">' : n.emoji || '🎨') +
+            '<div class="nft-rarity rarity-' + n.rarity + '">' + n.rarity + '</div>' +
+          '</div>' +
+          '<div class="nft-info">' +
+            '<div class="nft-name">' + esc(n.name) + '</div>' +
+            '<div class="nft-num">#' + n.number + ' / ' + n.total + '</div>' +
+            '<div class="nft-price">' + n.price.toLocaleString('ru-RU') + ' 🏅</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    });
+  }
+  else if(tab === 'my'){
+    api('/nft/my?token=' + encodeURIComponent(token)).then(function(res){
+      if(!res.ok || !res.data.length){
+        c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute)">🎒 Пусто</div>';
+        return;
+      }
+      c.innerHTML = '<div class="nft-grid">' + res.data.map(function(n){
+        return '<div class="nft-card">' +
+          '<div class="nft-img">' + (n.image ? '<img src="' + n.image + '">' : n.emoji || '🎨') +
+            '<div class="nft-rarity rarity-' + n.rarity + '">' + n.rarity + '</div>' +
+          '</div>' +
+          '<div class="nft-info">' +
+            '<div class="nft-name">' + esc(n.name) + '</div>' +
+            '<div class="nft-num">#' + n.number + '</div>' +
+            '<button class="save-btn gray" style="margin-top:6px;font-size:11px;padding:6px" onclick="sellNft(' + n.id + ')">💱 Продать</button>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    });
+  }
+  else if(tab === 'market'){
+    api('/nft_market/list?token=' + encodeURIComponent(token)).then(function(res){
+      if(!res.ok || !res.data.length){
+        c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute)">💱 Рынок пуст</div>';
+        return;
+      }
+      c.innerHTML = '<div class="nft-grid">' + res.data.map(function(m){
+        return '<div class="nft-card" onclick="buyNftMarket(' + m.id + ')">' +
+          '<div class="nft-img">' + (m.image ? '<img src="' + m.image + '">' : m.emoji || '🎨') + '</div>' +
+          '<div class="nft-info">' +
+            '<div class="nft-name">' + esc(m.name) + '</div>' +
+            '<div class="nft-num">#' + m.number + ' · от ' + esc(m.seller_name) + '</div>' +
+            '<div class="nft-price">' + m.price.toLocaleString('ru-RU') + ' 🏅</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    });
+  }
+}
+
+async function buyNft(id){
+  if(!confirm('Купить NFT?')) return;
+  var res = await api('/nft/buy', {method:'POST', body:{token:token, nft_id:id}});
+  if(res.ok){
+    showNotice('🎨 Получен #' + res.data.number);
+    BC.showConfetti();
+    loadCoins();
+    showNftTab('my', {target: document.querySelector('#nftMarketModal .shop-tab-btn:nth-child(2)')});
+  } else showNotice('❌ ' + res.error, 'error');
+}
+
+async function sellNft(itemId){
+  if(!confirm('Продать за половину?')) return;
+  var res = await api('/nft/sell', {method:'POST', body:{token:token, item_id:itemId}});
+  if(res.ok){
+    showNotice('💱 +' + res.data.got);
+    loadCoins();
+    showNftTab('my', {target: document.querySelector('#nftMarketModal .shop-tab-btn:nth-child(2)')});
+  } else showNotice('❌ ' + res.error, 'error');
+}
+
+async function buyNftMarket(mid){
+  if(!confirm('Купить с рынка?')) return;
+  var res = await api('/nft_market/buy', {method:'POST', body:{token:token, market_id:mid}});
+  if(res.ok){
+    showNotice('🎨 Куплено');
+    loadCoins();
+    showNftTab('my', {target: document.querySelector('#nftMarketModal .shop-tab-btn:nth-child(2)')});
+  } else showNotice('❌ ' + res.error, 'error');
+}
+
+/* ============================================================
+   КЕЙСЫ
+   ============================================================ */
+async function openCases(){
+  document.getElementById('casesModal').classList.add('open');
+  var body = document.getElementById('casesBody');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute)">Загрузка...</div>';
+  var res = await api('/cases/list');
+  if(!res.ok || !res.data.length){
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-mute)">🎁 Нет кейсов</div>';
+    return;
+  }
+  body.innerHTML = res.data.map(function(c){
+    return '<div class="case-tile" onclick="openCaseRoulette(' + c.id + ',\'' + esc(c.name) + '\')">' +
+      '<div class="case-emoji">' + (c.image ? '<img src="' + c.image + '">' : (c.emoji || '🎁')) + '</div>' +
+      '<div class="case-name">' + esc(c.name) + '</div>' +
+      '<div class="case-price">' + c.price.toLocaleString('ru-RU') + ' 🏅</div>' +
+      '<button class="case-open">Открыть</button>' +
+    '</div>';
+  }).join('');
+}
+
+async function openCaseRoulette(caseId, caseName){
+  var pr = await api('/cases/' + caseId + '/prizes');
+  if(!pr.ok || !pr.data.length){ showNotice('❌ Нет призов', 'error'); return; }
+
+  var prizes = pr.data;
+  var overlay = document.createElement('div');
+  overlay.className = 'case-roulette open';
+  overlay.id = 'caseRouletteOverlay';
+
+  var items = '';
+  for(var i = 0; i < 30; i++){
+    var p = prizes[i % prizes.length];
+    var em = p.item_image ? '<img src="' + p.item_image + '" style="width:44px;height:44px;object-fit:contain">' : (p.item_emoji || '🎁');
+    items += '<div class="cr-item"><div class="cr-emoji">' + em + '</div><div class="cr-name">' + (p.item_name || ('🏅 ' + (p.coins_min || p.coins_max))) + '</div></div>';
+  }
+
+  overlay.innerHTML = '<div class="case-roulette-strip">' +
+    '<div class="case-roulette-pointer"></div>' +
+    '<div class="case-roulette-inner" id="caseRouletteInner">' + items + '</div>' +
+    '</div>' +
+    '<div class="case-roulette-result" id="caseRouletteResult">Крутим...</div>';
+
+  document.body.appendChild(overlay);
+
+  var inner = document.getElementById('caseRouletteInner');
+  var itemWidth = 110;
+  var targetIndex = Math.floor(30 * 0.7);
+  var targetX = -(targetIndex * itemWidth) + 200 - inner.offsetWidth / 2;
+  setTimeout(function(){ inner.style.transform = 'translateX(' + targetX + 'px)'; }, 50);
+
+  var res = await api('/cases/open', {method:'POST', body:{token:token, case_id:caseId}});
+
+  setTimeout(function(){
+    var resEl = document.getElementById('caseRouletteResult');
+    if(res.ok){
+      resEl.textContent = '🎉 ' + res.data.prize;
+      resEl.classList.add('show');
+      if(BC.giftSound) BC.giftSound();
+      BC.showConfetti();
+      loadCoins();
+    } else {
+      resEl.textContent = '❌ ' + res.error;
+      resEl.classList.add('show');
+    }
+    setTimeout(function(){ overlay.remove(); }, 2500);
+  }, 4200);
+}
+
+/* ============================================================
+   WS — обновление баланса
+   ============================================================ */
+document.addEventListener('ws:gift_received', function(e){
+  var data = e.detail;
+  var g = document.createElement('div');
+  g.className = 'gift-received';
+  g.innerHTML =
+    '<div class="gift-big-emoji">' + (data.gift_image ? '<img src="' + data.gift_image + '">' : (data.gift_emoji || '🎁')) + '</div>' +
+    '<div class="gift-text">' + esc(data.gift_name || 'Подарок') + ' от ' + esc(data.from_name || '?') + '</div>';
+  document.body.appendChild(g);
+  if(BC.giftSound) BC.giftSound();
+  BC.showConfetti();
+  setTimeout(function(){ g.remove(); }, 3500);
+});
+
+document.addEventListener('ws:coins_received', function(e){
+  var data = e.detail;
+  showNotice('💰 ' + data.from_name + ' → ' + data.amount + ' 🏅');
+  loadCoins();
+});
+
+document.addEventListener('ws:nft_sold', function(){
+  showNotice('💱 NFT продан');
+  loadCoins();
+});
+
+/* ============================================================
+   ЭКСПОРТ
+   ============================================================ */
+window.openShop = openShop;
+window.showShopTab = showShopTab;
+window.buyGift = buyGift;
+window.openGiftSend = openGiftSend;
+window.confirmSendGift = confirmSendGift;
+window.requestCoins = requestCoins;
+window.doTransfer = doTransfer;
+window.openGiftsCollection = openGiftsCollection;
+window.openUpgrader = openUpgrader;
+window.openUpgraderWith = openUpgraderWith;
+window.closeUpgrader = closeUpgrader;
+window.ugRecalc = ugRecalc;
+window.ugSetMult = ugSetMult;
+window.ugSpin = ugSpin;
+window.openNftMarket = openNftMarket;
+window.showNftTab = showNftTab;
+window.buyNft = buyNft;
+window.sellNft = sellNft;
+window.buyNftMarket = buyNftMarket;
+window.openCases = openCases;
+window.openCaseRoulette = openCaseRoulette;
+
+console.log('[BC] features/gifts loaded');
 async function loadCoins(){
   var res = await api('/coins/balance?token=' + encodeURIComponent(token));
   if(res.ok){
