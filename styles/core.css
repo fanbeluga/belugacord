@@ -1,1 +1,423 @@
+/* ============================================================
+   BELUGACORD 2.5 — CORE.CSS
+   Переменные, темы, база, layout
+   ============================================================ */
 
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif}
+
+:root{
+  --bg-desktop:#0a0a12;
+  --bg-window:rgba(20,15,35,0.85);
+  --bg-header:rgba(30,20,50,0.9);
+  --bg-sidebar:rgba(25,15,45,0.8);
+  --bg-chat:rgba(15,8,28,0.85);
+  --bg-taskbar:rgba(10,5,20,0.95);
+  --bg-input:rgba(35,20,60,0.7);
+  --accent:#d946ef;
+  --accent-2:#8b5cf6;
+  --accent-3:#22d3ee;
+  --gold:#ffd700;
+  --text:#e8e0ff;
+  --text-dim:#9d8fc4;
+  --text-mute:#6b5f8a;
+  --border:rgba(200,80,255,0.15);
+  --shadow:0 20px 60px rgba(0,0,0,0.6);
+  --blur:blur(30px);
+  --owner-grad:linear-gradient(135deg,#22c55e 0%,#8b5cf6 100%);
+  --radius:12px;
+}
+
+body{background:var(--bg-desktop);color:var(--text);height:100vh;position:relative;overflow:hidden}
+
+/* Шрифты */
+body.font-mono,body.font-mono *{font-family:'Consolas','Courier New',monospace!important}
+body.font-serif,body.font-serif *{font-family:'Georgia',serif!important}
+body.font-comic,body.font-comic *{font-family:'Comic Sans MS',cursive!important}
+
+/* Компактный режим */
+body.compact .msg-row{padding:2px 6px}
+body.compact .msg-content{padding:4px 8px;font-size:12px}
+body.compact .chat-item{padding:6px 8px;margin-bottom:1px}
+
+/* ============================================================
+   ТЕМЫ
+   ============================================================ */
+body.theme-discord{
+  --bg-desktop:#1e1f22;--bg-window:rgba(49,51,56,0.92);--bg-header:rgba(30,31,34,0.98);
+  --bg-sidebar:#2b2d31;--bg-chat:#313338;--bg-taskbar:#1e1f22;--bg-input:#383a40;
+  --accent:#5865f2;--accent-2:#4752c4;--accent-3:#00a8fc;
+  --text:#dbdee1;--text-dim:#b5bac1;--text-mute:#80848e;--border:rgba(0,0,0,0.3);--blur:none;
+}
+body.theme-white{
+  --bg-desktop:#fff;--bg-window:#fff;--bg-header:#fff;--bg-sidebar:#fff;--bg-chat:#fff;
+  --bg-taskbar:#fff;--bg-input:#f8f8f8;--accent:#000;--accent-2:#333;--accent-3:#666;
+  --text:#000;--text-dim:#666;--text-mute:#999;--border:#e5e5e5;
+}
+body.theme-cyber{
+  --bg-desktop:#0a0a1a;--bg-window:rgba(10,5,30,0.95);--bg-header:rgba(20,10,40,0.98);
+  --bg-sidebar:rgba(15,5,35,0.95);--bg-chat:rgba(5,0,20,0.95);--bg-taskbar:rgba(10,5,25,0.98);
+  --bg-input:rgba(20,10,40,0.9);--accent:#ffee00;--accent-2:#00ffff;--accent-3:#ff00ff;
+  --text:#ffee00;--text-dim:#00ffff;--text-mute:#aa00ff;--border:rgba(255,238,0,0.3);
+}
+body.theme-retro{
+  --bg-desktop:#008080;--bg-window:#c0c0c0;--bg-header:linear-gradient(90deg,#000080,#1084d0);
+  --bg-sidebar:#c0c0c0;--bg-chat:#fff;--bg-taskbar:#c0c0c0;--bg-input:#fff;
+  --accent:#000080;--accent-2:#1084d0;--accent-3:#008080;
+  --text:#000;--text-dim:#404040;--text-mute:#808080;--border:#808080;--blur:none;
+}
+body.theme-retro *{border-radius:0!important;font-family:'MS Sans Serif',Tahoma,sans-serif!important}
+body.theme-cs2{
+  --bg-desktop:#0d1117;--bg-window:#161b22;--bg-header:#1c2128;--bg-sidebar:#0f141a;
+  --bg-chat:#0d1117;--bg-taskbar:#05080c;--bg-input:#21262d;
+  --accent:#f0883e;--accent-2:#d97706;--accent-3:#58a6ff;
+  --text:#e6edf3;--text-dim:#8b949e;--text-mute:#6e7681;--border:#30363d;
+}
+body.theme-cs2 *{border-radius:2px!important;font-family:'Consolas','Courier New',monospace!important}
+body.theme-cs16{
+  --bg-desktop:#0a1206;--bg-window:rgba(15,25,10,0.95);--bg-header:rgba(20,35,12,0.98);
+  --bg-sidebar:rgba(18,30,10,0.95);--bg-chat:rgba(10,20,5,0.95);--bg-taskbar:rgba(8,16,4,0.98);
+  --bg-input:rgba(25,40,15,0.9);--accent:#7cb342;--accent-2:#558b2f;--accent-3:#cddc39;--gold:#aed581;
+  --text:#d4e8c4;--text-dim:#9ab87c;--text-mute:#6b8a4a;--border:rgba(124,179,66,0.3);
+}
+body.theme-cs16 *{border-radius:2px!important;font-family:'Consolas','Courier New',monospace!important}
+body.theme-minecraft{
+  --bg-desktop:#1a2a1a;--bg-window:#2d3d2d;--bg-header:#3a4a3a;--bg-sidebar:#243024;
+  --bg-chat:#1f2a1f;--bg-taskbar:#151f15;--bg-input:#3a4a3a;
+  --accent:#7cb342;--accent-2:#558b2f;--accent-3:#aed581;
+  --text:#e8f5e9;--text-dim:#a5d6a7;--text-mute:#81c784;--border:#4a5a4a;
+}
+body.theme-minecraft *{border-radius:0!important;font-family:'Courier New',monospace!important}
+body.theme-neon{
+  --bg-desktop:#000;--bg-window:rgba(10,0,20,0.95);--bg-header:rgba(20,0,30,0.98);
+  --bg-sidebar:rgba(15,0,25,0.95);--bg-chat:rgba(5,0,10,0.95);--bg-taskbar:rgba(0,0,0,0.98);
+  --bg-input:rgba(20,0,30,0.9);--accent:#ff00ff;--accent-2:#00ffff;--accent-3:#ffff00;
+  --text:#ff00ff;--text-dim:#00ffff;--text-mute:#800080;--border:rgba(255,0,255,0.5);
+}
+body.theme-nature{
+  --bg-desktop:#1a2a1a;--bg-window:rgba(25,45,25,0.9);--bg-header:rgba(35,55,35,0.95);
+  --bg-sidebar:rgba(30,50,30,0.9);--bg-chat:rgba(20,40,20,0.9);--bg-taskbar:rgba(15,30,15,0.95);
+  --bg-input:rgba(40,60,40,0.8);--accent:#4ade80;--accent-2:#22c55e;--accent-3:#86efac;
+  --text:#f0fdf4;--text-dim:#bbf7d0;--text-mute:#86efac;--border:rgba(74,222,128,0.2);
+}
+body.theme-sunset{
+  --bg-desktop:#1a0a0a;--bg-window:rgba(45,20,20,0.9);--bg-header:rgba(60,30,30,0.95);
+  --bg-sidebar:rgba(50,25,25,0.9);--bg-chat:rgba(40,20,20,0.9);--bg-taskbar:rgba(30,15,15,0.95);
+  --bg-input:rgba(60,35,35,0.8);--accent:#ff6b35;--accent-2:#f7931e;--accent-3:#ffd23f;
+  --text:#ffe8d6;--text-dim:#ffb380;--text-mute:#cc8855;--border:rgba(255,107,53,0.3);
+}
+body.theme-ocean{
+  --bg-desktop:#0a1a2a;--bg-window:rgba(20,40,60,0.9);--bg-header:rgba(30,50,70,0.95);
+  --bg-sidebar:rgba(25,45,65,0.9);--bg-chat:rgba(15,35,55,0.9);--bg-taskbar:rgba(10,25,40,0.95);
+  --bg-input:rgba(35,55,75,0.8);--accent:#0ea5e9;--accent-2:#06b6d4;--accent-3:#22d3ee;
+  --text:#e0f2fe;--text-dim:#7dd3fc;--text-mute:#38bdf8;--border:rgba(14,165,233,0.3);
+}
+body.theme-royal{
+  --bg-desktop:#0a0a2a;--bg-window:rgba(20,20,60,0.9);--bg-header:rgba(30,30,70,0.95);
+  --bg-sidebar:rgba(25,25,65,0.9);--bg-chat:rgba(15,15,55,0.9);--bg-taskbar:rgba(10,10,40,0.95);
+  --bg-input:rgba(35,35,75,0.8);--accent:#a855f7;--accent-2:#9333ea;--accent-3:#c084fc;
+  --text:#f3e8ff;--text-dim:#d8b4fe;--text-mute:#a855f7;--border:rgba(168,85,247,0.3);
+}
+body.theme-rainbow{animation:hueShift 10s linear infinite}
+@keyframes hueShift{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+
+/* Фон */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(217,70,239,0.15),transparent 50%),
+    radial-gradient(ellipse at 80% 90%,rgba(34,211,238,0.1),transparent 50%);
+  pointer-events:none;z-index:0;
+}
+body.theme-white::before,body.theme-retro::before,body.theme-discord::before,
+body.theme-cs2::before,body.theme-cs16::before,body.theme-minecraft::before,
+body.theme-neon::before{display:none}
+body.custom-bg::before{background:var(--custom-bg,none);background-size:cover;background-position:center}
+
+/* ============================================================
+   LAYOUT — ОКНО
+   ============================================================ */
+.win-window{
+  position:fixed;top:0;left:0;right:0;bottom:48px;
+  background:var(--bg-window);display:flex;flex-direction:column;
+  overflow:hidden;z-index:10;
+}
+.win-titlebar{
+  height:38px;background:var(--bg-header);
+  display:flex;align-items:center;padding:0 8px 0 16px;
+  border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;
+}
+.win-title{flex:1;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.win-controls{display:flex;gap:2px}
+.win-btn{
+  width:42px;height:30px;background:transparent;border:none;color:var(--text-dim);
+  cursor:pointer;font-size:14px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;
+}
+.win-btn:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+.win-btn.close:hover{background:#e81123;color:#fff}
+.win-body{flex:1;display:flex;min-height:0;overflow:hidden}
+
+/* ============================================================
+   LAYOUT — СТОЛ / СПИСОК ЧАТОВ / ЧАТ
+   ============================================================ */
+.desktop{
+  width:240px;background:var(--bg-sidebar);border-right:1px solid var(--border);
+  padding:16px 12px;overflow-y:auto;flex-shrink:0;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;align-content:start;
+}
+.desktop-icon{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  cursor:pointer;padding:8px 4px;border-radius:8px;text-align:center;
+  transition:all 0.2s;position:relative;
+}
+.desktop-icon:hover{background:rgba(217,70,239,0.12);transform:translateY(-2px)}
+.desktop-icon .d-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;box-shadow:0 4px 12px rgba(217,70,239,0.3);
+  position:relative;overflow:hidden;
+}
+.desktop-icon .d-icon img{width:100%;height:100%;object-fit:cover}
+.desktop-icon .d-label{
+  font-size:10px;color:var(--text-dim);font-weight:600;
+  max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+.chat-list{
+  width:260px;background:var(--bg-sidebar);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+}
+.chat-list-header{
+  height:46px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);flex-shrink:0;font-weight:700;font-size:13px;
+}
+.chat-list-search{padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-list-search input{
+  width:100%;background:var(--bg-input);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;
+  outline:none;font-family:inherit;
+}
+.chat-list-body{flex:1;overflow-y:auto;padding:8px}
+
+.chat-window{
+  flex:1;background:var(--bg-chat);display:flex;flex-direction:column;
+  min-width:0;position:relative;
+}
+
+/* ============================================================
+   TASKBAR
+   ============================================================ */
+.taskbar{
+  position:fixed;bottom:0;left:0;right:0;height:48px;
+  background:var(--bg-taskbar);border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:6px;z-index:100;
+}
+.tb-btn{
+  height:36px;padding:0 14px;background:transparent;border:none;border-radius:8px;
+  color:var(--text);cursor:pointer;font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:8px;font-family:inherit;white-space:nowrap;
+}
+.tb-btn:hover{background:rgba(217,70,239,0.15)}
+.tb-start{font-weight:800;font-size:14px;padding:0 18px}
+.tb-spacer{flex:1}
+.tb-clock{
+  height:36px;padding:0 14px;display:flex;align-items:center;
+  gap:8px;font-size:12px;font-weight:600;
+}
+.tb-status-dot{width:8px;height:8px;border-radius:50%;background:#f43f5e}
+
+/* ============================================================
+   START MENU
+   ============================================================ */
+.start-menu{
+  position:fixed;bottom:58px;left:12px;width:360px;max-width:90vw;
+  background:var(--bg-window);border:1px solid var(--border);
+  border-radius:14px;box-shadow:var(--shadow);padding:14px;
+  display:none;flex-direction:column;gap:6px;z-index:200;
+  max-height:calc(100vh - 120px);overflow-y:auto;
+}
+.start-menu.open{display:flex}
+.start-menu-title{
+  font-size:11px;color:var(--text-mute);font-weight:800;
+  text-transform:uppercase;letter-spacing:1.5px;padding:4px 8px;
+}
+.start-menu-item{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;
+  border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;
+}
+.start-menu-item:hover{background:rgba(217,70,239,0.15)}
+.start-menu-item .sm-icon{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
+}
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+.win-login{
+  position:fixed;inset:0;z-index:3000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.win-login::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(15,5,32,0.85),rgba(45,10,80,0.85));
+  backdrop-filter:blur(40px);
+}
+.win-login-clock{position:absolute;top:60px;left:60px;z-index:2;color:#fff}
+.win-login-time{font-size:72px;font-weight:200;letter-spacing:-3px;line-height:1}
+.win-login-date{font-size:20px;margin-top:8px;opacity:0.9}
+.win-login-box{
+  position:relative;z-index:2;display:flex;flex-direction:column;
+  align-items:center;gap:18px;padding:30px;
+}
+.win-login-avatar{
+  width:110px;height:110px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:56px;color:#fff;font-weight:800;
+  border:4px solid rgba(255,255,255,0.15);cursor:pointer;
+}
+.win-login-name{color:#fff;font-size:26px;font-weight:700;text-align:center}
+.win-login-form{display:flex;flex-direction:column;gap:10px;width:320px;max-width:90vw}
+.win-login-input{
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+  border-radius:8px;padding:12px 16px;color:#fff;font-size:15px;
+  outline:none;font-family:inherit;
+}
+.win-login-btn{
+  width:100%;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;padding:13px;border-radius:8px;
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.win-login-tabs{display:flex;gap:8px;width:100%}
+.win-login-tab{
+  flex:1;padding:10px;background:rgba(255,255,255,0.08);border:none;
+  border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;
+  font-weight:700;font-size:14px;font-family:inherit;
+}
+.win-login-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
+.win-login-error{color:#f43f5e;font-size:13px;text-align:center;min-height:18px;font-weight:600}
+.win-login-status{font-size:12px;min-height:16px}
+.win-login-status.ok{color:#22d3ee}
+.win-login-status.bad{color:#f43f5e}
+.win-login-footer{
+  position:absolute;bottom:30px;right:40px;display:flex;gap:20px;
+  z-index:2;color:rgba(255,255,255,0.7);font-size:20px;
+}
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+.loading-screen{
+  position:fixed;inset:0;background:var(--bg-desktop);z-index:4000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+.loading-spinner{
+  width:60px;height:60px;border:4px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{
+  color:var(--text-dim);font-size:14px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+}
+
+/* ============================================================
+   CONNECTION STATUS
+   ============================================================ */
+.conn-status{
+  position:fixed;bottom:56px;left:50%;
+  transform:translateX(-50%) translateY(100px);
+  background:#f43f5e;color:#fff;padding:6px 14px;border-radius:20px;
+  font-size:12px;font-weight:800;z-index:9400;transition:transform 0.3s;
+}
+.conn-status.show{transform:translateX(-50%) translateY(0)}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  border-radius:4px;
+}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+.mobile-tabs{display:none}
+
+@media (max-width:768px){
+  .win-window{
+    position:fixed!important;top:0!important;left:0!important;
+    right:0!important;bottom:52px!important;
+    width:auto!important;height:auto!important;border-radius:0;border:none;
+  }
+  .win-titlebar{height:36px}
+  .win-body{flex-direction:column;position:relative}
+  .mobile-tabs{
+    display:flex;gap:4px;padding:6px 8px 0;
+    background:var(--bg-header);border-bottom:1px solid var(--border);
+  }
+  .mobile-tab{
+    flex:1;padding:9px;background:transparent;border:none;
+    color:var(--text-dim);cursor:pointer;font-size:13px;
+    font-weight:700;border-radius:8px;font-family:inherit;
+  }
+  .mobile-tab.active{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  }
+  .desktop,.chat-list,.chat-window{
+    position:absolute;inset:0;width:100%!important;border-right:none;
+    display:none;padding:14px;overflow-y:auto;
+  }
+  .desktop.mobile-active,.chat-list.mobile-active,.chat-window.mobile-active{display:flex}
+  .desktop{grid-template-columns:repeat(4,1fr);padding-top:60px}
+  .taskbar{height:52px;padding:0 6px;gap:2px}
+  .tb-btn{padding:0 10px;font-size:12px}
+  .tb-btn .tb-label{display:none}
+  .tb-start .tb-label{display:inline!important}
+  .start-menu{bottom:62px;left:8px;right:8px;width:auto;max-height:calc(100vh - 140px)}
+  .win-login-time{font-size:48px}
+  .win-login-clock{top:30px;left:20px}
+  .win-login-avatar{width:90px;height:90px;font-size:44px}
+  .win-login-form{width:88vw;max-width:340px}
+  .win-login-input{padding:14px;font-size:16px}
+}
+
+@media (max-width:480px){
+  .desktop{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.hidden{display:none!important}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.items-center{align-items:center}
+.justify-center{justify-content:center}
+.gap-2{gap:8px}
+.gap-4{gap:16px}
+.text-center{text-align:center}
+.text-mute{color:var(--text-mute)}
+.text-dim{color:var(--text-dim)}
+.text-gold{color:var(--gold)}
+.text-accent{color:var(--accent)}
+.font-bold{font-weight:700}
+.font-black{font-weight:900}
+.mt-2{margin-top:8px}
+.mt-4{margin-top:16px}
+.mb-2{margin-bottom:8px}
+.mb-4{margin-bottom:16px}
+.p-2{padding:8px}
+.p-4{padding:16px}
+.w-full{width:100%}
+.cursor-pointer{cursor:pointer}
