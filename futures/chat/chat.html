@@ -1,0 +1,138 @@
+<!-- ============================================================
+     BELUGACORD 2.5 — MODULE: CHAT
+     HTML: друзья, DM, группы, сервера, каналы, треды, голосовые
+     ============================================================ -->
+
+<!-- ==================== СОЗДАНИЕ ГРУППЫ ==================== -->
+<div class="modal-overlay" id="createGroupModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('createGroupModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:16px">👥 Создать группу</h2>
+      <label class="label">Название</label>
+      <input type="text" id="newGroupName" class="input-field" maxlength="64" placeholder="Моя группа" style="margin-bottom:12px">
+      <label class="label">Участники (через запятую)</label>
+      <input type="text" id="newGroupMembers" class="input-field" placeholder="@ник1, @ник2">
+      <div style="font-size:11px;color:var(--text-mute);text-align:center;margin:10px 0" id="groupLimitHint"></div>
+      <button class="save-btn green" onclick="createGroup()">🚀 Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== НАСТРОЙКИ ГРУППЫ ==================== -->
+<div class="modal-overlay" id="groupSettingsModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('groupSettingsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:18px">👥 Настройки группы</h2>
+      <label class="label">Название</label>
+      <input type="text" id="groupNameInput" class="input-field" maxlength="64" style="margin-bottom:10px">
+      <label class="label">Описание</label>
+      <textarea id="groupDescInput" class="input-field" maxlength="256" style="margin-bottom:10px"></textarea>
+      <label class="label">Аватар (URL)</label>
+      <input type="text" id="groupAvatarInput" class="input-field" placeholder="https://..." style="margin-bottom:10px">
+      <label class="label">GIF-аватар (премиум)</label>
+      <input type="text" id="groupGifAvatarInput" class="input-field" placeholder="https://...gif" style="margin-bottom:10px">
+      <label class="label">Добавить участника</label>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="groupAddInput" class="input-field" placeholder="@ник">
+        <button class="save-btn green" style="margin:0;width:auto;padding:0 16px" onclick="groupAddMember()">➕</button>
+      </div>
+      <button class="save-btn green" onclick="saveGroupSettings()">💾 Сохранить</button>
+      <button class="save-btn red" onclick="leaveGroup()">🚪 Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== НАСТРОЙКИ СЕРВЕРА ==================== -->
+<div class="modal-overlay" id="serverSettingsModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('serverSettingsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:18px">⚙️ Настройки сервера</h2>
+      <label class="label">Название</label>
+      <input type="text" id="serverNameInput" class="input-field" maxlength="64" style="margin-bottom:10px">
+      <label class="label">Описание</label>
+      <textarea id="serverDescInput" class="input-field" maxlength="256" style="margin-bottom:10px"></textarea>
+      <label class="label">Инвайт-код</label>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="serverInviteInput" class="input-field" readonly>
+        <button class="save-btn gold" style="margin:0;width:auto;padding:0 16px" onclick="copyInvite()">📋</button>
+        <button class="save-btn gray" style="margin:0;width:auto;padding:0 16px" onclick="regenInvite()">🔄</button>
+      </div>
+      <label class="label">Создать канал</label>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="newChannelInput" class="input-field" placeholder="Название" maxlength="64">
+        <button class="save-btn green" style="margin:0;width:auto;padding:0 16px" onclick="createChannelInline()">➕</button>
+      </div>
+      <button class="save-btn green" onclick="saveServerSettings()">💾 Сохранить</button>
+      <button class="save-btn gray" onclick="leaveServer()">🚪 Выйти</button>
+      <button class="save-btn red" onclick="deleteServer()">🗑️ Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== РЕЖИМ КАНАЛА ==================== -->
+<div class="modal-overlay" id="channelModeModal">
+  <div class="modal" style="max-width:480px">
+    <button class="close-btn" onclick="document.getElementById('channelModeModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:16px">📢 Настройки канала</h2>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg-input);border-radius:10px;margin-bottom:8px">
+        <input type="radio" name="channelMode" value="public" checked style="width:20px;height:20px"><span>💬 Публичный</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg-input);border-radius:10px;margin-bottom:8px">
+        <input type="radio" name="channelMode" value="readonly" style="width:20px;height:20px"><span>📢 Только чтение</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg-input);border-radius:10px;margin-bottom:16px">
+        <input type="radio" name="channelMode" value="paid_reactions" style="width:20px;height:20px"><span>💰 Платные реакции (10 🏅)</span>
+      </label>
+      <button class="save-btn green" onclick="saveChannelMode()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== УЧАСТНИКИ ==================== -->
+<div class="modal-overlay" id="membersModal">
+  <div class="modal" style="max-width:520px">
+    <button class="close-btn" onclick="document.getElementById('membersModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="font-size:20px;margin-bottom:16px">👥 Участники</h2>
+      <div id="membersList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== СОЗДАНИЕ ==================== -->
+<div class="modal-overlay" id="createMenuModal">
+  <div class="modal" style="max-width:400px">
+    <button class="close-btn" onclick="document.getElementById('createMenuModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:20px">➕ Создать</h2>
+      <div class="shop-tile" style="margin-bottom:10px" onclick="chooseCreate('server')">
+        <span class="st-icon">🏠</span>
+        <div class="st-name">Сервер</div>
+      </div>
+      <div class="shop-tile" style="margin-bottom:10px" onclick="chooseCreate('group')">
+        <span class="st-icon">👥</span>
+        <div class="st-name">Группа</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ТРЕД ==================== -->
+<div class="modal-overlay" id="threadModal">
+  <div class="modal" style="max-width:600px">
+    <button class="close-btn" onclick="document.getElementById('threadModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:20px;margin-bottom:16px">🧵 Тред</h2>
+      <div id="threadRootMessage" style="background:var(--bg-input);border-radius:12px;padding:14px;margin-bottom:16px"></div>
+      <div id="threadMessages" style="max-height:400px;overflow-y:auto;margin-bottom:12px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="threadInput" class="input-field" placeholder="Ответить в треде...">
+        <button class="save-btn green" style="margin:0;width:auto;padding:0 20px" onclick="sendThreadReply()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
