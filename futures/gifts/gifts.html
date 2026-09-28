@@ -1,0 +1,103 @@
+<!-- BELUGACORD 2.5 — MODULE: GIFTS -->
+
+<!-- ==================== МАГАЗИН ==================== -->
+<div class="modal-overlay" id="shopModal">
+  <div class="modal" style="max-width:560px">
+    <button class="close-btn" onclick="document.getElementById('shopModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:24px;margin-bottom:18px">🛒 Магазин</h2>
+      <div class="shop-header">
+        <div style="font-weight:800;font-size:15px;margin-bottom:10px">💰 Баланс</div>
+        <div class="shop-header-balance" id="shopBalance">0</div>
+        <div style="color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:2px;margin-top:6px">🏅 Бекоинов</div>
+        <div style="color:var(--gold);font-size:13px;font-weight:800;margin-top:8px" id="shopRating">⭐ Соц.рейтинг: 0</div>
+      </div>
+      <div class="shop-tabs">
+        <button class="shop-tab-btn active" data-tab="gifts" onclick="showShopTab('gifts')">🎀 Подарки</button>
+        <button class="shop-tab-btn" data-tab="coins" onclick="showShopTab('coins')">🏅 Бекоины</button>
+        <button class="shop-tab-btn" data-tab="transfer" onclick="showShopTab('transfer')">💸 Перевод</button>
+      </div>
+      <div id="shopTabContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== МОИ ПОДАРКИ ==================== -->
+<div class="modal-overlay" id="giftsModal">
+  <div class="modal" style="max-width:560px">
+    <button class="close-btn" onclick="document.getElementById('giftsModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:18px">🎀 Мои подарки</h2>
+      <div id="myGiftsList"></div>
+      <button class="save-btn gold" onclick="openUpgrader()" style="margin-top:14px">⬆️ Апгрейдер</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== АПГРЕЙДЕР 2.0 ==================== -->
+<div class="modal-overlay" id="upgraderModal">
+  <div class="modal" style="max-width:640px">
+    <button class="close-btn" onclick="closeUpgrader()">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:6px">⬆️ Апгрейдер 2.0</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:18px">Выбери свой подарок → что хочешь получить → множитель</div>
+
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:14px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🎁 Мой</div>
+          <select id="ugFromSelect" class="input-field" onchange="ugRecalc()"></select>
+        </div>
+        <div style="font-size:28px;color:var(--gold);padding-top:20px">→</div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🎯 Хочу</div>
+          <select id="ugToSelect" class="input-field" onchange="ugRecalc()"></select>
+        </div>
+      </div>
+
+      <div class="shop-section-title" style="text-align:center">Множитель</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+        <button class="save-btn gray ug-mult-btn" style="margin:0" data-mult="2" onclick="ugSetMult(2,event)">×2</button>
+        <button class="save-btn gray ug-mult-btn" style="margin:0" data-mult="4" onclick="ugSetMult(4,event)">×4</button>
+        <button class="save-btn gray ug-mult-btn" style="margin:0" data-mult="6" onclick="ugSetMult(6,event)">×6</button>
+        <button class="save-btn gray ug-mult-btn" style="margin:0" data-mult="8" onclick="ugSetMult(8,event)">×8</button>
+      </div>
+
+      <div class="ug-circle-wrap" id="ugCircleWrap">
+        <div class="ug-arrow" id="ugArrow">▼</div>
+        <svg class="ug-circle-svg" id="ugCircleSvg" viewBox="0 0 200 200"></svg>
+      </div>
+
+      <div class="ug-chance-display" id="ugChanceDisplay">Выбери подарки</div>
+
+      <button class="save-btn green" id="ugSpinBtn" onclick="ugSpin()" disabled style="margin-top:14px">🎰 КРУТИТЬ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NFT БИРЖА ==================== -->
+<div class="modal-overlay" id="nftMarketModal">
+  <div class="modal" style="max-width:800px">
+    <button class="close-btn" onclick="document.getElementById('nftMarketModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:24px;margin-bottom:8px">🎨 NFT Биржа</h2>
+      <div class="shop-tabs">
+        <button class="shop-tab-btn active" onclick="showNftTab('all',event)">🌐 Все</button>
+        <button class="shop-tab-btn" onclick="showNftTab('my',event)">🎒 Мои</button>
+        <button class="shop-tab-btn" onclick="showNftTab('market',event)">💱 Рынок</button>
+      </div>
+      <div id="nftTabContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== КЕЙСЫ ==================== -->
+<div class="modal-overlay" id="casesModal">
+  <div class="modal" style="max-width:700px">
+    <button class="close-btn" onclick="document.getElementById('casesModal').classList.remove('open')">✕</button>
+    <div style="padding:28px 24px">
+      <h2 style="text-align:center;font-size:24px;margin-bottom:8px">🎁 Кейсы</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px">Крути и получай призы</div>
+      <div id="casesBody" class="case-grid"></div>
+    </div>
+  </div>
+</div>
