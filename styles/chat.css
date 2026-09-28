@@ -1,1 +1,606 @@
+/* ============================================================
+   BELUGACORD 2.5 — CHAT.CSS
+   Чат, сообщения, DM, друзья, голосовые, сторис
+   ============================================================ */
 
+/* ============================================================
+   СПИСОК ЧАТОВ
+   ============================================================ */
+.chat-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:10px;cursor:pointer;
+  margin-bottom:3px;position:relative;transition:all 0.2s;
+}
+.chat-item:hover{background:rgba(217,70,239,0.1)}
+.chat-item.active{
+  background:linear-gradient(90deg,rgba(217,70,239,0.25),rgba(139,92,246,0.1));
+  border-left:3px solid var(--accent);
+}
+.chat-item .avatar{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:15px;overflow:hidden;position:relative;
+}
+.chat-item .avatar img{width:100%;height:100%;object-fit:cover}
+.chat-item-info{flex:1;min-width:0}
+.chat-item-name{
+  color:var(--text);font-weight:700;font-size:13px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:2px;display:flex;align-items:center;gap:5px;
+}
+.chat-item-preview{
+  color:var(--text-mute);font-size:11px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;align-items:center;gap:4px;
+}
+.chat-item-time{font-size:9px;color:var(--text-mute);margin-left:auto;flex-shrink:0}
+
+/* ============================================================
+   ОНЛАЙН-СТАТУСЫ
+   ============================================================ */
+.status-dot{
+  width:10px;height:10px;border-radius:50%;
+  display:inline-block;margin-right:4px;
+}
+.status-dot.online{background:#22d3ee}
+.status-dot.dnd{background:#f43f5e}
+.status-dot.offline{background:#6b7280}
+
+.avatar-online-ring{
+  position:absolute;inset:-3px;border:3px solid #22d3ee;
+  border-radius:14px;pointer-events:none;
+  box-shadow:0 0 10px rgba(34,211,238,0.7);
+}
+.avatar-online-ring.dnd{
+  border-color:#f43f5e;box-shadow:0 0 10px rgba(244,63,94,0.7);
+}
+.avatar-story-ring{
+  position:absolute;inset:-3px;border:3px solid #d946ef;
+  border-radius:14px;pointer-events:none;
+  box-shadow:0 0 12px rgba(217,70,239,0.9);
+  animation:storyPulse 2s infinite;
+}
+@keyframes storyPulse{
+  0%,100%{box-shadow:0 0 8px rgba(217,70,239,0.6)}
+  50%{box-shadow:0 0 18px rgba(217,70,239,1)}
+}
+
+/* ============================================================
+   СЕРВЕР-ТАБЫ
+   ============================================================ */
+.server-tabs{
+  height:38px;background:var(--bg-header);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 8px;gap:4px;
+  flex-shrink:0;overflow-x:auto;
+}
+.server-tabs:empty{display:none}
+.server-tab{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 10px;background:var(--bg-input);
+  border:1px solid var(--border);border-radius:8px;
+  font-size:12px;font-weight:700;cursor:pointer;
+  white-space:nowrap;color:var(--text-dim);transition:all 0.15s;
+}
+.server-tab:hover{border-color:var(--accent);color:var(--text)}
+.server-tab.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border-color:transparent;
+}
+.server-tab .tab-close{
+  font-size:11px;opacity:0.7;margin-left:2px;padding:0 2px;
+}
+.server-tab .tab-close:hover{opacity:1}
+
+/* ============================================================
+   ШАПКА ЧАТА
+   ============================================================ */
+.chat-window-header{
+  height:46px;padding:0 14px;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.chat-window-title{
+  font-weight:700;font-size:14px;flex:1;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* ============================================================
+   СООБЩЕНИЯ
+   ============================================================ */
+.chat-window-messages{
+  flex:1;overflow-y:auto;padding:14px 16px;
+  display:flex;flex-direction:column;gap:6px;position:relative;
+}
+.pinned-bar{
+  position:sticky;top:0;background:var(--bg-header);
+  border:1px solid var(--border);border-radius:10px;
+  padding:8px 12px;font-size:12px;margin-bottom:8px;
+  display:none;z-index:5;cursor:pointer;
+}
+.pinned-bar.show{display:block}
+
+.msg-row{
+  display:flex;gap:10px;padding:5px 8px;
+  border-radius:10px;position:relative;
+  animation:msgIn 0.2s ease;
+}
+@keyframes msgIn{
+  from{opacity:0;transform:translateX(-10px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.msg-row:hover{background:rgba(217,70,239,0.05)}
+.msg-row .avatar{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:14px;
+  overflow:hidden;cursor:pointer;position:relative;
+}
+.msg-row .avatar img{width:100%;height:100%;object-fit:cover}
+.msg-row .avatar.online::after{
+  content:'';position:absolute;inset:-3px;
+  border:2px solid #22d3ee;border-radius:12px;pointer-events:none;
+}
+.msg-body{flex:1;min-width:0}
+.msg-head{
+  display:flex;align-items:baseline;gap:8px;
+  margin-bottom:2px;flex-wrap:wrap;
+}
+.msg-author{font-weight:800;font-size:13px;cursor:pointer}
+.msg-author:hover{text-decoration:underline}
+.msg-time{font-size:10px;color:var(--text-mute)}
+.msg-edited{font-size:10px;color:var(--text-mute);font-style:italic}
+
+.msg-content{
+  color:var(--text);font-size:13px;line-height:1.5;
+  word-wrap:break-word;background:rgba(255,255,255,0.04);
+  padding:7px 11px;border-radius:12px;
+  display:inline-block;max-width:100%;white-space:pre-wrap;
+}
+.msg-content a{color:var(--accent-3);text-decoration:none;word-break:break-all}
+.msg-content a:hover{text-decoration:underline}
+.msg-content .mention{
+  background:rgba(217,70,239,0.3);color:var(--accent);
+  padding:1px 5px;border-radius:6px;font-weight:700;
+}
+.msg-content code{
+  background:rgba(0,0,0,0.4);padding:2px 6px;
+  border-radius:4px;font-family:Consolas,monospace;font-size:12px;
+}
+.msg-content .spoiler{
+  background:#000;color:#000;border-radius:4px;
+  padding:0 4px;cursor:pointer;transition:all 0.2s;
+}
+.msg-content .spoiler.revealed{
+  background:rgba(217,70,239,0.2);color:var(--text);
+}
+.msg-content blockquote{
+  border-left:3px solid var(--accent);padding-left:10px;
+  color:var(--text-dim);margin:4px 0;
+}
+
+.msg-reply-quote{
+  background:rgba(217,70,239,0.1);border-left:3px solid var(--accent);
+  padding:4px 8px;border-radius:6px;font-size:11px;
+  color:var(--text-dim);margin-bottom:4px;
+  display:inline-block;max-width:100%;cursor:pointer;
+}
+
+.msg-actions{
+  position:absolute;top:2px;right:8px;display:none;gap:4px;
+  background:var(--bg-window);border:1px solid var(--border);
+  border-radius:8px;padding:2px;z-index:5;
+}
+.msg-row:hover .msg-actions{display:flex}
+.msg-action-btn{
+  background:none;border:none;cursor:pointer;
+  font-size:14px;padding:2px 4px;border-radius:4px;color:var(--text-dim);
+}
+.msg-action-btn:hover{background:rgba(217,70,239,0.15);color:var(--accent)}
+
+/* ============================================================
+   РЕАКЦИИ
+   ============================================================ */
+.msg-reactions{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.reaction-pill{
+  background:rgba(217,70,239,0.15);
+  border:1px solid rgba(217,70,239,0.3);
+  border-radius:14px;padding:2px 8px;font-size:11px;cursor:pointer;
+  transition:all 0.15s;
+}
+.reaction-pill:hover{background:rgba(217,70,239,0.25)}
+.reaction-pill.paid{border-color:var(--gold);background:rgba(255,215,0,0.15)}
+
+/* ============================================================
+   СТИКЕРЫ
+   ============================================================ */
+.msg-sticker{font-size:120px;line-height:1;display:inline-block;max-width:200px}
+.msg-sticker img{max-width:200px;max-height:200px}
+
+/* ============================================================
+   ТРЕДЫ
+   ============================================================ */
+.msg-thread-badge{
+  font-size:10px;color:var(--accent-3);font-weight:800;
+  cursor:pointer;margin-top:4px;display:inline-block;
+}
+.msg-thread-badge:hover{text-decoration:underline}
+
+/* ============================================================
+   ПОЛЕ ВВОДА
+   ============================================================ */
+.chat-window-input-area{padding:10px 14px 14px;flex-shrink:0}
+.chat-window-input-box{
+  background:var(--bg-input);border:1px solid var(--border);
+  border-radius:14px;display:flex;align-items:flex-end;
+  padding:6px 12px;gap:8px;
+}
+.chat-window-input-box textarea{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-size:13px;padding:6px 0;
+  font-family:inherit;resize:none;max-height:120px;
+  min-height:20px;line-height:1.4;
+}
+.file-btn{
+  background:none;border:none;color:var(--text-dim);
+  cursor:pointer;font-size:19px;padding:5px 7px;border-radius:8px;
+  transition:all 0.15s;
+}
+.file-btn:hover{color:var(--accent);background:rgba(217,70,239,0.1)}
+
+/* ============================================================
+   TOOLBAR ФОРМАТИРОВАНИЯ
+   ============================================================ */
+.format-toolbar{
+  display:flex;gap:2px;padding:4px 0;
+  border-bottom:1px solid var(--border);margin-bottom:6px;
+}
+.format-btn{
+  background:none;border:none;color:var(--text-dim);
+  cursor:pointer;padding:4px 8px;border-radius:6px;
+  font-size:13px;font-weight:800;font-family:inherit;
+  transition:all 0.15s;
+}
+.format-btn:hover{background:rgba(217,70,239,0.15);color:var(--accent)}
+
+.char-counter{
+  font-size:10px;color:var(--text-mute);text-align:right;padding:2px 6px;
+}
+
+/* ============================================================
+   REPLY BAR
+   ============================================================ */
+.reply-bar{
+  background:rgba(217,70,239,0.15);border-left:3px solid var(--accent);
+  padding:6px 12px;border-radius:8px;font-size:12px;
+  margin-bottom:6px;display:none;align-items:center;gap:8px;
+}
+.reply-bar.show{display:flex}
+.reply-bar .rb-text{
+  flex:1;color:var(--text-dim);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;
+}
+.reply-bar .rb-close{
+  background:none;border:none;color:var(--text-mute);
+  cursor:pointer;font-size:14px;
+}
+
+/* ============================================================
+   SLOWMODE
+   ============================================================ */
+.slowmode-bar{
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  color:#fff;padding:6px 12px;border-radius:8px;
+  font-size:11px;font-weight:800;text-align:center;
+  margin-bottom:6px;display:none;
+}
+.slowmode-bar.show{display:block}
+
+/* ============================================================
+   ПИКЕРЫ
+   ============================================================ */
+.emoji-picker{
+  position:fixed;display:grid;grid-template-columns:repeat(8,1fr);
+  gap:4px;padding:12px;background:var(--bg-window);
+  border:1px solid var(--border);border-radius:14px;
+  bottom:100px;right:20px;max-width:340px;z-index:9999;
+}
+.emoji-picker span{
+  font-size:22px;cursor:pointer;padding:6px;
+  border-radius:8px;text-align:center;transition:background 0.15s;
+}
+.emoji-picker span:hover{background:rgba(217,70,239,0.2)}
+
+.sticker-picker{
+  position:fixed;display:grid;grid-template-columns:repeat(4,1fr);
+  gap:8px;padding:12px;background:var(--bg-window);
+  border:1px solid var(--border);border-radius:14px;
+  bottom:100px;right:20px;max-width:320px;
+  max-height:300px;overflow-y:auto;z-index:9999;
+}
+.sticker-picker .sticker-item{
+  aspect-ratio:1;background:var(--bg-input);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:28px;overflow:hidden;transition:transform 0.15s;
+}
+.sticker-picker .sticker-item:hover{transform:scale(1.05)}
+.sticker-picker .sticker-item img{
+  width:100%;height:100%;object-fit:contain;
+}
+
+/* ============================================================
+   QUICK REACTIONS
+   ============================================================ */
+.quick-reactions{
+  position:fixed;display:flex;gap:4px;
+  background:var(--bg-window);border:1px solid var(--border);
+  border-radius:14px;padding:6px 8px;z-index:9999;
+  box-shadow:var(--shadow);
+}
+.quick-reactions span{
+  cursor:pointer;font-size:22px;padding:4px;
+  border-radius:8px;transition:background 0.15s;
+}
+.quick-reactions span:hover{background:rgba(217,70,239,0.2)}
+
+/* ============================================================
+   VOICE / ГОЛОСОВЫЕ
+   ============================================================ */
+.voice-record-bar{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(200px);
+  background:linear-gradient(135deg,rgba(244,63,94,0.95),rgba(236,72,153,0.95));
+  border-radius:20px;padding:12px 16px;
+  display:none;align-items:center;gap:12px;z-index:9600;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);transition:transform 0.3s;
+}
+.voice-record-bar.show{display:flex;transform:translateX(-50%) translateY(0)}
+.voice-recording-indicator{
+  display:flex;align-items:center;gap:8px;
+  font-weight:800;color:#fff;font-family:monospace;
+}
+.voice-rec-dot{
+  width:12px;height:12px;border-radius:50%;background:#fff;
+  animation:recDot 1s infinite;
+}
+@keyframes recDot{0%,100%{opacity:1}50%{opacity:0.3}}
+.voice-wave{display:flex;gap:2px;align-items:center;height:30px;min-width:100px}
+.voice-wave span{
+  width:3px;background:#fff;border-radius:2px;
+  animation:wave 0.8s infinite ease-in-out;
+}
+@keyframes wave{0%,100%{height:6px}50%{height:24px}}
+.voice-btn-cancel,.voice-btn-send{
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:rgba(255,255,255,0.2);color:#fff;
+  font-size:16px;cursor:pointer;font-weight:800;
+}
+.voice-btn-send{background:#22c55e}
+.voice-player{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(217,70,239,0.15);border-radius:20px;
+  padding:8px 12px;margin-top:6px;max-width:300px;
+}
+.voice-play-btn{
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:var(--accent);color:#fff;cursor:pointer;font-size:14px;
+}
+.voice-wave-mini{display:flex;gap:2px;align-items:center;height:20px}
+.voice-wave-mini span{width:3px;background:var(--accent);border-radius:2px}
+
+/* ============================================================
+   ЗВОНКИ
+   ============================================================ */
+.call-banner{
+  position:fixed;top:14px;left:50%;
+  transform:translateX(-50%) translateY(-200px);
+  width:min(560px,calc(100vw - 24px));
+  background:linear-gradient(135deg,rgba(30,20,50,0.98),rgba(50,25,80,0.98));
+  border:2px solid var(--accent);border-radius:20px;padding:18px;
+  z-index:9500;
+  box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 40px rgba(217,70,239,0.3);
+  transition:transform 0.4s cubic-bezier(0.2,0.9,0.3,1.1);
+  display:flex;flex-direction:column;gap:14px;
+}
+.call-banner.show{transform:translateX(-50%) translateY(0)}
+.call-banner.calling{border-color:var(--gold)}
+.call-banner.incoming{border-color:#22c55e}
+.call-banner-header{display:flex;align-items:center;justify-content:center;gap:20px}
+.call-banner-avatar{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;font-weight:900;color:#fff;overflow:hidden;
+  flex-shrink:0;border:3px solid rgba(255,255,255,0.15);
+  box-shadow:0 0 20px rgba(217,70,239,0.5);
+}
+.call-banner-avatar img{width:100%;height:100%;object-fit:cover}
+.call-banner-avatar.ringing{animation:callPulse 1.5s infinite}
+@keyframes callPulse{
+  0%,100%{box-shadow:0 0 20px rgba(217,70,239,0.5)}
+  50%{box-shadow:0 0 40px rgba(217,70,239,1)}
+}
+.call-banner-info{text-align:center;flex:1;min-width:0}
+.call-banner-name{
+  font-size:18px;font-weight:900;color:#fff;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.call-banner-status{font-size:12px;color:var(--text-dim);margin-top:4px;font-weight:700}
+.call-banner-timer{
+  font-size:16px;font-weight:800;color:var(--gold);
+  font-family:monospace;margin-top:4px;
+}
+.call-banner-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.call-btn{
+  width:56px;height:56px;border-radius:50%;border:none;
+  cursor:pointer;font-size:22px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.15);transition:all 0.15s;
+}
+.call-btn:hover{transform:scale(1.1);background:rgba(255,255,255,0.2)}
+.call-btn.active{background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#0f0520}
+.call-btn.red{background:linear-gradient(135deg,#f43f5e,#dc2626)}
+.call-btn.green{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.call-btn.gold{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#1a0a2e}
+.call-banner-video{
+  width:100%;height:180px;background:#000;border-radius:12px;
+  overflow:hidden;position:relative;display:none;
+}
+.call-banner-video.show{display:block}
+.call-banner-video video{width:100%;height:100%;object-fit:contain}
+.call-device-menu-inline{
+  background:rgba(0,0,0,0.4);border-radius:12px;padding:10px;
+  display:none;flex-direction:column;gap:8px;
+}
+.call-device-menu-inline.show{display:flex}
+.call-device-menu-inline .cdm-title{
+  font-size:10px;text-transform:uppercase;font-weight:800;
+  color:var(--text-mute);letter-spacing:1px;
+}
+.call-device-menu-inline select{
+  width:100%;background:var(--bg-input);border:1px solid var(--border);
+  border-radius:8px;padding:8px;color:var(--text);
+  font-size:12px;outline:none;font-family:inherit;
+}
+.call-record-indicator{
+  position:fixed;top:14px;right:14px;
+  background:rgba(244,63,94,0.95);color:#fff;
+  padding:8px 14px;border-radius:20px;
+  font-weight:800;font-size:12px;z-index:9600;
+  display:none;align-items:center;gap:8px;font-family:monospace;
+}
+.call-record-indicator.show{display:flex}
+
+/* ============================================================
+   STORIES / СТОРИС
+   ============================================================ */
+.story-bg-pick{
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  border:3px solid rgba(255,255,255,0.2);
+}
+.story-viewer{
+  width:100%;max-width:400px;aspect-ratio:9/16;
+  background:#000;border-radius:20px;position:relative;
+  overflow:hidden;margin:0 auto;
+}
+.story-progress{
+  position:absolute;top:8px;left:8px;right:8px;
+  height:3px;background:rgba(255,255,255,0.3);
+  border-radius:2px;z-index:5;
+}
+.story-progress-fill{
+  height:100%;background:#fff;border-radius:2px;
+  width:0%;transition:width 0.1s linear;
+}
+.story-header{
+  position:absolute;top:20px;left:12px;right:12px;
+  display:flex;align-items:center;gap:10px;z-index:4;color:#fff;
+}
+.story-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;overflow:hidden;
+}
+.story-avatar img{width:100%;height:100%;object-fit:cover}
+.story-name{font-weight:800;font-size:14px;flex:1}
+.story-time{font-size:11px;opacity:0.7}
+.story-content{
+  position:absolute;inset:0;display:flex;
+  align-items:center;justify-content:center;
+  background-size:cover;background-position:center;
+}
+.story-content img{width:100%;height:100%;object-fit:cover}
+.story-content #storyText{
+  position:absolute;bottom:120px;left:20px;right:20px;
+  color:#fff;font-size:18px;font-weight:800;
+  text-shadow:0 2px 8px rgba(0,0,0,0.8);text-align:center;
+}
+.story-nav-left,.story-nav-right{
+  position:absolute;top:0;bottom:0;width:30%;z-index:3;cursor:pointer;
+}
+.story-nav-left{left:0}
+.story-nav-right{right:0}
+.story-reactions{
+  position:absolute;bottom:70px;left:0;right:0;
+  display:flex;gap:8px;justify-content:center;z-index:4;
+}
+.story-reactions span{
+  font-size:26px;cursor:pointer;
+  background:rgba(0,0,0,0.4);padding:6px;border-radius:50%;
+}
+.story-reply{
+  position:absolute;bottom:16px;left:12px;right:12px;
+  display:flex;gap:8px;z-index:4;
+}
+.story-reply input{
+  flex:1;background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.3);
+  border-radius:20px;padding:10px 16px;
+  color:#fff;font-size:13px;outline:none;
+}
+.story-reply button{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  border:none;cursor:pointer;font-size:16px;
+}
+
+/* ============================================================
+   АВАТАРЫ СТРИМЕРОВ
+   ============================================================ */
+.avatar.streamer::after{
+  content:'';position:absolute;inset:-4px;
+  border:2px solid #ef4444;border-radius:12px;
+  animation:streamerAura 1.5s infinite;pointer-events:none;
+}
+@keyframes streamerAura{
+  0%,100%{box-shadow:0 0 15px rgba(239,68,68,0.6),0 0 25px rgba(249,115,22,0.4)}
+  50%{box-shadow:0 0 25px rgba(239,68,68,0.9),0 0 40px rgba(249,115,22,0.6)}
+}
+.msg-author.streamer{
+  background:linear-gradient(135deg,#ef4444,#f97316);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;font-weight:900;
+}
+
+/* ============================================================
+   РАМКИ АВАТАРА
+   ============================================================ */
+@keyframes framePulse{
+  0%,100%{box-shadow:0 0 8px rgba(236,72,153,0.6)}
+  50%{box-shadow:0 0 24px rgba(236,72,153,1)}
+}
+@keyframes frameRainbow{
+  0%{filter:hue-rotate(0deg)}
+  100%{filter:hue-rotate(360deg)}
+}
+.avatar[data-frame="pulse"]{animation:framePulse 1.5s infinite}
+.avatar[data-frame="spin"],
+.avatar[data-frame="rainbow"],
+.avatar[data-frame="neon"]{animation:frameRainbow 3s linear infinite}
+
+.gif-badge{
+  position:absolute;bottom:-2px;right:-2px;
+  background:linear-gradient(135deg,#d946ef,#8b5cf6);
+  color:#fff;font-size:8px;font-weight:900;
+  padding:1px 4px;border-radius:4px;z-index:3;letter-spacing:0.5px;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width:768px){
+  .chat-window-messages{padding:10px 8px}
+  .server-tabs{overflow-x:auto;padding:0 4px}
+  .call-banner{top:8px;padding:14px}
+  .call-banner-avatar{width:70px;height:70px;font-size:30px}
+  .call-banner-name{font-size:15px}
+  .call-btn{width:48px;height:48px;font-size:18px}
+  .story-viewer{max-width:100%}
+  .msg-sticker{font-size:80px;max-width:150px}
+  .msg-sticker img{max-width:150px;max-height:150px}
+}
