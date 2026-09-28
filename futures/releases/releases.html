@@ -1,1 +1,35 @@
+<!-- BELUGACORD 2.5 — MODULE: RELEASES (hot-swap обновлений) -->
 
+<!-- ==================== МОДАЛКА ЮЗЕРА (новая версия) ==================== -->
+<div class="modal-overlay" id="releaseModal" style="z-index:2000">
+  <div class="modal" style="max-width:540px">
+    <div style="padding:32px 26px;text-align:center">
+      <div style="font-size:64px;margin-bottom:12px">🎉</div>
+      <h2 style="font-size:26px;margin-bottom:6px;background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900" id="relTitle">Belugacord 2.5</h2>
+      <div style="color:var(--text-dim);font-size:13px;margin-bottom:18px" id="relSubtitle">Вышло большое обновление</div>
+
+      <div id="relNotes" style="text-align:left;background:var(--bg-input);border-radius:12px;padding:16px;margin-bottom:18px;font-size:13px;line-height:1.7;max-height:320px;overflow-y:auto;white-space:pre-wrap"></div>
+
+      <button class="save-btn green" id="relApplyBtn" onclick="applyRelease()">🚀 Попробовать сейчас</button>
+      <button class="save-btn gray" id="relLaterBtn" onclick="dismissRelease()" style="margin-top:8px">Позже</button>
+      <div id="relForceMsg" style="font-size:11px;color:var(--text-mute);margin-top:10px;display:none">Обновление обязательно</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ИНДИКАТОР ОБНОВЛЕНИЯ (сверху) ==================== -->
+<div id="releaseIndicator" style="position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-200px);background:linear-gradient(135deg,#22c55e,#06b6d4);color:#fff;padding:10px 20px;border-radius:14px;font-weight:800;font-size:13px;z-index:9000;box-shadow:0 8px 30px rgba(34,197,94,0.5);transition:transform 0.4s;display:none">
+  ⬇️ Доступно обновление <button onclick="applyRelease()" style="margin-left:12px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:8px;font-weight:800;cursor:pointer;font-family:inherit">Обновить</button>
+</div>
+
+<!-- ==================== ПАНЕЛЬ ВЛАДЕЛЬЦА ==================== -->
+<div class="modal-overlay" id="releasesPanelModal">
+  <div class="modal" style="max-width:680px">
+    <button class="close-btn" onclick="document.getElementById('releasesPanelModal').classList.remove('open')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;font-size:22px;margin-bottom:8px">🚀 Управление релизами</h2>
+      <div style="text-align:center;color:var(--text-mute);font-size:12px;margin-bottom:18px">Включи версию — все юзеры получат уведомление</div>
+      <div id="releasesBody"></div>
+    </div>
+  </div>
+</div>
