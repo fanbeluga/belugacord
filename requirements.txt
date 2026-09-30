@@ -1,6 +1,4 @@
 fastapi
-   uvicorn[standard]
-   asyncpg
-   python-multipart
-   websockets
-   httpx
+uvicorn[standard]
+python-multipart
+websockets
