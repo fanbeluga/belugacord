@@ -17,8 +17,8 @@ self.addEventListener('push',e=>{
   try{if(e.data)data=e.data.json();}catch(err){}
   e.waitUntil(self.registration.showNotification(data.title,{
     body:data.body,
-    icon:'/uploads/icon.png',
-    badge:'/uploads/icon.png',
+    icon:'/icon-512x512.png',
+    badge:'/icon-192x192.png',
     vibrate:[200,100,200]
   }));
 });
