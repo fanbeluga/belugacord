@@ -1,4 +1,4 @@
-# BELUGACORD BETA 2.5 — server.py
+# BELUGACORD BETA 2.6 — server.py (ЖУТКИЙ МЕСЯЦ)
 import os,json,time,secrets,hashlib,random,datetime,asyncio
 from typing import Optional
 import asyncpg
@@ -15,9 +15,8 @@ SECRET_KEY=os.environ.get("SECRET_KEY","belugacord_secret_2026")
 RESEND_API_KEY=os.environ.get("RESEND_API_KEY","")
 ADMIN_USERNAME="_fan_beluga_"
 OWNER_PASSWORD="12344321"
-CURRENT_VERSION="2.5"
+CURRENT_VERSION="2.6"
 
-# ============ 2.5 FIX: whitelist расширений + MIME ============
 ALLOWED_EXT={'.png','.jpg','.jpeg','.gif','.webp','.svg','.mp4','.webm','.mov','.mp3','.wav','.ogg','.m4a','.pdf','.txt','.zip','.json'}
 ALLOWED_MIME={'image/png','image/jpeg','image/gif','image/webp','image/svg+xml','video/mp4','video/webm','video/quicktime','audio/mpeg','audio/wav','audio/ogg','audio/mp4','audio/webm','application/pdf','text/plain','application/zip','application/json','application/octet-stream'}
 
@@ -25,15 +24,15 @@ LIMITS={None:{"file":10*1024*1024,"msg":2000,"servers":10,"channels":20,"groups"
 PREMIUM_PRICES={"month":1500,"year":18000}
 QUEST_EXCHANGE={"1day":{"cost":1400,"days":1},"3days":{"cost":7500,"days":3},"7days":{"cost":10000,"days":7}}
 
-DEFAULT_GIFTS={"rose":{"name":"Роза","emoji":"🌹","price":15},"bear":{"name":"Мишка","emoji":"🧸","price":25},"cake":{"name":"Торт","emoji":"🎂","price":50},"diamond":{"name":"Алмаз","emoji":"💎","price":100},"crown":{"name":"Корона","emoji":"👑","price":500},"dragon":{"name":"Дракон","emoji":"🐉","price":1000},"legend":{"name":"Легендарка","emoji":"💠","price":5000},"alien":{"name":"Инопланетянин","emoji":"👽","price":10000},"galaxy":{"name":"Галактика","emoji":"🌌","price":100000},"goldcat":{"name":"Золотой Белуга","emoji":"🐱","price":1000000},"universe":{"name":"Мультивселенная","emoji":"💫","price":1000000000}}
+DEFAULT_GIFTS={"rose":{"name":"Роза","emoji":"🌹","price":15},"bear":{"name":"Мишка","emoji":"🧸","price":25},"cake":{"name":"Торт","emoji":"🎂","price":50},"diamond":{"name":"Алмаз","emoji":"💎","price":100},"crown":{"name":"Корона","emoji":"👑","price":500},"dragon":{"name":"Дракон","emoji":"🐉","price":1000},"legend":{"name":"Легендарка","emoji":"💠","price":5000},"pumpkin":{"name":"Тыква","emoji":"🎃","price":150},"ghost":{"name":"Призрак","emoji":"👻","price":250},"skull":{"name":"Череп","emoji":"💀","price":400},"bat":{"name":"Летучая мышь","emoji":"🦇","price":300},"witch":{"name":"Ведьма","emoji":"🧙","price":800},"vampire":{"name":"Вампир","emoji":"🧛","price":900},"spider":{"name":"Паук","emoji":"🕷️","price":200},"alien":{"name":"Инопланетянин","emoji":"👽","price":10000},"galaxy":{"name":"Галактика","emoji":"🌌","price":100000},"goldcat":{"name":"Золотой Белуга","emoji":"🐱","price":1000000},"universe":{"name":"Мультивселенная","emoji":"💫","price":1000000000}}
 GAME_LIST=["penguin","minesweeper","snake","2048","flappy","tetris","memory","reaction","tictactoe","rps","battleship","duel","freedoom"]
 
-ACHIEVEMENTS={"first_msg":{"name":"Первое слово","emoji":"💬","desc":"Отправь первое сообщение"},"msg_100":{"name":"Болтун","emoji":"🗣️","desc":"100 сообщений"},"msg_1000":{"name":"Оратор","emoji":"🎤","desc":"1000 сообщений"},"msg_10000":{"name":"Легенда чата","emoji":"📢","desc":"10000 сообщений"},"first_friend":{"name":"Дружелюбный","emoji":"👥","desc":"Первый друг"},"friend_10":{"name":"Тусовщик","emoji":"🎉","desc":"10 друзей"},"first_gift":{"name":"Щедрый","emoji":"🎁","desc":"Первый подарок"},"first_nft":{"name":"Коллекционер","emoji":"🎨","desc":"Первый NFT"},"snake_100":{"name":"Змеелов","emoji":"🐍","desc":"100 очков в Змейке"},"flappy_50":{"name":"Летун","emoji":"🐦","desc":"50 очков в Flappy"},"first_server":{"name":"Основатель","emoji":"🏠","desc":"Создай сервер"},"coins_10k":{"name":"Богач","emoji":"💰","desc":"10000 бекоинов"},"rating_100":{"name":"Щедрая душа","emoji":"💎","desc":"Соц.рейтинг 100"},"rating_10000":{"name":"Меценат","emoji":"👑","desc":"Соц.рейтинг 10000"}}
+ACHIEVEMENTS={"first_msg":{"name":"Первое слово","emoji":"💬","desc":"Отправь первое сообщение"},"msg_100":{"name":"Болтун","emoji":"🗣️","desc":"100 сообщений"},"msg_1000":{"name":"Оратор","emoji":"🎤","desc":"1000 сообщений"},"msg_10000":{"name":"Легенда чата","emoji":"📢","desc":"10000 сообщений"},"first_friend":{"name":"Дружелюбный","emoji":"👥","desc":"Первый друг"},"friend_10":{"name":"Тусовщик","emoji":"🎉","desc":"10 друзей"},"first_gift":{"name":"Щедрый","emoji":"🎁","desc":"Первый подарок"},"first_nft":{"name":"Коллекционер","emoji":"🎨","desc":"Первый NFT"},"snake_100":{"name":"Змеелов","emoji":"🐍","desc":"100 очков в Змейке"},"flappy_50":{"name":"Летун","emoji":"🐦","desc":"50 очков в Flappy"},"first_server":{"name":"Основатель","emoji":"🏠","desc":"Создай сервер"},"coins_10k":{"name":"Богач","emoji":"💰","desc":"10000 бекоинов"},"rating_100":{"name":"Щедрая душа","emoji":"💎","desc":"Соц.рейтинг 100"},"rating_10000":{"name":"Меценат","emoji":"👑","desc":"Соц.рейтинг 10000"},"halloween_10":{"name":"Тыква-новичок","emoji":"🎃","desc":"10 конфет собрано"},"halloween_100":{"name":"Тыквенный лорд","emoji":"🎃","desc":"100 конфет"},"halloween_500":{"name":"Владыка Хэллоуина","emoji":"👻","desc":"500 конфет"}}
 
 CHANGELOG={
-"2.5":{"title":"Belugacord Beta 2.5","items":["🛠️ Фикс всех багов 2.4","🏆 Полный БП-конструктор (награды, квесты, длительность)","📢 Сообщение от лица владельца (ава+ник+текст)","🧹 Чистка мёртвого кода","🔒 Валидация загрузок по MIME+расширению","💓 WS ping/pong","🎨 Эффекты сообщений реально работают","⚡ Хот-свап контента","📊 Улучшенный БОГ-ГУИ","🐛 Фиксы slowmode / кэша / prompt-модалок"]},
-"2.4":{"title":"Belugacord Beta 2.4","items":["🎮 13 игр","⚡ Медленный режим","📝 Форматирование","📎 Drag-drop файлов","👁️ Шпион","💀 Самоуничтожение"]},
-"2.3":{"title":"Belugacord Beta 2.3","items":["⬆️ Апгрейдер-колесо","🎤 Голосовые","📸 Сторис","🧵 Треды","💎 Премиум","🏦 Банк","🔨 Аукцион","🎰 Рулетка"]}}
+"2.6":{"title":"Belugacord Beta 2.6 — Жуткий месяц","items":["🎃 Хэллоуин-сезон «Жуткий месяц»","🍬 Конфеты и Хэллоуин-магазин","⬆️ Апгрейдер 2.0 (реальное колесо + x1/x3/x5 + история)","🎃 Упрощённый БП-конструктор (выпадающие списки)","📢 Сообщение от лица владельца","♻️ Хот-свап фронта одной кнопкой","🎨 Хэллоуин-тема","😈 Удалена рулетка (была лудка)","⚔️ Дуэль переписана на честный рандом","👻 30 новых фич","🎃 Пресеты БП: Жуткий месяц / Новый год / Весна"]},
+"2.5":{"title":"Belugacord Beta 2.5","items":["🛠️ Фикс всех багов 2.4","🏆 Полный БП-конструктор","📢 Сообщение от лица владельца"]},
+"2.4":{"title":"Belugacord Beta 2.4","items":["🎮 13 игр","⚡ Медленный режим","📝 Форматирование"]}}
 
 app=FastAPI()
 app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_methods=["*"],allow_headers=["*"])
@@ -67,11 +66,104 @@ async def get_pool():
     if pool is None: pool=await asyncpg.create_pool(DATABASE_URL,min_size=1,max_size=5)
     return pool
 
+# ============ BP PRESETS (2.6 NEW) ============
+BP_PRESETS={
+"halloween":{
+  "name":"Жуткий месяц","description":"Хэллоуин-сезон · только октябрь","emoji":"🎃","days_total":30,"max_level":50,
+  "quests":[
+    {"name":"Напиши 10 сообщений","action_type":"send_message","target_count":10,"xp_reward":100},
+    {"name":"Сыграй 1 игру","action_type":"play_game","target_count":1,"xp_reward":100},
+    {"name":"Отправь 1 DM","action_type":"send_dm","target_count":1,"xp_reward":100},
+    {"name":"Поставь 5 реакций","action_type":"react","target_count":5,"xp_reward":150},
+    {"name":"Добавь 1 друга","action_type":"add_friend","target_count":1,"xp_reward":300},
+    {"name":"Зайди 2 дня подряд","action_type":"daily_streak","target_count":2,"xp_reward":300},
+    {"name":"Установи рамку","action_type":"set_frame","target_count":1,"xp_reward":200},
+    {"name":"Установи титул","action_type":"set_title","target_count":1,"xp_reward":200},
+    {"name":"Опубликуй сторис","action_type":"post_story","target_count":1,"xp_reward":500},
+    {"name":"Подари подарок","action_type":"give_gift","target_count":1,"xp_reward":500},
+    {"name":"Напиши 50 сообщений","action_type":"send_message","target_count":50,"xp_reward":1000},
+    {"name":"Сыграй 10 игр","action_type":"play_game","target_count":10,"xp_reward":1500},
+    {"name":"Отправь 20 DM","action_type":"send_dm","target_count":20,"xp_reward":1200},
+    {"name":"Подари 3 подарка","action_type":"give_gift","target_count":3,"xp_reward":2000},
+    {"name":"Открой 3 кейса","action_type":"open_case","target_count":3,"xp_reward":2000},
+    {"name":"Купи 1 NFT","action_type":"buy_nft","target_count":1,"xp_reward":3000},
+    {"name":"Добавь 5 друзей","action_type":"add_friend","target_count":5,"xp_reward":2500},
+    {"name":"Зайди 7 дней подряд","action_type":"daily_streak","target_count":7,"xp_reward":3000},
+    {"name":"Победи в 5 дуэлях","action_type":"win_duel","target_count":5,"xp_reward":3000},
+    {"name":"Накопи 10000 бекоинов","action_type":"save_coins","target_count":10000,"xp_reward":5000},
+    {"name":"Напиши 500 сообщений","action_type":"send_message","target_count":500,"xp_reward":10000},
+    {"name":"Сыграй 50 игр","action_type":"play_game","target_count":50,"xp_reward":12000},
+    {"name":"Подари 20 подарков","action_type":"give_gift","target_count":20,"xp_reward":15000},
+    {"name":"Открой 20 кейсов","action_type":"open_case","target_count":20,"xp_reward":20000},
+    {"name":"Купи 5 NFT","action_type":"buy_nft","target_count":5,"xp_reward":20000},
+    {"name":"Добавь 20 друзей","action_type":"add_friend","target_count":20,"xp_reward":25000},
+    {"name":"Зайди 30 дней подряд","action_type":"daily_streak","target_count":30,"xp_reward":30000},
+    {"name":"Достигни 25 уровня","action_type":"reach_level","target_count":25,"xp_reward":30000},
+    {"name":"Победи в турнире","action_type":"win_tournament","target_count":1,"xp_reward":40000},
+    {"name":"Напиши владельцу","action_type":"write_owner","target_count":1,"xp_reward":50000}
+  ],
+  "rewards":[
+    {"level":1,"reward":"💰 100 бекоинов","reward_type":"coins","reward_value":100},
+    {"level":2,"reward":"🎨 Рамка «Тыква»","reward_type":"frame","reward_value":1,"reward_item_id":"pumpkin"},
+    {"level":3,"reward":"👑 Титул «Призрак»","reward_type":"title","reward_value":1,"reward_item_id":"👻 Призрак"},
+    {"level":4,"reward":"💰 500 бекоинов","reward_type":"coins","reward_value":500},
+    {"level":5,"reward":"🎟️ 100 КП","reward_type":"kp","reward_value":100},
+    {"level":6,"reward":"🎨 Рамка «Летучая мышь»","reward_type":"frame","reward_value":1,"reward_item_id":"bat"},
+    {"level":7,"reward":"💎 Премиум 3 дня","reward_type":"premium","reward_value":3},
+    {"level":8,"reward":"👑 Титул «Вампир»","reward_type":"title","reward_value":1,"reward_item_id":"🧛 Вампир"},
+    {"level":9,"reward":"🍬 50 конфет","reward_type":"candy","reward_value":50},
+    {"level":10,"reward":"🎨 Рамка «Хэллоуин-легенда» + 💰 50000 бекоинов + 👑 Титул «Владыка тьмы»","reward_type":"coins","reward_value":50000}
+  ]
+},
+"newyear":{
+  "name":"Новый год","description":"Зимний сезон","emoji":"❄️","days_total":30,"max_level":40,
+  "quests":[
+    {"name":"Напиши 10 сообщений","action_type":"send_message","target_count":10,"xp_reward":100},
+    {"name":"Сыграй 3 игры","action_type":"play_game","target_count":3,"xp_reward":300},
+    {"name":"Отправь 5 DM","action_type":"send_dm","target_count":5,"xp_reward":300},
+    {"name":"Добавь 1 друга","action_type":"add_friend","target_count":1,"xp_reward":300},
+    {"name":"Подари 1 подарок","action_type":"give_gift","target_count":1,"xp_reward":500},
+    {"name":"Напиши 100 сообщений","action_type":"send_message","target_count":100,"xp_reward":2000},
+    {"name":"Открой 5 кейсов","action_type":"open_case","target_count":5,"xp_reward":3000},
+    {"name":"Победи в 3 дуэлях","action_type":"win_duel","target_count":3,"xp_reward":2500},
+    {"name":"Зайди 7 дней подряд","action_type":"daily_streak","target_count":7,"xp_reward":3000},
+    {"name":"Напиши 1000 сообщений","action_type":"send_message","target_count":1000,"xp_reward":20000}
+  ],
+  "rewards":[
+    {"level":1,"reward":"💰 200 бекоинов","reward_type":"coins","reward_value":200},
+    {"level":2,"reward":"🎨 Рамка «Снежинка»","reward_type":"frame","reward_value":1,"reward_item_id":"ice"},
+    {"level":3,"reward":"👑 Титул «Снеговик»","reward_type":"title","reward_value":1,"reward_item_id":"⛄ Снеговик"},
+    {"level":5,"reward":"💎 Премиум 7 дней","reward_type":"premium","reward_value":7},
+    {"level":8,"reward":"💰 20000 бекоинов","reward_type":"coins","reward_value":20000}
+  ]
+},
+"spring":{
+  "name":"Весна","description":"Весенний сезон","emoji":"🌸","days_total":30,"max_level":30,
+  "quests":[
+    {"name":"Напиши 20 сообщений","action_type":"send_message","target_count":20,"xp_reward":200},
+    {"name":"Сыграй 5 игр","action_type":"play_game","target_count":5,"xp_reward":500},
+    {"name":"Добавь 2 друга","action_type":"add_friend","target_count":2,"xp_reward":600},
+    {"name":"Подари 2 подарка","action_type":"give_gift","target_count":2,"xp_reward":1000},
+    {"name":"Напиши 200 сообщений","action_type":"send_message","target_count":200,"xp_reward":3000},
+    {"name":"Напиши 1000 сообщений","action_type":"send_message","target_count":1000,"xp_reward":15000}
+  ],
+  "rewards":[
+    {"level":1,"reward":"💰 100 бекоинов","reward_type":"coins","reward_value":100},
+    {"level":2,"reward":"🎨 Рамка «Природа»","reward_type":"frame","reward_value":1,"reward_item_id":"rainbow"},
+    {"level":3,"reward":"🌸 Титул «Весенний»","reward_type":"title","reward_value":1,"reward_item_id":"🌸 Весенний"},
+    {"level":5,"reward":"💎 Премиум 3 дня","reward_type":"premium","reward_value":3},
+    {"level":10,"reward":"💰 10000 бекоинов","reward_type":"coins","reward_value":10000}
+  ]
+}}
+
 # ============ DB INIT ============
 async def init_db():
     p=await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("""CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,username VARCHAR(32) UNIQUE NOT NULL,password_hash VARCHAR(128) NOT NULL,avatar TEXT,banner TEXT,gif_avatar TEXT,gif_banner TEXT,avatar_pos TEXT DEFAULT '50% 50%',banner_pos TEXT DEFAULT '50% 50%',email VARCHAR(128),email_verified BOOLEAN DEFAULT FALSE,email_code VARCHAR(16),email_code_expires TIMESTAMP,is_admin BOOLEAN DEFAULT FALSE,is_moderator BOOLEAN DEFAULT FALSE,is_beta_tester BOOLEAN DEFAULT FALSE,is_scam BOOLEAN DEFAULT FALSE,is_dev BOOLEAN DEFAULT FALSE,is_streamer BOOLEAN DEFAULT FALSE,premium_tier VARCHAR(8),premium_expires TIMESTAMP,is_banned BOOLEAN DEFAULT FALSE,shadow_banned BOOLEAN DEFAULT FALSE,ban_reason VARCHAR(256),mute_until TIMESTAMP,nickname_color VARCHAR(32),nickname_gradient VARCHAR(128),custom_status VARCHAR(128),online_status VARCHAR(16) DEFAULT 'online',bio VARCHAR(256),fav_music VARCHAR(128),gifts_hidden BOOLEAN DEFAULT FALSE,easter_found TEXT DEFAULT '[]',easter_rewarded BOOLEAN DEFAULT FALSE,admin_password VARCHAR(128),coins INTEGER DEFAULT 0,social_rating INTEGER DEFAULT 0,messages_count INTEGER DEFAULT 0,frozen BOOLEAN DEFAULT FALSE,is_legend BOOLEAN DEFAULT FALSE,wallpaper TEXT,font_choice VARCHAR(32),compact_mode BOOLEAN DEFAULT FALSE,achievements TEXT DEFAULT '[]',quest_points INTEGER DEFAULT 0,daily_bonus_at TIMESTAMP,quest_day VARCHAR(16),quest_progress TEXT DEFAULT '{}',quest_claimed TEXT DEFAULT '[]',active_frame VARCHAR(32),frame_owned TEXT DEFAULT '[]',title VARCHAR(32),reputation INTEGER DEFAULT 0,level INTEGER DEFAULT 1,xp INTEGER DEFAULT 0,chest_streak INTEGER DEFAULT 0,chest_at TIMESTAMP,bank_deposit INTEGER DEFAULT 0,bank_at TIMESTAMP,last_seen TIMESTAMP DEFAULT NOW(),created_at TIMESTAMP DEFAULT NOW())""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,username VARCHAR(32) UNIQUE NOT NULL,password_hash VARCHAR(128) NOT NULL,avatar TEXT,banner TEXT,gif_avatar TEXT,gif_banner TEXT,avatar_pos TEXT DEFAULT '50% 50%',banner_pos TEXT DEFAULT '50% 50%',email VARCHAR(128),email_verified BOOLEAN DEFAULT FALSE,email_code VARCHAR(16),email_code_expires TIMESTAMP,is_admin BOOLEAN DEFAULT FALSE,is_moderator BOOLEAN DEFAULT FALSE,is_beta_tester BOOLEAN DEFAULT FALSE,is_scam BOOLEAN DEFAULT FALSE,is_dev BOOLEAN DEFAULT FALSE,is_streamer BOOLEAN DEFAULT FALSE,premium_tier VARCHAR(8),premium_expires TIMESTAMP,is_banned BOOLEAN DEFAULT FALSE,shadow_banned BOOLEAN DEFAULT FALSE,ban_reason VARCHAR(256),mute_until TIMESTAMP,nickname_color VARCHAR(32),nickname_gradient VARCHAR(128),custom_status VARCHAR(128),online_status VARCHAR(16) DEFAULT 'online',bio VARCHAR(256),fav_music VARCHAR(128),gifts_hidden BOOLEAN DEFAULT FALSE,easter_found TEXT DEFAULT '[]',easter_rewarded BOOLEAN DEFAULT FALSE,admin_password VARCHAR(128),coins INTEGER DEFAULT 0,social_rating INTEGER DEFAULT 0,messages_count INTEGER DEFAULT 0,frozen BOOLEAN DEFAULT FALSE,is_legend BOOLEAN DEFAULT FALSE,wallpaper TEXT,font_choice VARCHAR(32),compact_mode BOOLEAN DEFAULT FALSE,achievements TEXT DEFAULT '[]',quest_points INTEGER DEFAULT 0,daily_bonus_at TIMESTAMP,quest_day VARCHAR(16),quest_progress TEXT DEFAULT '{}',quest_claimed TEXT DEFAULT '[]',active_frame VARCHAR(32),frame_owned TEXT DEFAULT '[]',title VARCHAR(32),reputation INTEGER DEFAULT 0,level INTEGER DEFAULT 1,xp INTEGER DEFAULT 0,chest_streak INTEGER DEFAULT 0,chest_at TIMESTAMP,bank_deposit INTEGER DEFAULT 0,bank_at TIMESTAMP,candy INTEGER DEFAULT 0,candy_bought TEXT DEFAULT '[]',last_seen TIMESTAMP DEFAULT NOW(),created_at TIMESTAMP DEFAULT NOW())""")
+        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS candy INTEGER DEFAULT 0")
+        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS candy_bought TEXT DEFAULT '[]'")
+        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS shadow_banned BOOLEAN DEFAULT FALSE")
         await conn.execute("UPDATE users SET is_admin=TRUE WHERE username=$1",ADMIN_USERNAME)
         await conn.execute("""CREATE TABLE IF NOT EXISTS servers(id SERIAL PRIMARY KEY,name VARCHAR(64),owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,invite_code VARCHAR(16) UNIQUE,avatar TEXT,banner TEXT,description TEXT,created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS server_members(server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,joined_at TIMESTAMP DEFAULT NOW(),PRIMARY KEY(server_id,user_id))""")
@@ -110,7 +202,7 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS call_rooms(id SERIAL PRIMARY KEY,owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,room_code VARCHAR(16) UNIQUE,is_group BOOLEAN DEFAULT TRUE,created_at TIMESTAMP DEFAULT NOW(),closed_at TIMESTAMP)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS call_participants(room_id INTEGER REFERENCES call_rooms(id) ON DELETE CASCADE,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,joined_at TIMESTAMP DEFAULT NOW(),PRIMARY KEY(room_id,user_id))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS frames_catalog(frame_id VARCHAR(32) PRIMARY KEY,name VARCHAR(64),emoji VARCHAR(8),css TEXT,is_animated BOOLEAN DEFAULT FALSE,is_premium BOOLEAN DEFAULT FALSE,price_coins INTEGER DEFAULT 0,price_kp INTEGER DEFAULT 0)""")
-        for f in [("none","Без рамки","","none",False,False,0,0),("gold","Золотая","👑","2px solid #ffd700;box-shadow:0 0 12px rgba(255,215,0,0.7)",False,False,500,0),("fire","Огненная","🔥","2px solid #ff6b35;box-shadow:0 0 14px rgba(255,107,53,0.8)",False,False,800,0),("ice","Ледяная","❄️","2px solid #22d3ee;box-shadow:0 0 14px rgba(34,211,238,0.8)",False,False,800,0),("rainbow","Радужная","🌈","2px solid #d946ef;box-shadow:0 0 16px rgba(217,70,239,0.8)",False,True,0,3000),("neon","Неоновая","💜","2px solid #ff00ff;box-shadow:0 0 18px rgba(255,0,255,0.9)",False,True,0,3000),("pulse","Пульс","💗","2px solid #ec4899;animation:framePulse 1.5s infinite",True,True,0,5000),("spin","Вращение","🌀","2px solid #22c55e;animation:frameSpin 3s linear infinite",True,True,0,5000)]:
+        for f in [("none","Без рамки","","none",False,False,0,0),("gold","Золотая","👑","2px solid #ffd700;box-shadow:0 0 12px rgba(255,215,0,0.7)",False,False,500,0),("fire","Огненная","🔥","2px solid #ff6b35;box-shadow:0 0 14px rgba(255,107,53,0.8)",False,False,800,0),("ice","Ледяная","❄️","2px solid #22d3ee;box-shadow:0 0 14px rgba(34,211,238,0.8)",False,False,800,0),("rainbow","Радужная","🌈","2px solid #d946ef;box-shadow:0 0 16px rgba(217,70,239,0.8)",False,True,0,3000),("neon","Неоновая","💜","2px solid #ff00ff;box-shadow:0 0 18px rgba(255,0,255,0.9)",False,True,0,3000),("pulse","Пульс","💗","2px solid #ec4899;animation:framePulse 1.5s infinite",True,True,0,5000),("spin","Вращение","🌀","2px solid #22c55e;animation:frameSpin 3s linear infinite",True,True,0,5000),("pumpkin","Тыква","🎃","2px solid #ff6b1a;box-shadow:0 0 20px rgba(255,107,26,0.9)",False,False,0,2000),("ghost","Призрак","👻","2px solid #a855f7;box-shadow:0 0 20px rgba(168,85,247,0.9)",False,False,0,2500),("bat","Летучая мышь","🦇","2px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.9)",False,False,0,3000)]:
             try: await conn.execute("INSERT INTO frames_catalog(frame_id,name,emoji,css,is_animated,is_premium,price_coins,price_kp) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (frame_id) DO NOTHING",*f)
             except: pass
         await conn.execute("""CREATE TABLE IF NOT EXISTS stories(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,image TEXT,text TEXT,bg_color VARCHAR(16) DEFAULT '#000',views TEXT DEFAULT '[]',reactions TEXT DEFAULT '{}',created_at TIMESTAMP DEFAULT NOW(),expires_at TIMESTAMP DEFAULT NOW()+INTERVAL '24 hours')""")
@@ -118,16 +210,17 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS saved_messages(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,message_id INTEGER,text TEXT,from_user INTEGER,created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS custom_reactions(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,url TEXT NOT NULL,created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS rep_given(id SERIAL PRIMARY KEY,from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,created_at TIMESTAMP DEFAULT NOW())""")
-        await conn.execute("""CREATE TABLE IF NOT EXISTS bp_quests(id SERIAL PRIMARY KEY,name VARCHAR(128),description TEXT,goal INTEGER,xp_reward INTEGER DEFAULT 100,active BOOLEAN DEFAULT TRUE)""")
-        await conn.execute("""CREATE TABLE IF NOT EXISTS bp_rewards(id SERIAL PRIMARY KEY,level INTEGER,reward TEXT,active BOOLEAN DEFAULT TRUE)""")
-        # 2.5 NEW: ends_at + days_total для БП
-        await conn.execute("""CREATE TABLE IF NOT EXISTS bp_season(id SERIAL PRIMARY KEY,name VARCHAR(64),description TEXT,emoji VARCHAR(8) DEFAULT '🏆',started_at TIMESTAMP DEFAULT NOW(),ended_at TIMESTAMP,ends_at TIMESTAMP,days_total INTEGER DEFAULT 30,active BOOLEAN DEFAULT TRUE)""")
-        try: await conn.execute("ALTER TABLE bp_season ADD COLUMN IF NOT EXISTS ends_at TIMESTAMP")
-        except: pass
-        try: await conn.execute("ALTER TABLE bp_season ADD COLUMN IF NOT EXISTS days_total INTEGER DEFAULT 30")
-        except: pass
-        try: await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS shadow_banned BOOLEAN DEFAULT FALSE")
-        except: pass
+        await conn.execute("""CREATE TABLE IF NOT EXISTS bp_quests(id SERIAL PRIMARY KEY,name VARCHAR(128),description TEXT,goal INTEGER,xp_reward INTEGER DEFAULT 100,action_type VARCHAR(32),target_count INTEGER DEFAULT 1,active BOOLEAN DEFAULT TRUE)""")
+        await conn.execute("ALTER TABLE bp_quests ADD COLUMN IF NOT EXISTS action_type VARCHAR(32)")
+        await conn.execute("ALTER TABLE bp_quests ADD COLUMN IF NOT EXISTS target_count INTEGER DEFAULT 1")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS bp_rewards(id SERIAL PRIMARY KEY,level INTEGER,reward TEXT,reward_type VARCHAR(32),reward_value INTEGER DEFAULT 0,reward_item_id VARCHAR(64),active BOOLEAN DEFAULT TRUE)""")
+        await conn.execute("ALTER TABLE bp_rewards ADD COLUMN IF NOT EXISTS reward_type VARCHAR(32)")
+        await conn.execute("ALTER TABLE bp_rewards ADD COLUMN IF NOT EXISTS reward_value INTEGER DEFAULT 0")
+        await conn.execute("ALTER TABLE bp_rewards ADD COLUMN IF NOT EXISTS reward_item_id VARCHAR(64)")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS bp_season(id SERIAL PRIMARY KEY,name VARCHAR(64),description TEXT,emoji VARCHAR(8) DEFAULT '🏆',started_at TIMESTAMP DEFAULT NOW(),ended_at TIMESTAMP,ends_at TIMESTAMP,days_total INTEGER DEFAULT 30,max_level INTEGER DEFAULT 50,active BOOLEAN DEFAULT TRUE)""")
+        await conn.execute("ALTER TABLE bp_season ADD COLUMN IF NOT EXISTS ends_at TIMESTAMP")
+        await conn.execute("ALTER TABLE bp_season ADD COLUMN IF NOT EXISTS days_total INTEGER DEFAULT 30")
+        await conn.execute("ALTER TABLE bp_season ADD COLUMN IF NOT EXISTS max_level INTEGER DEFAULT 50")
         await conn.execute("""CREATE TABLE IF NOT EXISTS bp_progress(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,season_id INTEGER,xp INTEGER DEFAULT 0,level INTEGER DEFAULT 1,claimed TEXT DEFAULT '[]',created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS events(id SERIAL PRIMARY KEY,name VARCHAR(64),description TEXT,emoji VARCHAR(8) DEFAULT '🎉',event_type VARCHAR(16),multiplier INTEGER DEFAULT 1,created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,started_at TIMESTAMP DEFAULT NOW(),end_at TIMESTAMP,active BOOLEAN DEFAULT TRUE)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS commands(id SERIAL PRIMARY KEY,name VARCHAR(32) UNIQUE,description TEXT,response TEXT,created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,created_at TIMESTAMP DEFAULT NOW())""")
@@ -136,6 +229,16 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS auction(id SERIAL PRIMARY KEY,seller_id INTEGER REFERENCES users(id) ON DELETE CASCADE,item_type VARCHAR(16),item_id VARCHAR(64),item_name VARCHAR(64),item_emoji VARCHAR(8),start_price INTEGER,current_price INTEGER,current_bidder INTEGER,started_at TIMESTAMP DEFAULT NOW(),ends_at TIMESTAMP,status VARCHAR(16) DEFAULT 'active')""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS threads(id SERIAL PRIMARY KEY,root_msg INTEGER REFERENCES messages(id) ON DELETE CASCADE,author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,text TEXT,created_at TIMESTAMP DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS rate_limits(user_id INTEGER,action VARCHAR(32),ts TIMESTAMP DEFAULT NOW())""")
+        # seed BP season if empty
+        row=await conn.fetchrow("SELECT id FROM bp_season WHERE active=TRUE LIMIT 1")
+        if not row:
+            preset=BP_PRESETS["halloween"]
+            ends=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=preset["days_total"])
+            s=await conn.fetchrow("INSERT INTO bp_season(name,description,emoji,days_total,max_level,ends_at) VALUES($1,$2,$3,$4,$5,$6) RETURNING id",preset["name"],preset["description"],preset["emoji"],preset["days_total"],preset["max_level"],ends)
+            for q in preset["quests"]:
+                await conn.execute("INSERT INTO bp_quests(name,description,goal,xp_reward,action_type,target_count) VALUES($1,'',$2,$3,$4,$2)",q["name"],q["target_count"],q["xp_reward"],q["action_type"])
+            for r in preset["rewards"]:
+                await conn.execute("INSERT INTO bp_rewards(level,reward,reward_type,reward_value,reward_item_id) VALUES($1,$2,$3,$4,$5)",r["level"],r["reward"],r["reward_type"],r["reward_value"],r.get("reward_item_id"))
 
 # ============ HELPERS ============
 def hash_password(p):
@@ -236,7 +339,7 @@ def user_public(row,viewer_id=None):
     uid=row["id"]
     is_online=uid in online_users and status!="invisible"
     if status=="invisible" and viewer_id!=uid: is_online=False
-    return {"id":row["id"],"username":row["username"],"avatar":row["avatar"],"banner":row["banner"],"gif_avatar":row.get("gif_avatar"),"gif_banner":row.get("gif_banner"),"avatar_pos":row["avatar_pos"],"banner_pos":row["banner_pos"],"is_admin":row["is_admin"],"is_moderator":row["is_moderator"],"is_beta_tester":row.get("is_beta_tester",False),"is_scam":row.get("is_scam",False),"is_dev":row.get("is_dev",False),"is_streamer":row.get("is_streamer",False),"premium_tier":row.get("premium_tier"),"premium_expires":row["premium_expires"].isoformat() if row.get("premium_expires") else None,"is_premium":is_premium(row),"nickname_color":row.get("nickname_color"),"nickname_gradient":row.get("nickname_gradient"),"custom_status":row.get("custom_status"),"online_status":status,"bio":row.get("bio"),"fav_music":row.get("fav_music"),"coins":row.get("coins",0),"social_rating":row.get("social_rating",0),"messages_count":row.get("messages_count",0),"is_legend":row.get("is_legend",False),"email":row.get("email"),"email_verified":row.get("email_verified",False),"has_admin_pass":bool(row.get("admin_password")),"wallpaper":row.get("wallpaper"),"font_choice":row.get("font_choice"),"compact_mode":row.get("compact_mode",False),"achievements":json.loads(row.get("achievements") or "[]"),"quest_points":row.get("quest_points",0),"active_frame":row.get("active_frame"),"title":row.get("title"),"reputation":row.get("reputation",0),"level":row.get("level",1),"xp":row.get("xp",0),"created_at":row["created_at"].isoformat() if row.get("created_at") else None,"role":get_role(row),"online":is_online}
+    return {"id":row["id"],"username":row["username"],"avatar":row["avatar"],"banner":row["banner"],"gif_avatar":row.get("gif_avatar"),"gif_banner":row.get("gif_banner"),"avatar_pos":row["avatar_pos"],"banner_pos":row["banner_pos"],"is_admin":row["is_admin"],"is_moderator":row["is_moderator"],"is_beta_tester":row.get("is_beta_tester",False),"is_scam":row.get("is_scam",False),"is_dev":row.get("is_dev",False),"is_streamer":row.get("is_streamer",False),"premium_tier":row.get("premium_tier"),"premium_expires":row["premium_expires"].isoformat() if row.get("premium_expires") else None,"is_premium":is_premium(row),"nickname_color":row.get("nickname_color"),"nickname_gradient":row.get("nickname_gradient"),"custom_status":row.get("custom_status"),"online_status":status,"bio":row.get("bio"),"fav_music":row.get("fav_music"),"coins":row.get("coins",0),"social_rating":row.get("social_rating",0),"messages_count":row.get("messages_count",0),"is_legend":row.get("is_legend",False),"email":row.get("email"),"email_verified":row.get("email_verified",False),"has_admin_pass":bool(row.get("admin_password")),"wallpaper":row.get("wallpaper"),"font_choice":row.get("font_choice"),"compact_mode":row.get("compact_mode",False),"achievements":json.loads(row.get("achievements") or "[]"),"quest_points":row.get("quest_points",0),"active_frame":row.get("active_frame"),"title":row.get("title"),"reputation":row.get("reputation",0),"level":row.get("level",1),"xp":row.get("xp",0),"candy":row.get("candy",0),"created_at":row["created_at"].isoformat() if row.get("created_at") else None,"role":get_role(row),"online":is_online}
 
 async def get_all_gifts():
     gifts=dict(DEFAULT_GIFTS)
@@ -314,7 +417,6 @@ async def check_friend_spam(uid,target_id=None):
             return True
     return False
 
-# ============ 2.5 FIX: cleanup_trackers теперь чистит friend_target_spam ============
 def cleanup_trackers():
     global last_cleanup
     now=time.time()
@@ -329,7 +431,6 @@ def cleanup_trackers():
         arr=[t for t in flood_tracker[k] if now-t[1]<300]
         if not arr: del flood_tracker[k]
         else: flood_tracker[k]=arr
-    # 2.5 NEW: чистим friend_target_spam
     for k in list(friend_target_spam.keys()):
         arr=[t for t in friend_target_spam[k] if now-t<600]
         if not arr: del friend_target_spam[k]
@@ -426,6 +527,21 @@ async def grant_xp(uid,amount):
             await conn.execute("UPDATE users SET xp=$1,level=$2 WHERE id=$3",new_xp,new_level,uid)
     except: pass
 
+# 2.6 NEW: candy helpers
+async def grant_candy(uid,amount=1,silent=False):
+    try:
+        p=await get_pool()
+        async with p.acquire() as conn:
+            await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",amount,uid)
+            total=await conn.fetchval("SELECT candy FROM users WHERE id=$1",uid)
+        if total>=10: await grant_achievement(uid,"halloween_10")
+        if total>=100: await grant_achievement(uid,"halloween_100")
+        if total>=500: await grant_achievement(uid,"halloween_500")
+        if not silent:
+            await manager.send_to(uid,{"type":"candy_received","amount":amount,"total":total})
+        return total
+    except: return 0
+
 # ============ BACKGROUND LOOPS ============
 async def lottery_draw_loop():
     while True:
@@ -452,7 +568,6 @@ async def lottery_draw_loop():
             print(f"Lottery loop: {e}")
             await asyncio.sleep(60)
 
-# 2.5 FIX: auto_abuse_loop с корректным SQL для next_run
 async def auto_abuse_loop():
     while True:
         try:
@@ -484,6 +599,14 @@ async def auto_abuse_loop():
                     if t:
                         await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",amt,tid)
                         await manager.broadcast({"type":"abuse_win","kind":"coins","username":t["username"],"avatar":t.get("avatar"),"item_name":f"{amt} 🏅","item_emoji":"🏅","price":amt})
+            elif kind=="candy":
+                amt=random.randint(10,100)
+                p=await get_pool()
+                async with p.acquire() as conn:
+                    t=await conn.fetchrow("SELECT username,avatar FROM users WHERE id=$1",tid)
+                    if t:
+                        await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",amt,tid)
+                        await manager.send_to(tid,{"type":"candy_received","amount":amt})
         except Exception as e:
             print(f"Auto-abuse loop: {e}")
             await asyncio.sleep(60)
@@ -494,7 +617,6 @@ async def events_cleanup_loop():
             await asyncio.sleep(30)
             p=await get_pool()
             async with p.acquire() as conn:
-                # 2.5 NEW: авто-завершение БП по ends_at
                 bp_ended=await conn.fetch("SELECT id FROM bp_season WHERE active=TRUE AND ends_at IS NOT NULL AND ends_at<=NOW()")
                 for r in bp_ended:
                     await conn.execute("UPDATE bp_season SET active=FALSE,ended_at=NOW() WHERE id=$1",r["id"])
@@ -544,7 +666,7 @@ async def startup_tasks():
     asyncio.create_task(auto_abuse_loop())
     asyncio.create_task(events_cleanup_loop())
     asyncio.create_task(auction_cleanup_loop())
-    print("🐱 Background loops started (2.5)")
+    print("🎃 Background loops started (2.6 — Жуткий месяц)")
 
 @app.on_event("startup")
 async def startup():
@@ -555,7 +677,7 @@ async def startup():
         except Exception as e:
             print(f"DB init: {e}")
 
-# ============ HTTP ============
+# ============ AUTH ============
 @app.get("/api/changelog")
 async def changelog(): return {"current":CURRENT_VERSION,"all":CHANGELOG}
 
@@ -585,7 +707,7 @@ async def register(data:dict):
         try:
             async with p.acquire() as conn:
                 await conn.execute("UPDATE users SET email_code=$1,email_code_expires=NOW()+INTERVAL '1 hour' WHERE id=$2",code,row["id"])
-            asyncio.create_task(send_email(em,"Belugacord - подтверждение",f"<h2>Привет, {u}!</h2><p>Код: <b style='font-size:24px;color:#d946ef'>{code}</b></p>"))
+            asyncio.create_task(send_email(em,"Belugacord - подтверждение",f"<h2>Привет, {u}!</h2><p>Код: <b style='font-size:24px;color:#ff6b1a'>{code}</b></p>"))
         except: pass
     return {"token":make_token(row["id"],row["username"]),"user":user_public(row,row["id"])}
 
@@ -617,7 +739,7 @@ async def email_send_code(data:dict):
     p=await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET email=$1,email_code=$2,email_code_expires=NOW()+INTERVAL '1 hour',email_verified=FALSE WHERE id=$3",em,code,user["id"])
-    r=await send_email(em,"Belugacord - подтверждение",f"<h2>Привет, {user['username']}!</h2><p>Код: <b style='font-size:24px;color:#d946ef'>{code}</b></p>")
+    r=await send_email(em,"Belugacord - подтверждение",f"<h2>Привет, {user['username']}!</h2><p>Код: <b style='font-size:24px;color:#ff6b1a'>{code}</b></p>")
     if r.get("ok"): return {"ok":True,"sent":True}
     return {"ok":True,"sent":False,"code_hint":code,"error":r.get("error","")}
 
@@ -665,7 +787,7 @@ async def set_status(data:dict):
 async def get_user(user_id:int):
     p=await get_pool()
     async with p.acquire() as conn:
-        row=await conn.fetchrow("SELECT id,username,avatar,banner,gif_avatar,gif_banner,avatar_pos,banner_pos,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,premium_expires,nickname_color,nickname_gradient,bio,fav_music,custom_status,online_status,messages_count,is_legend,achievements,social_rating,coins,quest_points,active_frame,title,reputation,level,xp,created_at,last_seen FROM users WHERE id=$1",user_id)
+        row=await conn.fetchrow("SELECT id,username,avatar,banner,gif_avatar,gif_banner,avatar_pos,banner_pos,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,premium_expires,nickname_color,nickname_gradient,bio,fav_music,custom_status,online_status,messages_count,is_legend,achievements,social_rating,coins,candy,quest_points,active_frame,title,reputation,level,xp,created_at,last_seen FROM users WHERE id=$1",user_id)
     if not row: raise HTTPException(404,"Не найден")
     d=dict(row)
     d["created_at"]=d["created_at"].isoformat() if d.get("created_at") else None
@@ -1229,6 +1351,7 @@ async def message_reaction(data:dict):
         react[emoji]=arr
         await conn.execute("UPDATE messages SET reactions=$1 WHERE id=$2",json.dumps(react),mid)
     await manager.broadcast({"type":"reaction_update","id":mid,"reactions":react})
+    await grant_quest_progress(user["id"],"react",1)
     return {"ok":True}
 
 @app.post("/api/messages/save")
@@ -1266,13 +1389,11 @@ async def messages_search(q:str,channel_id:int,token:str):
             rows=await conn.fetch("SELECT m.id,m.text,m.created_at,u.username FROM messages m JOIN users u ON u.id=m.user_id WHERE m.text ILIKE $1 ORDER BY m.id DESC LIMIT 50",f"%{q}%")
     return [{"id":r["id"],"text":r["text"],"username":r["username"],"created_at":r["created_at"].isoformat() if r["created_at"] else None} for r in rows]
 
-# ============ 2.5 FIX: /api/upload с MIME + whitelist ============
 @app.post("/api/upload")
 async def upload(token:str=Form(...),file:UploadFile=File(...)):
     user=await get_current_user(token)
     if not user: raise HTTPException(401,"Не авторизован")
     lim=LIMITS.get(user.get("premium_tier"),LIMITS[None])["file"]
-    # MIME whitelist
     mime=(file.content_type or "application/octet-stream").lower()
     if mime not in ALLOWED_MIME: raise HTTPException(400,f"Тип файла запрещён: {mime}")
     ext=os.path.splitext(file.filename or "")[1].lower()[:8]
@@ -1329,6 +1450,7 @@ async def stories_create(data:dict):
     async with p.acquire() as conn:
         await conn.execute("INSERT INTO stories(user_id,image,text,bg_color) VALUES($1,$2,$3,$4)",user["id"],image,text,bg)
     await manager.broadcast({"type":"story_new","user_id":user["id"],"username":user["username"]})
+    await grant_quest_progress(user["id"],"post_story",1)
     return {"ok":True}
 
 @app.post("/api/stories/react")
@@ -1363,7 +1485,7 @@ async def stories_reply(data:dict):
     await manager.send_to(st["user_id"],{"type":"story_reply","username":user["username"],"text":text})
     return {"ok":True}
 
-# ============ CHEST / LOTTERY / BANK / AUCTION / ROULETTE ============
+# ============ CHEST / LOTTERY / BANK / AUCTION ============
 @app.get("/api/chest/status")
 async def chest_status(token:str):
     user=await get_current_user(token)
@@ -1493,24 +1615,114 @@ async def auction_bid(data:dict):
         await conn.execute("UPDATE auction SET current_price=$1,current_bidder=$2 WHERE id=$3",amt,user["id"],cur["id"])
     return {"ok":True}
 
-@app.post("/api/roulette/spin")
-async def roulette_spin(data:dict):
+# ============ 2.6 NEW: DUEL (без рулетки) ============
+@app.post("/api/duel/fire")
+async def duel_fire(data:dict):
     user=await get_current_user(data.get("token"))
     if not user: raise HTTPException(401,"Не авторизован")
-    bet=int(data.get("bet",0)); color=data.get("color","red")
+    bet=int(data.get("bet",0))
     if bet<50: raise HTTPException(400,"Мин 50")
     if (user.get("coins") or 0)<bet: raise HTTPException(400,"Не хватает")
-    outcomes=["red"]*17+["black"]*17+["green"]*2
-    result=random.choice(outcomes)
+    win=random.random()<0.5
     p=await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET coins=coins-$1 WHERE id=$2",bet,user["id"])
-        if result==color:
-            mult=14 if color=="green" else 2
-            got=bet*mult
-            await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",got,user["id"])
-            return {"ok":True,"win":True,"result":result,"got":got}
-    return {"ok":True,"win":False,"result":result}
+        if win:
+            await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",bet*2,user["id"])
+            await conn.execute("INSERT INTO game_scores(user_id,game,score) VALUES($1,'duel',1)",user["id"])
+            await grant_quest_progress(user["id"],"win_duel",1)
+        else:
+            await conn.execute("INSERT INTO game_scores(user_id,game,score) VALUES($1,'duel',0)",user["id"])
+    return {"ok":True,"win":win,"got":bet*2 if win else 0}
+
+# ============ 2.6 NEW: CANDY ============
+@app.get("/api/candy/balance")
+async def candy_balance(token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    return {"candy":user.get("candy",0)}
+
+@app.post("/api/candy/buy")
+async def candy_buy(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    item_id=(data.get("item") or "").strip()
+    price=int(data.get("price",0))
+    if price<=0: raise HTTPException(400,"Плохая цена")
+    if (user.get("candy") or 0)<price: raise HTTPException(400,"Не хватает конфет")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        bought=json.loads(user.get("candy_bought") or "[]")
+        # VIP-скидка: 1 раз покупается, второй раз дороже
+        count=bought.count(item_id)
+        actual_price=int(price*(1+count*0.5))
+        if (user.get("candy") or 0)<actual_price: raise HTTPException(400,f"Цена выросла до {actual_price} 🍬")
+        await conn.execute("UPDATE users SET candy=candy-$1 WHERE id=$2",actual_price,user["id"])
+        # Применяем эффект
+        if item_id=="ghost_frame":
+            owned=json.loads(user.get("frame_owned") or "[]")
+            if "ghost" not in owned:
+                owned.append("ghost")
+                await conn.execute("UPDATE users SET frame_owned=$1 WHERE id=$2",json.dumps(owned),user["id"])
+        elif item_id=="pumpkin_frame":
+            owned=json.loads(user.get("frame_owned") or "[]")
+            if "pumpkin" not in owned:
+                owned.append("pumpkin")
+                await conn.execute("UPDATE users SET frame_owned=$1 WHERE id=$2",json.dumps(owned),user["id"])
+        elif item_id=="bat_frame":
+            owned=json.loads(user.get("frame_owned") or "[]")
+            if "bat" not in owned:
+                owned.append("bat")
+                await conn.execute("UPDATE users SET frame_owned=$1 WHERE id=$2",json.dumps(owned),user["id"])
+        elif item_id=="vampire_title":
+            await conn.execute("UPDATE users SET title='🧛 Вампир' WHERE id=$1",user["id"])
+        elif item_id=="witch_title":
+            await conn.execute("UPDATE users SET title='🧙 Ведьма' WHERE id=$1",user["id"])
+        elif item_id=="candy_gift":
+            for _ in range(5):
+                await conn.execute("INSERT INTO gifts(from_user,to_user,gift) VALUES($1,$2,'cake')",user["id"],user["id"])
+        elif item_id=="pumpkin_gift":
+            for _ in range(3):
+                await conn.execute("INSERT INTO gifts(from_user,to_user,gift) VALUES($1,$2,'pumpkin')",user["id"],user["id"])
+        elif item_id=="ghost_gift":
+            for _ in range(3):
+                await conn.execute("INSERT INTO gifts(from_user,to_user,gift) VALUES($1,$2,'ghost')",user["id"],user["id"])
+        elif item_id=="premium_1d":
+            await conn.execute("UPDATE users SET premium_tier='premium',premium_expires=COALESCE(premium_expires,NOW())+INTERVAL '1 day' WHERE id=$1",user["id"])
+        elif item_id=="coins_1000":
+            await conn.execute("UPDATE users SET coins=coins+1000 WHERE id=$1",user["id"])
+        bought.append(item_id)
+        await conn.execute("UPDATE users SET candy_bought=$1 WHERE id=$2",json.dumps(bought),user["id"])
+        new_candy=await conn.fetchval("SELECT candy FROM users WHERE id=$1",user["id"])
+    return {"ok":True,"candy":new_candy,"paid":actual_price}
+
+@app.post("/api/abuse/random_candy")
+async def abuse_random_candy(data:dict):
+    user=await get_current_user(data.get("token"))
+    acc=await has_abuse_access(user)
+    if not acc or not (acc.get("can_coins") or acc.get("owner")): raise HTTPException(403,"Нет доступа")
+    if not online_users: raise HTTPException(400,"Никого онлайн")
+    tid=random.choice(list(online_users)); amt=random.randint(10,200)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await conn.fetchrow("SELECT username FROM users WHERE id=$1",tid)
+        if not t: raise HTTPException(404,"Пропал")
+        await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",amt,tid)
+    await manager.send_to(tid,{"type":"candy_received","amount":amt})
+    return {"ok":True,"target":t["username"],"amount":amt}
+
+@app.post("/api/owner/give_candy")
+async def owner_give_candy(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await conn.fetchrow("SELECT id FROM users WHERE username=$1",data.get("username"))
+        if not t: raise HTTPException(404,"Не найден")
+        amt=int(data.get("amount",50))
+        await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",amt,t["id"])
+    await manager.send_to(t["id"],{"type":"candy_received","amount":amt})
+    return {"ok":True,"amount":amt}
 
 # ============ UPGRADE ============
 @app.post("/api/gifts/upgrade_wheel")
@@ -1538,7 +1750,16 @@ async def gifts_upgrade_wheel(data:dict):
         return {"ok":True,"success":True,"got_name":g[to_id]["name"],"chance":chance}
     return {"ok":True,"success":False,"chance":chance}
 
-# ============ LEVELS / REP / BP ============
+@app.get("/api/gifts/upgrade_history")
+async def gifts_upgrade_history(token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("SELECT from_gift,to_gift,success,chance,created_at FROM upgrade_log WHERE user_id=$1 ORDER BY id DESC LIMIT 10",user["id"])
+    return [{"from_gift":r["from_gift"],"to_gift":r["to_gift"],"success":r["success"],"chance":r["chance"],"created_at":r["created_at"].isoformat() if r["created_at"] else None} for r in rows]
+
+# ============ LEVELS / REP ============
 @app.get("/api/levels/me")
 async def levels_me(token:str):
     user=await get_current_user(token)
@@ -1567,6 +1788,7 @@ async def rep_give(data:dict):
     await manager.send_to(tid,{"type":"rep_update","from":user["username"]})
     return {"ok":True}
 
+# ============ BP ============
 @app.get("/api/bp/current")
 async def bp_current(token:str):
     user=await get_current_user(token)
@@ -1576,15 +1798,15 @@ async def bp_current(token:str):
         season=await conn.fetchrow("SELECT * FROM bp_season WHERE active=TRUE ORDER BY id DESC LIMIT 1")
         if not season: return {"active":False}
         prog=await conn.fetchrow("SELECT xp,level,claimed FROM bp_progress WHERE user_id=$1 AND season_id=$2",user["id"],season["id"])
-        quests=await conn.fetch("SELECT id,name,description,goal,xp_reward FROM bp_quests WHERE active=TRUE")
-        rewards=await conn.fetch("SELECT id,level,reward FROM bp_rewards WHERE active=TRUE ORDER BY level")
+        quests=await conn.fetch("SELECT id,name,description,goal,xp_reward,action_type,target_count FROM bp_quests WHERE active=TRUE ORDER BY id")
+        rewards=await conn.fetch("SELECT id,level,reward,reward_type,reward_value,reward_item_id FROM bp_rewards WHERE active=TRUE ORDER BY level")
     my_xp=prog["xp"] if prog else 0
     my_level=prog["level"] if prog else 1
     claimed=json.loads(prog["claimed"] or "[]") if prog else []
     ends_in_days=None
     if season.get("ends_at"):
         ends_in_days=max(0,int((season["ends_at"]-datetime.datetime.now(datetime.timezone.utc)).total_seconds()//86400))
-    return {"active":True,"name":season["name"],"description":season["description"],"emoji":season["emoji"],"my_xp":my_xp,"my_level":my_level,"next_xp":my_level*1000,"ends_in_days":ends_in_days,"quests":[{"id":q["id"],"name":q["name"],"desc":q["description"],"goal":q["goal"],"progress":0,"xp_reward":q["xp_reward"],"done":False} for q in quests],"rewards":[{"id":r["id"],"level":r["level"],"reward":r["reward"],"unlocked":my_level>=r["level"] and str(r["id"]) not in claimed} for r in rewards]}
+    return {"active":True,"name":season["name"],"description":season["description"],"emoji":season["emoji"],"my_xp":my_xp,"my_level":my_level,"next_xp":my_level*1000,"ends_in_days":ends_in_days,"max_level":season.get("max_level",50),"quests":[{"id":q["id"],"name":q["name"],"desc":q["description"],"goal":q["goal"],"progress":0,"xp_reward":q["xp_reward"],"action_type":q.get("action_type"),"target_count":q.get("target_count",1),"done":False} for q in quests],"rewards":[{"id":r["id"],"level":r["level"],"reward":r["reward"],"reward_type":r.get("reward_type"),"reward_value":r.get("reward_value"),"reward_item_id":r.get("reward_item_id"),"unlocked":my_level>=r["level"] and str(r["id"]) not in claimed} for r in rewards]}
 
 @app.post("/api/bp/claim")
 async def bp_claim(data:dict):
@@ -1595,7 +1817,7 @@ async def bp_claim(data:dict):
     async with p.acquire() as conn:
         season=await conn.fetchrow("SELECT id FROM bp_season WHERE active=TRUE ORDER BY id DESC LIMIT 1")
         if not season: raise HTTPException(404,"Нет сезона")
-        r=await conn.fetchrow("SELECT id,reward FROM bp_rewards WHERE level=$1 AND active=TRUE LIMIT 1",level)
+        r=await conn.fetchrow("SELECT id,reward,reward_type,reward_value,reward_item_id FROM bp_rewards WHERE level=$1 AND active=TRUE LIMIT 1",level)
         if not r: raise HTTPException(404,"Нет награды")
         prog=await conn.fetchrow("SELECT id,level,claimed FROM bp_progress WHERE user_id=$1 AND season_id=$2",user["id"],season["id"])
         if prog and prog["level"]<level: raise HTTPException(400,"Уровень мал")
@@ -1607,9 +1829,28 @@ async def bp_claim(data:dict):
             await conn.execute("UPDATE bp_progress SET claimed=$1 WHERE id=$2",json.dumps(claimed),prog["id"])
         else:
             await conn.execute("INSERT INTO bp_progress(user_id,season_id,claimed) VALUES($1,$2,$3)",user["id"],season["id"],json.dumps(claimed))
+        # применить награду
+        rt=r.get("reward_type");rv=r.get("reward_value") or 0;ri=r.get("reward_item_id")
+        if rt=="coins":
+            await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",rv,user["id"])
+        elif rt=="xp":
+            await grant_xp(user["id"],rv)
+        elif rt=="kp":
+            await conn.execute("UPDATE users SET quest_points=quest_points+$1 WHERE id=$2",rv,user["id"])
+        elif rt=="candy":
+            await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",rv,user["id"])
+        elif rt=="premium":
+            await conn.execute("UPDATE users SET premium_tier='premium',premium_expires=COALESCE(premium_expires,NOW())+INTERVAL '1 day' * $1 WHERE id=$2",rv,user["id"])
+        elif rt=="frame" and ri:
+            owned=json.loads(user.get("frame_owned") or "[]")
+            if ri not in owned:
+                owned.append(ri)
+                await conn.execute("UPDATE users SET frame_owned=$1 WHERE id=$2",json.dumps(owned),user["id"])
+        elif rt=="title" and ri:
+            await conn.execute("UPDATE users SET title=$1 WHERE id=$2",ri[:32],user["id"])
     return {"ok":True}
 
-# ============ 2.5 NEW: BP ADMIN API ============
+# ============ BP ADMIN ============
 @app.get("/api/bp/admin/info")
 async def bp_admin_info(token:str):
     user=await get_current_user(token)
@@ -1617,8 +1858,8 @@ async def bp_admin_info(token:str):
     p=await get_pool()
     async with p.acquire() as conn:
         row=await conn.fetchrow("SELECT * FROM bp_season WHERE active=TRUE ORDER BY id DESC LIMIT 1")
-    if not row: return {"name":"","description":"","emoji":"🏆","ends_at":None,"days_total":30}
-    return {"name":row["name"],"description":row["description"],"emoji":row["emoji"],"ends_at":row["ends_at"].isoformat() if row.get("ends_at") else None,"days_total":row.get("days_total") or 30}
+    if not row: return {"name":"","description":"","emoji":"🎃","ends_at":None,"days_total":30,"max_level":50}
+    return {"name":row["name"],"description":row["description"],"emoji":row["emoji"],"ends_at":row["ends_at"].isoformat() if row.get("ends_at") else None,"days_total":row.get("days_total") or 30,"max_level":row.get("max_level") or 50}
 
 @app.post("/api/bp/admin/save")
 async def bp_admin_save(data:dict):
@@ -1626,20 +1867,19 @@ async def bp_admin_save(data:dict):
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     name=(data.get("name") or "")[:64]
     desc=(data.get("description") or "")[:256]
-    emoji=(data.get("emoji") or "🏆")[:4]
-    days=int(data.get("days") or 30)
-    days=max(1,min(365,days))
+    emoji=(data.get("emoji") or "🎃")[:4]
+    days=int(data.get("days") or 30); days=max(1,min(365,days))
+    max_lv=int(data.get("max_level") or 50); max_lv=max(1,min(500,max_lv))
     p=await get_pool()
     async with p.acquire() as conn:
         row=await conn.fetchrow("SELECT id,started_at FROM bp_season WHERE active=TRUE ORDER BY id DESC LIMIT 1")
         if row:
-            # пересчёт ends_at от started_at (или от now если ещё не стартовал)
             base=row["started_at"] or datetime.datetime.now(datetime.timezone.utc)
             ends=base+datetime.timedelta(days=days)
-            await conn.execute("UPDATE bp_season SET name=$1,description=$2,emoji=$3,days_total=$4,ends_at=$5 WHERE id=$6",name,desc,emoji,days,ends,row["id"])
+            await conn.execute("UPDATE bp_season SET name=$1,description=$2,emoji=$3,days_total=$4,max_level=$5,ends_at=$6 WHERE id=$7",name,desc,emoji,days,max_lv,ends,row["id"])
         else:
             ends=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=days)
-            await conn.execute("INSERT INTO bp_season(name,description,emoji,days_total,ends_at) VALUES($1,$2,$3,$4,$5)",name,desc,emoji,days,ends)
+            await conn.execute("INSERT INTO bp_season(name,description,emoji,days_total,max_level,ends_at) VALUES($1,$2,$3,$4,$5,$6)",name,desc,emoji,days,max_lv,ends)
     return {"ok":True}
 
 @app.post("/api/bp/admin/start")
@@ -1651,7 +1891,7 @@ async def bp_admin_start(data:dict):
         await conn.execute("UPDATE bp_season SET active=FALSE,ended_at=NOW() WHERE active=TRUE")
         days=30
         ends=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=days)
-        await conn.execute("INSERT INTO bp_season(name,description,emoji,days_total,ends_at,active) VALUES('Новый сезон','','🏆',$1,$2,TRUE)",days,ends)
+        await conn.execute("INSERT INTO bp_season(name,description,emoji,days_total,max_level,ends_at,active) VALUES('Новый сезон','','🎃',$1,50,$2,TRUE)",days,ends)
     await manager.broadcast({"type":"bp_update"})
     return {"ok":True}
 
@@ -1671,7 +1911,7 @@ async def bp_admin_quests(token:str):
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT id,name,description,goal,xp_reward FROM bp_quests WHERE active=TRUE ORDER BY id")
+        rows=await conn.fetch("SELECT id,name,description,goal,xp_reward,action_type,target_count FROM bp_quests WHERE active=TRUE ORDER BY id")
     return [dict(r) for r in rows]
 
 @app.post("/api/bp/admin/quests/add")
@@ -1679,13 +1919,15 @@ async def bp_admin_quests_add(data:dict):
     user=await get_current_user(data.get("token"))
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     name=(data.get("name") or "")[:128]
+    if not name: raise HTTPException(400,"Название нужно")
     desc=(data.get("description") or "")[:256]
     goal=int(data.get("goal",10))
     xp=int(data.get("xp_reward",100))
-    if not name: raise HTTPException(400,"Название нужно")
+    action_type=(data.get("action_type") or "custom")[:32]
+    target_count=int(data.get("target_count",goal))
     p=await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("INSERT INTO bp_quests(name,description,goal,xp_reward) VALUES($1,$2,$3,$4)",name,desc,goal,xp)
+        await conn.execute("INSERT INTO bp_quests(name,description,goal,xp_reward,action_type,target_count) VALUES($1,$2,$3,$4,$5,$6)",name,desc,goal,xp,action_type,target_count)
     return {"ok":True}
 
 @app.post("/api/bp/admin/quests/delete")
@@ -1703,7 +1945,7 @@ async def bp_admin_rewards(token:str):
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT id,level,reward FROM bp_rewards WHERE active=TRUE ORDER BY level")
+        rows=await conn.fetch("SELECT id,level,reward,reward_type,reward_value,reward_item_id FROM bp_rewards WHERE active=TRUE ORDER BY level")
     return [dict(r) for r in rows]
 
 @app.post("/api/bp/admin/rewards/add")
@@ -1713,9 +1955,12 @@ async def bp_admin_rewards_add(data:dict):
     level=int(data.get("level",1))
     reward=(data.get("reward") or "")[:128]
     if not reward: raise HTTPException(400,"Награда нужна")
+    rtype=(data.get("reward_type") or "coins")[:32]
+    rvalue=int(data.get("reward_value",0))
+    ritem=(data.get("reward_item_id") or "")[:64] or None
     p=await get_pool()
     async with p.acquire() as conn:
-        await conn.execute("INSERT INTO bp_rewards(level,reward) VALUES($1,$2)",level,reward)
+        await conn.execute("INSERT INTO bp_rewards(level,reward,reward_type,reward_value,reward_item_id) VALUES($1,$2,$3,$4,$5)",level,reward,rtype,rvalue,ritem)
     return {"ok":True}
 
 @app.post("/api/bp/admin/rewards/delete")
@@ -1737,37 +1982,31 @@ async def bp_admin_reset_progress(data:dict):
     await manager.broadcast({"type":"bp_update"})
     return {"ok":True}
 
-# ============ 2.5 NEW: OWNER ANNOUNCE FULL ============
-@app.post("/api/owner/announce_full")
-async def owner_announce_full(data:dict):
+@app.post("/api/bp/admin/apply_preset")
+async def bp_admin_apply_preset(data:dict):
     user=await get_current_user(data.get("token"))
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
-    username=(data.get("username") or user["username"])[:32]
-    avatar=(data.get("avatar") or user.get("avatar") or "")
-    text=(data.get("text") or "").strip()
-    if not text: raise HTTPException(400,"Пусто")
-    if len(text)>1000: text=text[:1000]
-    send_dm=bool(data.get("send_dm"))
-    payload={"type":"abuse_announce","username":username,"avatar":avatar,"text":text,"from_id":user["id"],"ts":datetime.datetime.now(datetime.timezone.utc).isoformat()}
-    sent=0
-    # broadcast всем онлайн
-    for uid in list(manager.connections.keys()):
-        try:
-            await manager.send_to(uid,payload)
-            sent+=1
-        except: pass
-    # DM всем онлайн (опционально)
-    if send_dm:
-        p=await get_pool()
-        for uid in list(manager.connections.keys()):
-            if uid==user["id"]: continue
-            try:
-                async with p.acquire() as conn:
-                    await conn.execute("INSERT INTO dms(from_user,to_user,text) VALUES($1,$2,$3)",user["id"],uid,text)
-                await manager.send_to(uid,{"type":"dm","from_user":user["id"],"to_user":uid,"username":username,"avatar":avatar,"text":text,"created_at":datetime.datetime.now(datetime.timezone.utc).isoformat()})
-            except: pass
-    await log_admin(user["id"],"announce_full",None,f"to {sent} users")
-    return {"ok":True,"sent":sent}
+    preset_name=(data.get("preset") or "halloween").lower()
+    if preset_name not in BP_PRESETS: raise HTTPException(400,"Нет такого пресета")
+    preset=BP_PRESETS[preset_name]
+    p=await get_pool()
+    async with p.acquire() as conn:
+        # закрыть текущий сезон
+        await conn.execute("UPDATE bp_season SET active=FALSE,ended_at=NOW() WHERE active=TRUE")
+        # удалить старые квесты/награды
+        await conn.execute("DELETE FROM bp_quests")
+        await conn.execute("DELETE FROM bp_rewards")
+        # создать сезон
+        ends=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=preset["days_total"])
+        season=await conn.fetchrow("INSERT INTO bp_season(name,description,emoji,days_total,max_level,ends_at,active) VALUES($1,$2,$3,$4,$5,$6,TRUE) RETURNING id",preset["name"],preset["description"],preset["emoji"],preset["days_total"],preset["max_level"],ends)
+        # квесты
+        for q in preset["quests"]:
+            await conn.execute("INSERT INTO bp_quests(name,description,goal,xp_reward,action_type,target_count) VALUES($1,'',$2,$3,$4,$2)",q["name"],q["target_count"],q["xp_reward"],q["action_type"])
+        # награды
+        for r in preset["rewards"]:
+            await conn.execute("INSERT INTO bp_rewards(level,reward,reward_type,reward_value,reward_item_id) VALUES($1,$2,$3,$4,$5)",r["level"],r["reward"],r["reward_type"],r["reward_value"],r.get("reward_item_id"))
+    await manager.broadcast({"type":"bp_update"})
+    return {"ok":True,"quests":len(preset["quests"]),"rewards":len(preset["rewards"])}
 
 # ============ EVENTS ============
 @app.get("/api/events/active")
@@ -1778,11 +2017,11 @@ async def events_active():
     cur=[e for e in active_events if e.get("active")]
     if cur:
         e=cur[0]
-        return {"active":True,"id":e["id"],"name":e["name"],"description":e.get("description"),"emoji":e.get("emoji","🎉"),"event_type":e.get("event_type"),"multiplier":e.get("multiplier"),"end_at":e["end_at"].isoformat() if e.get("end_at") else None}
+        return {"active":True,"id":e["id"],"name":e["name"],"description":e.get("description"),"emoji":e.get("emoji","🎃"),"event_type":e.get("event_type"),"multiplier":e.get("multiplier"),"end_at":e["end_at"].isoformat() if e.get("end_at") else None}
     return {"active":False}
 
 # ============ TITLES / REACTIONS / COMMANDS ============
-TITLES_DEFAULT=[{"name":"Легенда","emoji":"🏅"},{"name":"Стример","emoji":"🎥"},{"name":"Олдфаг","emoji":"👴"},{"name":"Бета","emoji":"🧪"},{"name":"Админ","emoji":"🛡️"},{"name":"Меценат","emoji":"💰"}]
+TITLES_DEFAULT=[{"name":"👻 Призрак","emoji":"👻"},{"name":"🧛 Вампир","emoji":"🧛"},{"name":"🧙 Ведьма","emoji":"🧙"},{"name":"💀 Владыка тьмы","emoji":"💀"},{"name":"🎃 Тыква-легенда","emoji":"🎃"},{"name":"🏅 Легенда","emoji":"🏅"}]
 
 @app.get("/api/titles/list")
 async def titles_list(token:str):
@@ -1843,7 +2082,7 @@ async def commands_list(token:str):
 async def coins_balance(token:str):
     user=await get_current_user(token)
     if not user: raise HTTPException(401,"Не авторизован")
-    return {"coins":user.get("coins",0),"social_rating":user.get("social_rating",0)}
+    return {"coins":user.get("coins",0),"social_rating":user.get("social_rating",0),"candy":user.get("candy",0)}
 
 @app.post("/api/coins/request")
 async def coins_request(data:dict):
@@ -1914,23 +2153,8 @@ async def gift_send(data:dict):
     if newrating>=10000: await grant_achievement(user["id"],"rating_10000")
     await manager.send_to(to_id,{"type":"gift_received","gift_emoji":gift.get("emoji"),"gift_name":gift["name"],"gift_image":gift.get("image"),"from_name":user["username"]})
     await grant_quest_progress(user["id"],"give_gift",1)
+    await grant_candy(user["id"],2,silent=True)
     return {"ok":True}
-
-@app.post("/api/gifts/sell")
-async def gift_sell(data:dict):
-    user=await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401,"Не авторизован")
-    gift_id=data.get("gift")
-    g=await get_all_gifts()
-    if gift_id not in g: raise HTTPException(400,"Нет")
-    price=g[gift_id]["price"]
-    p=await get_pool()
-    async with p.acquire() as conn:
-        row=await conn.fetchrow("SELECT id FROM gifts WHERE to_user=$1 AND gift=$2 ORDER BY id LIMIT 1",user["id"],gift_id)
-        if not row: raise HTTPException(400,"Нет")
-        await conn.execute("DELETE FROM gifts WHERE id=$1",row["id"])
-        await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",price,user["id"])
-    return {"ok":True,"got":price}
 
 @app.get("/api/stickers/list")
 async def stickers_list():
@@ -1974,6 +2198,7 @@ async def nft_buy(data:dict):
         await conn.execute("UPDATE nft_series SET sold=sold+1 WHERE id=$1",nid)
         cnt=await conn.fetchval("SELECT COUNT(*) FROM nft_items WHERE owner_id=$1",user["id"])
     if cnt==1: await grant_achievement(user["id"],"first_nft")
+    await grant_quest_progress(user["id"],"buy_nft",1)
     return {"ok":True,"number":num}
 
 @app.post("/api/nft/sell")
@@ -2090,6 +2315,7 @@ async def cases_open(data:dict):
         else: prize_text=f"❓ {chosen['item_name'] or '???'}"
         await conn.execute("INSERT INTO case_opens(user_id,case_id,prize_text) VALUES($1,$2,$3)",user["id"],cid,prize_text)
     await grant_quest_progress(user["id"],"open_1_case",1)
+    await grant_candy(user["id"],random.randint(1,5),silent=True)
     return {"ok":True,"prize":prize_text}
 
 # ============ ADMIN ============
@@ -2131,7 +2357,7 @@ async def admin_users(token:str):
     if not user or not user.get("is_admin"): raise HTTPException(403,"Не админ")
     p=await get_pool()
     async with p.acquire() as conn:
-        rows=await conn.fetch("SELECT id,username,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,is_banned,coins,social_rating,title FROM users ORDER BY id")
+        rows=await conn.fetch("SELECT id,username,is_admin,is_moderator,is_beta_tester,is_scam,is_dev,is_streamer,premium_tier,is_banned,coins,candy,social_rating,title FROM users ORDER BY id")
     return [dict(r) for r in rows]
 
 @app.post("/api/admin/action")
@@ -2398,6 +2624,20 @@ async def owner_storm(data:dict):
     await manager.broadcast({"type":"storm","duration":dur})
     return {"ok":True}
 
+# ============ 2.6 NEW: HOT SWAP ============
+@app.post("/api/owner/hot_swap")
+async def owner_hot_swap(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    sent=0
+    for uid in list(manager.connections.keys()):
+        try:
+            await manager.send_to(uid,{"type":"force_reload"})
+            sent+=1
+        except: pass
+    await log_admin(user["id"],"hot_swap",None,f"sent to {sent}")
+    return {"ok":True,"sent":sent}
+
 @app.post("/api/owner/mass_rename")
 async def owner_mass_rename(data:dict):
     user=await get_current_user(data.get("token"))
@@ -2506,6 +2746,35 @@ async def owner_toggle_streamer(data:dict):
         new_status=not t["is_streamer"]
     await manager.broadcast({"type":"streamer_update","user_id":t["id"],"is_streamer":new_status})
     return {"ok":True,"is_streamer":new_status}
+
+@app.post("/api/owner/announce_full")
+async def owner_announce_full(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    username=(data.get("username") or user["username"])[:32]
+    avatar=(data.get("avatar") or user.get("avatar") or "")
+    text=(data.get("text") or "").strip()
+    if not text: raise HTTPException(400,"Пусто")
+    if len(text)>1000: text=text[:1000]
+    send_dm=bool(data.get("send_dm"))
+    payload={"type":"abuse_announce","username":username,"avatar":avatar,"text":text,"from_id":user["id"],"ts":datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    sent=0
+    for uid in list(manager.connections.keys()):
+        try:
+            await manager.send_to(uid,payload)
+            sent+=1
+        except: pass
+    if send_dm:
+        p=await get_pool()
+        for uid in list(manager.connections.keys()):
+            if uid==user["id"]: continue
+            try:
+                async with p.acquire() as conn:
+                    await conn.execute("INSERT INTO dms(from_user,to_user,text) VALUES($1,$2,$3)",user["id"],uid,text)
+                await manager.send_to(uid,{"type":"dm","from_user":user["id"],"to_user":uid,"username":username,"avatar":avatar,"text":text,"created_at":datetime.datetime.now(datetime.timezone.utc).isoformat()})
+            except: pass
+    await log_admin(user["id"],"announce_full",None,f"to {sent} users")
+    return {"ok":True,"sent":sent}
 
 @app.post("/api/owner/announce")
 async def owner_announce(data:dict):
@@ -2655,7 +2924,7 @@ async def owner_backup(token:str):
     p=await get_pool()
     data={"users":[],"servers":[],"channels":[],"messages":[],"dms":[],"gifts":[],"nft_items":[]}
     async with p.acquire() as conn:
-        data["users"]=[dict(r) for r in await conn.fetch("SELECT id,username,coins,social_rating,level,xp,reputation,title,created_at FROM users")]
+        data["users"]=[dict(r) for r in await conn.fetch("SELECT id,username,coins,candy,social_rating,level,xp,reputation,title,created_at FROM users")]
         data["servers"]=[dict(r) for r in await conn.fetch("SELECT id,name,owner_id,invite_code FROM servers")]
         data["channels"]=[dict(r) for r in await conn.fetch("SELECT id,server_id,name,mode FROM channels")]
         data["messages"]=[dict(r) for r in await conn.fetch("SELECT id,channel_id,user_id,text,created_at FROM messages LIMIT 5000")]
@@ -2711,7 +2980,7 @@ async def owner_create_nft(data:dict):
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
     p=await get_pool()
     async with p.acquire() as conn:
-        row=await conn.fetchrow("INSERT INTO nft_series(name,emoji,image,total,price,rarity,created_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",data.get("name"),data.get("emoji","🎨"),data.get("image"),int(data.get("total",1)),int(data.get("price",0)),data.get("rarity","common"),user["id"])
+        row=await conn.fetchrow("INSERT INTO nft_series(name,emoji,image,total,price,rarity,created_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",data.get("name"),data.get("emoji","🎃"),data.get("image"),int(data.get("total",1)),int(data.get("price",0)),data.get("rarity","common"),user["id"])
     return {"ok":True,"id":row["id"]}
 
 @app.post("/api/owner/delete_nft")
@@ -2760,7 +3029,7 @@ async def owner_create_sticker(data:dict):
     p=await get_pool()
     async with p.acquire() as conn:
         if await conn.fetchrow("SELECT gift_id FROM custom_gifts WHERE gift_id=$1",sid): raise HTTPException(400,"ID занят")
-        await conn.execute("INSERT INTO custom_gifts(gift_id,name,emoji,image,price,is_sticker) VALUES($1,$2,$3,$4,0,TRUE)",sid,name,data.get("emoji","🎨"),data.get("image"))
+        await conn.execute("INSERT INTO custom_gifts(gift_id,name,emoji,image,price,is_sticker) VALUES($1,$2,$3,$4,0,TRUE)",sid,name,data.get("emoji","🎃"),data.get("image"))
     await manager.broadcast({"type":"sticker_added","id":sid})
     return {"ok":True}
 
@@ -2841,7 +3110,7 @@ async def owner_theme_create(data:dict):
     if not name: raise HTTPException(400,"Название")
     p=await get_pool()
     async with p.acquire() as conn:
-        r=await conn.fetchrow("INSERT INTO custom_themes(name,emoji,vars,bg_image,border_radius,blur,created_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",name,data.get("emoji","🎨"),json.dumps(data.get("vars") or {}),data.get("bg_image"),data.get("border_radius","12px"),data.get("blur","blur(30px)"),user["id"])
+        r=await conn.fetchrow("INSERT INTO custom_themes(name,emoji,vars,bg_image,border_radius,blur,created_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",name,data.get("emoji","🎃"),json.dumps(data.get("vars") or {}),data.get("bg_image"),data.get("border_radius","12px"),data.get("blur","blur(30px)"),user["id"])
     await manager.broadcast({"type":"theme_added","id":r["id"],"name":name})
     return {"ok":True,"id":r["id"]}
 
@@ -2932,7 +3201,6 @@ async def abuse_schedule_cancel(data:dict):
     await manager.broadcast({"type":"abuse_timer_cancel"})
     return {"ok":True}
 
-# ============ 2.5 FIX: корректный таск ============
 async def run_abuse_timer(delay,kind):
     try:
         await asyncio.sleep(delay)
@@ -2990,7 +3258,7 @@ async def abuse_coop_revoke(data:dict):
 async def owner_events_create(data:dict):
     user=await get_current_user(data.get("token"))
     if not user or user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
-    name=data.get("name","");desc=data.get("description","");emoji=data.get("emoji","🎉")
+    name=data.get("name","");desc=data.get("description","");emoji=data.get("emoji","🎃")
     etype=data.get("event_type","coins_x");mult=int(data.get("multiplier",1));dur=int(data.get("duration_minutes",10))
     end_at=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(minutes=dur)
     p=await get_pool()
@@ -3193,6 +3461,7 @@ async def daily_bonus(data:dict):
     if not r.get("ok"):
         if r.get("reason")=="already": raise HTTPException(429,f"Через {r['next_in']} сек")
         raise HTTPException(400,r.get("reason","Ошибка"))
+    await grant_candy(user["id"],1,silent=True)
     return r
 
 # ============ GAMES ============
@@ -3210,6 +3479,7 @@ async def games_submit(data:dict):
     if game=="flappy" and score>=50: await grant_achievement(user["id"],"flappy_50")
     await grant_xp(user["id"],5)
     await grant_quest_progress(user["id"],"play_3_games",1)
+    await grant_candy(user["id"],random.randint(1,5),silent=True)
     return {"ok":True}
 
 @app.get("/api/games/leaders")
@@ -3326,7 +3596,7 @@ async def calls_group_state(room_code:str,token:str):
 # ============ STATIC ============
 @app.get("/manifest.json")
 async def manifest():
-    return {"name":"Belugacord Beta 2.5","short_name":"Belugacord","start_url":"/","display":"standalone","background_color":"#0a0a12","theme_color":"#0a0a12","icons":[{"src":"/uploads/icon.png","sizes":"192x192","type":"image/png"}]}
+    return {"name":"Belugacord Beta 2.6 🎃","short_name":"Belugacord","start_url":"/","display":"standalone","background_color":"#1a0a2e","theme_color":"#1a0a2e","icons":[{"src":"/uploads/icon.png","sizes":"192x192","type":"image/png"}]}
 
 @app.get("/")
 async def index():
@@ -3384,7 +3654,6 @@ async def websocket_endpoint(ws:WebSocket,token:str):
             try: data=json.loads(raw)
             except: continue
             t=data.get("type")
-            # 2.5 FIX: ping/pong
             if t=="ping":
                 try: await ws.send_json({"type":"pong"})
                 except: pass
@@ -3432,6 +3701,9 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 if mc==10000: await grant_achievement(uid,"msg_10000")
                 await grant_quest_progress(uid,"send_10_msgs",1)
                 await grant_xp(uid,1)
+                # 2.6: candy за каждые 10 сообщений
+                if mc%10==0:
+                    await grant_candy(uid,1,silent=True)
                 payload={"type":"message","id":msg["id"],"channel_id":int(ch),"user_id":uid,"username":user["username"],"avatar":user.get("avatar"),"gif_avatar":user.get("gif_avatar"),"avatar_pos":user.get("avatar_pos"),"text":text,"file_url":furl,"reply_to":reply,"effect":effect,"created_at":msg["created_at"].isoformat(),"is_admin":user.get("is_admin"),"is_moderator":user.get("is_moderator"),"is_beta_tester":user.get("is_beta_tester"),"is_scam":user.get("is_scam"),"is_streamer":user.get("is_streamer"),"is_premium":is_premium(user),"active_frame":user.get("active_frame"),"title":user.get("title"),"role":get_role(user),"temp_id":tid}
                 for m in members: await manager.send_to(m["user_id"],payload)
             elif t=="dm":
