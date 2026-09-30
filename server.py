@@ -5,21 +5,19 @@ import secrets
 import hashlib
 import random
 import datetime
-import asyncio
 from typing import Optional
-import asyncpg
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 # ===== КОНФИГУРАЦИЯ =====
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI(title="Belugacord 2.5 API")
 
+# Разрешаем все запросы (для разработки и Render)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,25 +26,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Статика
-for d in ["uploads", "css", "js"]:
-    os.makedirs(d, exist_ok=True)
+# Статические файлы (аватарки, баннеры)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
-app.mount("/css", StaticFiles(directory="css", check_dir=False), name="css")
-app.mount("/js", StaticFiles(directory="js", check_dir=False), name="js")
 
-# ===== IN-MEMORY БД (Для быстрого старта без PostgreSQL) =====
-# Если DATABASE_URL есть, можно переключить на asyncpg, но для тестов и Render Free это идеальный вариант
-db_users = {}
-db_codes = {}  # {username: {"code": "123456", "password": "...", "email": "..."}}
-active_websockets = {}
+# ===== IN-MEMORY БАЗА ДАННЫХ (Для мгновенного запуска на Render без ошибок БД) =====
+db_users = {}       # {username: {id, password_hash, token, coins, level, is_admin, avatar, banner, bio, status}}
+db_codes = {}       # {username: {code, email, password_hash}} (для верификации)
+db_servers = {}     # {id: {name, owner_id, channels: [{id, name, type}], members: [user_ids]}}
+db_friends = {}     # {user_id: {friends: [user_ids], requests: [user_ids]}}
+db_messages = {}    # {channel_id_or_dm_key: [{author, text, time}]}
+active_websockets = {} # {username: WebSocket}
 
 # ===== ХЕЛПЕРЫ =====
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
-def make_token(user_id: int, username: str) -> str:
-    return f"{user_id}:{username}:{int(time.time())}:{secrets.token_hex(8)}"
+def make_token(username: str) -> str:
+    return f"{username}:{int(time.time())}:{secrets.token_hex(16)}"
 
 async def get_current_user(token: str):
     if not token:
@@ -56,7 +52,7 @@ async def get_current_user(token: str):
             return user
     return None
 
-# ===== ЭНДПОИНТЫ: АВТОРИЗАЦИЯ =====
+# ===== 1. АВТОРИЗАЦИЯ И ВЕРИФИКАЦИЯ =====
 @app.get("/api/check_username")
 async def check_username(username: str):
     return {"available": username not in db_users}
@@ -71,7 +67,7 @@ async def register(data: dict):
         raise HTTPException(400, "Ник должен быть 3-32 символа")
     if len(pw) < 6:
         raise HTTPException(400, "Пароль минимум 6 символов")
-    if u in db_users:
+    if u in db_users or u in db_codes:
         raise HTTPException(400, "Этот никнейм уже занят")
 
     # Генерируем 6-значный код
@@ -79,13 +75,13 @@ async def register(data: dict):
     db_codes[u] = {
         "code": code,
         "email": em or f"{u}@belugacord.local",
-        "password": hash_password(pw)
+        "password_hash": hash_password(pw)
     }
     
-    # Выводим код в консоль (в логах Render)
-    print(f"\n📧 [EMAIL VERIFY] Код для {u}: {code}\n")
+    # ВАЖНО: Код выводится прямо в логи Render, чтобы ты мог его скопировать!
+    print(f"\n📧 [BELUGACORD VERIFY] Код для {u}: {code}\n")
     
-    return {"message": "Код отправлен (смотри логи сервера)"}
+    return {"message": "Код отправлен (смотри логи сервера в Render)"}
 
 @app.post("/api/verify_email")
 async def verify_email(data: dict):
@@ -98,28 +94,28 @@ async def verify_email(data: dict):
     if db_codes[u]["code"] != code:
         raise HTTPException(400, "Неверный код подтверждения")
     
-    # Переносим в основную БД
+    # Переносим в основную базу
     user_data = db_codes.pop(u)
     new_id = len(db_users) + 1
     db_users[u] = {
         "id": new_id,
         "username": u,
         "email": user_data["email"],
-        "password_hash": user_data["password"],
+        "password_hash": user_data["password_hash"],
         "coins": 0,
         "level": 1,
-        "xp": 0,
-        "is_admin": (u == "_fan_beluga_"),
+        "is_admin": (u == "_fan_beluga_"), # Ты автоматически админ
         "avatar": "",
         "banner": "",
-        "bio": "",
-        "custom_status": "В сети"
+        "bio": "Привет! Я использую Belugacord 🐱",
+        "status": "online"
     }
+    db_friends[new_id] = {"friends": [], "requests": []}
     
-    token = make_token(new_id, u)
+    token = make_token(u)
     db_users[u]["token"] = token
     
-    return {"token": token, "user": {"username": u, "id": new_id}}
+    return {"token": token, "user": {"username": u, "id": new_id, "level": 1, "coins": 0}}
 
 @app.post("/api/login")
 async def login(data: dict):
@@ -130,10 +126,11 @@ async def login(data: dict):
     if not user or user["password_hash"] != hash_password(pw):
         raise HTTPException(401, "Неверный никнейм или пароль")
     
-    token = make_token(user["id"], u)
+    token = make_token(u)
     user["token"] = token
+    user["status"] = "online"
     
-    return {"token": token, "user": {"username": u, "id": user["id"], "level": user["level"], "coins": user["coins"]}}
+    return {"token": token, "user": {"username": u, "id": user["id"], "level": user["level"], "coins": user["coins"], "avatar": user["avatar"]}}
 
 @app.get("/api/me")
 async def me(token: str):
@@ -149,10 +146,10 @@ async def me(token: str):
         "avatar": user["avatar"],
         "banner": user["banner"],
         "bio": user["bio"],
-        "custom_status": user["custom_status"]
+        "status": user["status"]
     }
 
-# ===== ЭНДПОИНТЫ: ПРОФИЛЬ =====
+# ===== 2. ПРОФИЛЬ =====
 @app.post("/api/update_profile")
 async def update_profile(data: dict):
     user = await get_current_user(data.get("token"))
@@ -162,16 +159,138 @@ async def update_profile(data: dict):
     user["avatar"] = data.get("avatar", user["avatar"])
     user["banner"] = data.get("banner", user["banner"])
     user["bio"] = data.get("bio", user["bio"])
-    user["custom_status"] = data.get("custom_status", user["custom_status"])
+    user["status"] = data.get("status", user["status"])
     
     return {"ok": True}
 
-# ===== ЭНДПОИНТЫ: АДМИНКА (БОГ-ГУИ) =====
+# ===== 3. СЕРВЕРА И КАНАЛЫ =====
+@app.post("/api/servers/create")
+async def create_server(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    name = (data.get("name") or "Новый сервер").strip()
+    server_id = len(db_servers) + 1
+    
+    db_servers[server_id] = {
+        "id": server_id,
+        "name": name,
+        "owner_id": user["id"],
+        "channels": [{"id": 1, "name": "общий", "type": "text"}],
+        "members": [user["id"]]
+    }
+    
+    return {"id": server_id, "name": name}
+
+@app.get("/api/servers/list")
+async def list_servers(token: str):
+    user = await get_current_user(token)
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    # Возвращаем серверы, где пользователь является участником
+    my_servers = [s for s in db_servers.values() if user["id"] in s["members"]]
+    return my_servers
+
+@app.post("/api/servers/{server_id}/channels")
+async def create_channel(server_id: int, data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    server = db_servers.get(server_id)
+    if not server or server["owner_id"] != user["id"]:
+        raise HTTPException(403, "Только владелец может создавать каналы")
+    
+    new_channel = {
+        "id": len(server["channels"]) + 1,
+        "name": data.get("name", "новый-канал"),
+        "type": data.get("type", "text")
+    }
+    server["channels"].append(new_channel)
+    return {"ok": True, "channel": new_channel}
+
+@app.post("/api/servers/delete")
+async def delete_server(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    server_id = data.get("server_id")
+    server = db_servers.get(server_id)
+    
+    if not server or server["owner_id"] != user["id"]:
+        raise HTTPException(403, "Только владелец может удалить сервер")
+    
+    del db_servers[server_id]
+    return {"ok": True}
+
+# ===== 4. ДРУЗЬЯ =====
+@app.get("/api/friends/list")
+async def get_friends(token: str):
+    user = await get_current_user(token)
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    f_data = db_friends.get(user["id"], {"friends": [], "requests": []})
+    
+    friends_list = []
+    for fid in f_data["friends"]:
+        for u in db_users.values():
+            if u["id"] == fid:
+                friends_list.append({"id": u["id"], "username": u["username"], "status": u["status"]})
+                
+    requests_list = []
+    for rid in f_data["requests"]:
+        for u in db_users.values():
+            if u["id"] == rid:
+                requests_list.append({"id": u["id"], "username": u["username"]})
+                
+    return {"friends": friends_list, "requests": requests_list}
+
+@app.post("/api/friends/request")
+async def send_friend_request(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    target_username = data.get("username")
+    target_user = db_users.get(target_username)
+    if not target_user or target_user["id"] == user["id"]:
+        raise HTTPException(400, "Пользователь не найден")
+    
+    target_f_data = db_friends.setdefault(target_user["id"], {"friends": [], "requests": []})
+    if user["id"] not in target_f_data["requests"]:
+        target_f_data["requests"].append(user["id"])
+        
+    return {"ok": True}
+
+@app.post("/api/friends/accept")
+async def accept_friend(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user:
+        raise HTTPException(401, "Не авторизован")
+    
+    requester_id = data.get("user_id")
+    f_data = db_friends.setdefault(user["id"], {"friends": [], "requests": []})
+    
+    if requester_id in f_data["requests"]:
+        f_data["requests"].remove(requester_id)
+        f_data["friends"].append(requester_id)
+        
+        # Добавляем себя в друзья к запрашивающему
+        req_f_data = db_friends.setdefault(requester_id, {"friends": [], "requests": []})
+        req_f_data["friends"].append(user["id"])
+        
+    return {"ok": True}
+
+# ===== 5. БОГ-АДМИНКА =====
 @app.get("/api/admin/users")
 async def admin_get_users(token: str):
     user = await get_current_user(token)
     if not user or not user.get("is_admin"):
-        raise HTTPException(403, "Доступ запрещён")
+        raise HTTPException(403, "Доступ запрещён. Только для Бога.")
     
     return [{"id": u["id"], "username": u["username"], "coins": u["coins"], "level": u["level"], "is_admin": u["is_admin"]} for u in db_users.values()]
 
@@ -179,7 +298,7 @@ async def admin_get_users(token: str):
 async def admin_action(data: dict):
     user = await get_current_user(data.get("token"))
     if not user or not user.get("is_admin"):
-        raise HTTPException(403, "Доступ запрещён")
+        raise HTTPException(403, "Доступ запрещён.")
     
     action = data.get("action")
     target_id = data.get("user_id")
@@ -189,14 +308,14 @@ async def admin_action(data: dict):
             if action == "ban":
                 u["is_banned"] = True
             elif action == "coins":
-                u["coins"] = u.get("coins", 0) + int(data.get("amount", 0))
+                u["coins"] = u.get("coins", 0) + int(data.get("amount", 1000))
             elif action == "admin":
                 u["is_admin"] = not u.get("is_admin", False)
-            return {"ok": True}
+            return {"ok": True, "message": f"Действие {action} выполнено"}
     
     raise HTTPException(404, "Пользователь не найден")
 
-# ===== WEBSOCKET =====
+# ===== 6. WEBSOCKET (ЧАТ В РЕАЛЬНОМ ВРЕМЕНИ) =====
 class ConnectionManager:
     def __init__(self):
         self.active_connections = {}
@@ -248,15 +367,23 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     except WebSocketDisconnect:
         manager.disconnect(user["username"])
 
-# ===== ГЛАВНАЯ СТРАНИЦА =====
+# ===== 7. ГЛАВНАЯ СТРАНИЦА И ВЕРСИЯ =====
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    with open("index.html", "r", encoding="utf-8") as f:
-        return f.read()
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return JSONResponse({"error": "index.html not found. Deploy it to GitHub first."}, status_code=404)
 
 @app.get("/api/version")
 async def version():
-    return {"current": "2.5", "all": {"2.5": {"title": "Belugacord Beta 2.5", "items": ["🚀 Полный релиз", "📧 Email верификация", "📞 Звонки", "👑 БОГ-Админка"]}}}
+    return {
+        "current": "2.5.0",
+        "all": {
+            "2.5.0": {"title": "Belugacord Beta 2.5", "items": ["🚀 Полный релиз", "📧 Email верификация", "📞 Звонки", "👑 БОГ-Админка", "🎮 Игры"]}
+        }
+    }
 
 # ===== ЗАПУСК =====
 if __name__ == "__main__":
