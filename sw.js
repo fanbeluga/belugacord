@@ -1,35 +1,26 @@
-self.addEventListener('install',e=>{
+const CACHE='belugacord-2.8-v1';
+const ASSETS=['/','/manifest.json'];
+
+self.addEventListener('install',function(e){
+  e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));
   self.skipWaiting();
 });
 
-self.addEventListener('activate',e=>{
-  e.waitUntil(self.clients.claim());
-});
-
-self.addEventListener('fetch',e=>{
-  // Пропускаем всё через сеть (никакого кэша — чтобы апдейты сразу прилетали)
-  e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));
-});
-
-// Пуш-уведомления (на будущее)
-self.addEventListener('push',e=>{
-  var data={title:'Belugacord',body:'Новое сообщение'};
-  try{if(e.data)data=e.data.json();}catch(err){}
-  e.waitUntil(self.registration.showNotification(data.title,{
-    body:data.body,
-    icon:'/icon-512×512.png',
-    badge:'/icon-192×192.png',
-    vibrate:[200,100,200]
+self.addEventListener('activate',function(e){
+  e.waitUntil(caches.keys().then(function(keys){
+    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));
   }));
+  self.clients.claim();
 });
 
-self.addEventListener('notificationclick',e=>{
-  e.notification.close();
-  e.waitUntil(clients.matchAll({type:'window'}).then(function(clientList){
-    for(var i=0;i<clientList.length;i++){
-      var c=clientList[i];
-      if(c.url.includes(self.registration.scope)&&'focus' in c)return c.focus();
-    }
-    if(clients.openWindow)return clients.openWindow('/');
-  }));
+self.addEventListener('fetch',function(e){
+  var url=new URL(e.request.url);
+  if(url.pathname.startsWith('/api/')||url.pathname.startsWith('/ws')){
+    return;
+  }
+  e.respondWith(
+    fetch(e.request).catch(function(){
+      return caches.match(e.request).then(function(r){return r||caches.match('/');});
+    })
+  );
 });
