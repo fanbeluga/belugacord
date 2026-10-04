@@ -8,9 +8,10 @@ import base64
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request
+# ИСПРАВЛЕНИЕ: Добавлен Header сюда
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles # <--- НОВЫЙ ИМПОРТ
+from fastapi.staticfiles import StaticFiles 
 from pydantic import BaseModel
 import asyncpg
 
