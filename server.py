@@ -1,55 +1,73 @@
-import asyncio
+import hashlib
+import hmac
 import json
-import random
-import os
+import base64
+import time
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-import asyncpg
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-
 # ==========================================
-# CONFIGURATION & SECURITY
+# CONFIGURATION & SECURITY (STDLIB ONLY)
 # ==========================================
 SECRET_KEY = "belugacord_super_secret_key_change_in_prod_2026" # CHANGE THIS!
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60 # 30 days for mobile app convenience
-
-DB_DSN = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/belugacord")
-# If you don't have PG running locally, use sqlite or adjust DSN accordingly. 
-# For this script to work out of the box with standard setup, ensure PostgreSQL is running.
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    # Сравнение SHA256 хешей
+    return get_password_hash(plain_password) == hashed_password
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    # Хешируем пароль через SHA256 (достаточно для беты, в проде лучше bcrypt/argon2)
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+        expire = datetime.utcnow() + timedelta(days=30) # Долгий срок для мобильного приложения
+    
+    to_encode.update({"exp": int(expire.timestamp())})
+    
+    # Кодируем payload в Base64 URL-safe
+    payload_bytes = json.dumps(to_encode).encode('utf-8')
+    payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode('utf-8')
+    
+    # Создаем подпись (Signature)
+    signature_input = f"{payload_b64}".encode('utf-8')
+    signature = hmac.new(SECRET_KEY.encode('utf-8'), signature_input, hashlib.sha256).hexdigest()
+    
+    # Формируем токен: payload.signature
+    return f"{payload_b64}.{signature}"
 
 async def decode_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
+        parts = token.split('.')
+        if len(parts) != 2:
+            return None
+        
+        payload_b64, provided_signature = parts
+        
+        # Проверяем подпись
+        signature_input = f"{payload_b64}".encode('utf-8')
+        expected_signature = hmac.new(SECRET_KEY.encode('utf-8'), signature_input, hashlib.sha256).hexdigest()
+        
+        if not hmac.compare_digest(provided_signature, expected_signature):
+            return None
+            
+        # Декодируем payload
+        payload_bytes = base64.urlsafe_b64decode(payload_b64.encode('utf-8'))
+        payload = json.loads(payload_bytes.decode('utf-8'))
+        
+        # Проверяем срок годности
+        exp = payload.get("exp")
+        if exp and time.time() > exp:
+            return None
+            
+        user_id = payload.get("sub")
         if user_id is None:
             return None
         return int(user_id)
-    except JWTError:
+    except Exception:
         return None
 
 # ==========================================
