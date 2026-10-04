@@ -8,7 +8,7 @@ import base64
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import asyncpg
@@ -17,8 +17,8 @@ import asyncpg
 # CONFIG & SECURITY (STDLIB ONLY)
 # ==========================================
 SECRET_KEY = os.getenv("SECRET_KEY", "belugacord_secret_2026_change_me")
+ADMIN_PIN_DEFAULT = "1234" # Пароль от Бог-админки
 
-# Render gives postgres:// but asyncpg needs postgresql://
 _raw_dsn = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/belugacord")
 DB_DSN = _raw_dsn.replace("postgres://", "postgresql://", 1)
 
@@ -37,15 +37,12 @@ def create_access_token(user_id: int) -> str:
 def decode_token(token: str) -> Optional[int]:
     try:
         parts = token.split(".")
-        if len(parts) != 2:
-            return None
+        if len(parts) != 2: return None
         payload_b64, provided_sig = parts
         expected_sig = hmac.new(SECRET_KEY.encode(), payload_b64.encode(), hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(provided_sig, expected_sig):
-            return None
+        if not hmac.compare_digest(provided_sig, expected_sig): return None
         payload = json.loads(base64.urlsafe_b64decode(payload_b64.encode()).decode())
-        if payload.get("exp", 0) < time.time():
-            return None
+        if payload.get("exp", 0) < time.time(): return None
         return int(payload["sub"])
     except Exception:
         return None
@@ -64,103 +61,78 @@ async def get_pool() -> asyncpg.Pool:
 async def init_db():
     p = await get_pool()
     async with p.acquire() as conn:
-        # Order matters: custom_titles BEFORE users (FK reference)
+        # Settings Table (stores Admin Pin)
         await conn.execute("""
-            CREATE TABLE IF NOT EXISTS system_settings (
-                key VARCHAR(50) PRIMARY KEY,
-                value TEXT
-            );
+            CREATE TABLE IF NOT EXISTS system_settings (key VARCHAR(50) PRIMARY KEY, value TEXT);
         """)
-        await conn.execute("""
-            INSERT INTO system_settings (key, value) VALUES ('teacher_quiz_active', 'true')
-            ON CONFLICT (key) DO NOTHING;
-        """)
+        
+        # Seed Default Admin Pin if missing
+        pin_exists = await conn.fetchval("SELECT 1 FROM system_settings WHERE key='admin_pin'")
+        if not pin_exists:
+            await conn.execute("INSERT INTO system_settings (key, value) VALUES ('admin_pin', $1)", ADMIN_PIN_DEFAULT)
+            print(f">>> Seeded Admin PIN: {ADMIN_PIN_DEFAULT}")
+
+        # Other Tables...
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS custom_titles (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(50) NOT NULL,
-                color_hex VARCHAR(7) DEFAULT '#FFFFFF',
-                bg_color_hex VARCHAR(7) DEFAULT 'transparent',
-                is_global BOOLEAN DEFAULT FALSE,
-                created_by INTEGER,
-                created_at TIMESTAMPTZ DEFAULT NOW()
+                id SERIAL PRIMARY KEY, name VARCHAR(50) NOT NULL, color_hex VARCHAR(7) DEFAULT '#FFFFFF',
+                bg_color_hex VARCHAR(7) DEFAULT 'transparent', is_global BOOLEAN DEFAULT FALSE,
+                created_by INTEGER, created_at TIMESTAMPTZ DEFAULT NOW()
             );
         """)
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(50) UNIQUE NOT NULL,
-                email VARCHAR(100) UNIQUE,
-                password_hash VARCHAR(255) NOT NULL,
-                nickname VARCHAR(50) DEFAULT 'User',
-                avatar_url TEXT DEFAULT '',
-                coins INTEGER DEFAULT 0,
-                candy_balance INTEGER DEFAULT 0,
-                is_premium BOOLEAN DEFAULT FALSE,
-                role VARCHAR(20) DEFAULT 'user',
-                is_scammer BOOLEAN DEFAULT FALSE,
-                active_custom_title_id INTEGER REFERENCES custom_titles(id),
-                created_at TIMESTAMPTZ DEFAULT NOW()
+                id SERIAL PRIMARY KEY, username VARCHAR(50) UNIQUE NOT NULL, email VARCHAR(100) UNIQUE,
+                password_hash VARCHAR(255) NOT NULL, nickname VARCHAR(50) DEFAULT 'User', avatar_url TEXT DEFAULT '',
+                coins INTEGER DEFAULT 0, candy_balance INTEGER DEFAULT 0, is_premium BOOLEAN DEFAULT FALSE,
+                role VARCHAR(20) DEFAULT 'user', is_scammer BOOLEAN DEFAULT FALSE,
+                active_custom_title_id INTEGER REFERENCES custom_titles(id), created_at TIMESTAMPTZ DEFAULT NOW()
             );
         """)
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS chats (
-                id SERIAL PRIMARY KEY,
-                user1_id INTEGER REFERENCES users(id),
-                user2_id INTEGER REFERENCES users(id),
-                created_at TIMESTAMPTZ DEFAULT NOW(),
-                UNIQUE(user1_id, user2_id)
+                id SERIAL PRIMARY KEY, user1_id INTEGER REFERENCES users(id), user2_id INTEGER REFERENCES users(id),
+                created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user1_id, user2_id)
             );
         """)
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS messages (
-                id SERIAL PRIMARY KEY,
-                chat_id INTEGER REFERENCES chats(id),
-                sender_id INTEGER REFERENCES users(id),
-                content TEXT,
-                read_status BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMPTZ DEFAULT NOW()
+                id SERIAL PRIMARY KEY, chat_id INTEGER REFERENCES chats(id), sender_id INTEGER REFERENCES users(id),
+                content TEXT, read_status BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW()
             );
         """)
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS friends (
-                id SERIAL PRIMARY KEY,
-                user1_id INTEGER REFERENCES users(id),
-                user2_id INTEGER REFERENCES users(id),
-                status VARCHAR(20) DEFAULT 'pending',
-                created_at TIMESTAMPTZ DEFAULT NOW(),
-                UNIQUE(user1_id, user2_id)
+                id SERIAL PRIMARY KEY, user1_id INTEGER REFERENCES users(id), user2_id INTEGER REFERENCES users(id),
+                status VARCHAR(20) DEFAULT 'pending', created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user1_id, user2_id)
             );
         """)
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS bp_progress (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id),
-                season_name VARCHAR(100),
-                level INTEGER DEFAULT 1,
-                xp INTEGER DEFAULT 0,
-                has_premium_pass BOOLEAN DEFAULT FALSE,
+                id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id), season_name VARCHAR(100),
+                level INTEGER DEFAULT 1, xp INTEGER DEFAULT 0, has_premium_pass BOOLEAN DEFAULT FALSE,
                 UNIQUE(user_id, season_name)
             );
         """)
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS teacher_quiz_progress (
-                user_id INTEGER PRIMARY KEY REFERENCES users(id),
-                current_question_index INTEGER DEFAULT 0,
-                completed BOOLEAN DEFAULT FALSE,
-                score INTEGER DEFAULT 0,
-                updated_at TIMESTAMPTZ DEFAULT NOW()
+                user_id INTEGER PRIMARY KEY REFERENCES users(id), current_question_index INTEGER DEFAULT 0,
+                completed BOOLEAN DEFAULT FALSE, score INTEGER DEFAULT 0, updated_at TIMESTAMPTZ DEFAULT NOW()
             );
         """)
         
-        # Seed OWNER if database is empty
+        # Seed OWNER (_fan_beluga_) ONLY if table is empty
         cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
         if cnt == 0:
+            print(">>> Database empty. Seeding Owner...")
+            
+            # Main Owner: _fan_beluga_ / lolotrek
+            hash_main = get_password_hash("lolotrek")
             await conn.execute("""
                 INSERT INTO users (username, email, password_hash, nickname, role, coins, candy_balance)
                 VALUES ('_fan_beluga_', 'fanbeluga@beluga.com', $1, 'Beluga Owner', 'owner', 999999, 999999)
-            """, get_password_hash("admin123"))
-            print(">>> Seeded OWNER: login=_fan_beluga_ pass=admin123")
+            """, hash_main)
+            print(">>> Seeded OWNER: login=_fan_beluga_ pass=lolotrek")
 
 # ==========================================
 # MODELS
@@ -217,9 +189,19 @@ async def get_current_user(request: Request) -> dict:
             "has_bp_premium": bp["has_premium_pass"] if bp else False, **title
         }
 
-def require_admin(user: dict = Depends(get_current_user)) -> dict:
+# Dependency for Admin Routes: Checks Role + PIN
+async def require_admin_with_pin(user: dict = Depends(get_current_user), x_admin_pin: str = Header(None)):
     if user["role"] not in ("admin", "owner"):
         raise HTTPException(403, "Admin only")
+    
+    # Check PIN against DB
+    p = await get_pool()
+    async with p.acquire() as conn:
+        stored_pin = await conn.fetchval("SELECT value FROM system_settings WHERE key='admin_pin'")
+        
+    if not x_admin_pin or x_admin_pin != stored_pin:
+        raise HTTPException(401, "Invalid Admin PIN")
+        
     return user
 
 # ==========================================
@@ -339,7 +321,7 @@ BP_SEASON = {"season_name": "Halloween Spooktober", "max_level": 50, "xp_per_lev
 def _gen_bp_rewards():
     out = []
     fe = ["🎃","️","🦇","️","💀","","","🍬"]
-    ve = ["✨","🏆","👑","🔥","⚡","🌟","💎","🎁"]
+    ve = ["✨","🏆","","🔥","","🌟","💎","🎁"]
     for lvl in range(1, 51):
         out.append({"level": lvl, "track": "free", "type": "coins" if lvl % 2 == 0 else "candy",
                     "value": str(lvl * 10), "emoji": fe[lvl % len(fe)], "name": f"L{lvl} Free"})
@@ -410,7 +392,7 @@ async def quiz_status():
     return {"active": v == "true"}
 
 @app.post("/api/admin/toggle-quiz")
-async def toggle_quiz(active: bool, admin: dict = Depends(require_admin)):
+async def toggle_quiz(active: bool, admin: dict = Depends(require_admin_with_pin)):
     p = await get_pool()
     async with p.acquire() as conn:
         await conn.execute("INSERT INTO system_settings (key,value) VALUES ('teacher_quiz_active',$1) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value", "true" if active else "false")
@@ -491,31 +473,31 @@ async def shop_buy(item_id: int, user: dict = Depends(get_current_user)):
     return {"status": "success", "message": f"Куплено: {item['name']}"}
 
 # ==========================================
-# ADMIN TITLES & SCAM
+# ADMIN TITLES & SCAM (Protected by PIN)
 # ==========================================
 @app.get("/api/admin/titles/list")
-async def titles_list(admin: dict = Depends(require_admin)):
+async def titles_list(admin: dict = Depends(require_admin_with_pin)):
     p = await get_pool()
     async with p.acquire() as conn:
         rows = await conn.fetch("SELECT * FROM custom_titles ORDER BY created_at DESC")
     return [dict(r) for r in rows]
 
 @app.post("/api/admin/titles/create")
-async def title_create(name: str, color: str, is_global: bool, admin: dict = Depends(require_admin)):
+async def title_create(name: str, color: str, is_global: bool, admin: dict = Depends(require_admin_with_pin)):
     p = await get_pool()
     async with p.acquire() as conn:
         tid = await conn.fetchval("INSERT INTO custom_titles (name,color_hex,is_global,created_by) VALUES ($1,$2,$3,$4) RETURNING id", name, color, is_global, admin["id"])
     return {"id": tid, "status": "created"}
 
 @app.post("/api/admin/titles/grant")
-async def title_grant(target_user_id: int, title_id: int, admin: dict = Depends(require_admin)):
+async def title_grant(target_user_id: int, title_id: int, admin: dict = Depends(require_admin_with_pin)):
     p = await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET active_custom_title_id=$1 WHERE id=$2", title_id, target_user_id)
     return {"status": "granted"}
 
 @app.post("/api/admin/scam/toggle")
-async def scam_toggle(user_id: int, is_scammer: bool, admin: dict = Depends(require_admin)):
+async def scam_toggle(user_id: int, is_scammer: bool, admin: dict = Depends(require_admin_with_pin)):
     p = await get_pool()
     async with p.acquire() as conn:
         await conn.execute("UPDATE users SET is_scammer=$1 WHERE id=$2", is_scammer, user_id)
