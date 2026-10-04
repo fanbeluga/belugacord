@@ -4,5 +4,3 @@ asyncpg
 python-multipart
 websockets
 httpx
-python-jose[cryptography]
-passlib[bcrypt]
