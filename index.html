@@ -60,8 +60,17 @@
         }
         .btn-primary { background: var(--accent); color: white; }
         .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
         .btn:active { transform: scale(0.96); opacity: 0.9; }
+
+        /* Inputs */
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%; padding: 12px 15px; margin-bottom: 10px;
+            background: #2b2d31; border: 1px solid transparent; border-radius: 8px;
+            color: white; font-size: 16px; transition: border 0.2s;
+        }
+        input:focus { border-color: var(--accent); }
 
         /* Badges & Tags */
         .badge {
@@ -122,10 +131,6 @@
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
         }
         .chat-input-zone.visible { transform: translateY(0); }
-        .chat-input-zone input {
-            flex: 1; background: #2b2d31; border: none; border-radius: 20px;
-            padding: 12px 15px; color: white; font-size: 16px;
-        }
         .send-btn {
             background: var(--accent); border: none; border-radius: 50%;
             width: 44px; height: 44px; color: white; cursor: pointer;
@@ -185,6 +190,15 @@
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .close-modal { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+        
+        /* Auth Tabs */
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .auth-tab {
+            flex: 1; padding: 10px; text-align: center; border-radius: 8px;
+            background: #2b2d31; color: var(--text-muted); cursor: pointer; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .auth-tab.active { background: var(--accent); color: white; }
 
         /* Quiz Styles */
         .quiz-container { padding: 20px; max-width: 500px; margin: 0 auto; }
@@ -253,9 +267,9 @@
                         <div class="avatar" style="background:var(--danger);color:white;display:flex;align-items:center;justify-content:center;">🍬</div>
                         <div class="item-info"><div class="item-title">Магазин</div><div class="item-subtitle">Рамки и подарки</div></div>
                     </div>
-                    <div class="list-item card" onclick="goToTab('admin-titles')" id="admin-shortcut" style="display:none;">
+                    <div class="list-item card" onclick="unlockAdminGui()" id="admin-shortcut" style="display:none;">
                         <div class="avatar" style="background:#fff;color:black;display:flex;align-items:center;justify-content:center;">👑</div>
-                        <div class="item-info"><div class="item-title">Админка</div><div class="item-subtitle">Титулы</div></div>
+                        <div class="item-info"><div class="item-title">Бог-Админ</div><div class="item-subtitle">Owner GUI</div></div>
                     </div>
                 </div>
             </div>
@@ -418,6 +432,10 @@
     let cachedFriends = [];
     let bpDataCache = null;
     let quizState = { index: 0, total: 20, answered: false };
+    
+    // Admin State
+    let isAdminUnlocked = false;
+    const ADMIN_PIN_HEADER = "X-Admin-Pin"; 
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -437,7 +455,7 @@
     async function loadSession() {
         const token = localStorage.getItem('beluga_token');
         if (!token) {
-            showLoginModal();
+            showAuthModal('login');
             return;
         }
 
@@ -450,19 +468,19 @@
                 fetchChatsList();
                 fetchFriendsList();
                 
-                // Show admin shortcut if user is admin/owner
-                if(currentUser.role === 'admin' || currentUser.role === 'owner') {
+                // Show admin shortcut if user is owner/admin
+                if(currentUser.role === 'owner' || currentUser.role === 'admin') {
                     document.getElementById('admin-shortcut').style.display = 'flex';
                 }
 
                 goToTab('home');
             } else {
                 localStorage.removeItem('beluga_token');
-                showLoginModal();
+                showAuthModal('login');
             }
         } catch(e) {
             console.error("Auth failed", e);
-            showLoginModal();
+            showAuthModal('login');
         }
     }
 
@@ -505,7 +523,11 @@
                 if(currentViewName === 'chats') renderChatList();
                 break;
             case 'FRIEND_REQUEST':
-                alert(`Новая заявка от ${data.payload.username}!`);
+                alert(`Новая заявка от ${data.payload.from_user}!`);
+                break;
+            case 'BP_LEVEL_UP':
+                alert(`🎉 Новый уровень БП: ${data.payload.new_level}`);
+                if(bpDataCache) loadBattlePass();
                 break;
         }
     }
@@ -674,7 +696,74 @@
 
     async function fetchFriendsList() {
         const container = document.getElementById('friends-list-container');
-        if(container) container.innerHTML = '<div style="padding:20px;color:var(--text-muted)">Список друзей загружается...</div>';
+        if(!container || !currentUser) return;
+        
+        try {
+            const res = await fetch('/api/friends/list', { headers: authHeaders() });
+            cachedFriends = await res.json();
+            renderFriendListUI();
+        } catch(e) { console.error(e); }
+    }
+
+    function renderFriendListUI() {
+        const container = document.getElementById('friends-list-container');
+        let html = '<div style="padding:15px;"><h3>Друзья</h3></div>';
+        
+        // Search Bar
+        html += `
+            <div style="padding:0 15px 15px;">
+                <input type="text" id="friend-search-input" placeholder="@username..." style="width:100%;padding:10px;background:#2b2d31;border:none;border-radius:5px;color:white;">
+                <button class="btn btn-primary" style="margin-top:5px;width:100%" onclick="searchAndAddFriend()">Добавить друга</button>
+            </div>
+        `;
+
+        if(cachedFriends.length === 0) {
+            html += '<div style="padding:20px;text-align:center;color:var(--text-muted)">Нет друзей.</div>';
+        } else {
+            cachedFriends.forEach(fr => {
+                const actionBtn = fr.status === 'accepted' 
+                    ? `<button class="btn btn-outline" onclick="startChatWith(${fr.id})">💬</button>`
+                    : `<span style="font-size:10px;color:gold">${fr.status}</span>`;
+                    
+                html += `
+                    <div class="list-item">
+                        <img src="${fr.avatar}" class="avatar">
+                        <div class="item-info">
+                            <div class="item-title">${escapeHtml(fr.nickname)}</div>
+                            <div class="item-subtitle">@${fr.username}</div>
+                        </div>
+                        ${actionBtn}
+                    </div>
+                `;
+            });
+        }
+        container.innerHTML = html;
+    }
+
+    async function searchAndAddFriend() {
+        const input = document.getElementById('friend-search-input');
+        const username = input.value.trim();
+        if(!username) return;
+
+        const res = await fetch('/api/friends/request', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', ...authHeaders()},
+            body: JSON.stringify({ target_username: username })
+        });
+        
+        if(res.ok) {
+            alert("Заявка отправлена!");
+            input.value = '';
+            fetchFriendsList();
+        } else {
+            const err = await res.json();
+            alert(err.detail || "Ошибка");
+        }
+    }
+
+    function startChatWith(userId) {
+        // Create DM logic would go here
+        alert(`Открыть чат с ID: ${userId}`);
     }
 
     function renderProfileData() {
@@ -804,7 +893,7 @@
 
     // --- QUIZ LOGIC ---
     async function loadQuizQuestion() {
-        const res = await fetch(`/api/quiz/question/${currentUser.id}`, { headers: authHeaders() });
+        const res = await fetch(`/api/quiz/question`, { headers: authHeaders() });
         const data = await res.json();
         
         if(data.finished) {
@@ -874,25 +963,70 @@
         }
     }
 
-    // --- ADMIN TITLES LOGIC ---
-    async function loadAdminTitles() {
-        const res = await fetch('/api/admin/titles/list', { headers: authHeaders() });
-        const titles = await res.json();
-        const container = document.getElementById('titles-list');
-        
-        let html = '';
-        titles.forEach(t => {
-            html += `
-                <div class="list-item card" style="justify-content:space-between;">
-                    <div>
-                        <span class="custom-title-badge" style="background:${t.bg_color_hex==='transparent'?''+t.color_hex:''};color:white;border:1px solid ${t.color_hex}">${t.name}</span>
-                        <small style="display:block;color:var(--text-muted);font-size:10px;">ID: ${t.id} | Global: ${t.is_global}</small>
-                    </div>
-                    <button class="btn btn-outline" onclick="grantTitlePrompt(${t.id}, '${t.name}')">Выдать</button>
-                </div>
-            `;
+    // --- ADMIN TITLES LOGIC (WITH PIN) ---
+    window.unlockAdminGui = function() {
+        const pin = prompt("Введите пароль Бог-Админки (PIN):");
+        if (!pin) return;
+
+        // Test PIN with a dummy request
+        fetch('/api/admin/titles/list', {
+            headers: {
+                ...authHeaders(),
+                [ADMIN_PIN_HEADER]: pin
+            }
+        }).then(res => {
+            if (res.ok) {
+                alert("✅ Админка разблокирована!");
+                sessionStorage.setItem('beluga_admin_pin', pin);
+                isAdminUnlocked = true;
+                goToTab('admin-titles');
+            } else {
+                alert("❌ Неверный PIN!");
+            }
         });
-        container.innerHTML = html || '<p>Нет титулов.</p>';
+    };
+
+    function adminAuthHeaders() {
+        const savedPin = sessionStorage.getItem('beluga_admin_pin');
+        if (!savedPin) {
+            throw new Error("Admin PIN not set");
+        }
+        return {
+            ...authHeaders(),
+            [ADMIN_PIN_HEADER]: savedPin
+        };
+    }
+
+    async function loadAdminTitles() {
+        if(!isAdminUnlocked) {
+            unlockAdminGui();
+            return;
+        }
+        try {
+            const headers = adminAuthHeaders();
+            const res = await fetch('/api/admin/titles/list', { headers });
+            const titles = await res.json();
+            const container = document.getElementById('titles-list');
+            
+            let html = '';
+            titles.forEach(t => {
+                html += `
+                    <div class="list-item card" style="justify-content:space-between;">
+                        <div>
+                            <span class="custom-title-badge" style="background:${t.bg_color_hex==='transparent'?''+t.color_hex:''};color:white;border:1px solid ${t.color_hex}">${t.name}</span>
+                            <small style="display:block;color:var(--text-muted);font-size:10px;">ID: ${t.id} | Global: ${t.is_global}</small>
+                        </div>
+                        <button class="btn btn-outline" onclick="grantTitlePrompt(${t.id}, '${t.name}')">Выдать</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html || '<p>Нет титулов.</p>';
+        } catch(e) {
+            console.error("Admin Load Error:", e);
+            alert("Ошибка доступа. Возможно, неверный PIN.");
+            sessionStorage.removeItem('beluga_admin_pin');
+            isAdminUnlocked = false;
+        }
     }
 
     function showCreateTitleModal() {
@@ -903,7 +1037,7 @@
         
         fetch('/api/admin/titles/create', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', ...authHeaders()},
+            headers: {'Content-Type': 'application/json', ...adminAuthHeaders()},
             body: JSON.stringify({ name, color, is_global: isGlobal })
         }).then(() => {
             alert("Титул создан!");
@@ -916,7 +1050,7 @@
         if(userIdStr) {
             fetch('/api/admin/titles/grant', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', ...authHeaders()},
+                headers: {'Content-Type': 'application/json', ...adminAuthHeaders()},
                 body: JSON.stringify({ target_user_id: parseInt(userIdStr), title_id: titleId })
             }).then(() => alert("Выдано!"));
         }
@@ -948,23 +1082,64 @@
         }
     }
 
-    function showLoginModal() {
+    // --- AUTH MODAL (LOGIN + REGISTER) ---
+    function showAuthModal(mode = 'login') {
         const root = document.getElementById('modals-root');
         root.innerHTML = `
-            <div class="modal-overlay open" id="login-modal">
+            <div class="modal-overlay open" id="auth-modal">
                 <div class="modal-content">
-                    <div class="modal-header"><h3>Вход в Belugacord</h3></div>
-                    <form onsubmit="handleLogin(event)">
-                        <input type="text" id="login-user" placeholder="@username или Email" required style="width:100%;padding:10px;margin-bottom:10px;background:#2b2d31;border:none;border-radius:5px;color:white;">
-                        <input type="password" id="login-pass" placeholder="Пароль" required style="width:100%;padding:10px;margin-bottom:15px;background:#2b2d31;border:none;border-radius:5px;color:white;">
+                    <div class="modal-header">
+                        <h3 id="auth-title">${mode === 'login' ? 'Вход' : 'Регистрация'}</h3>
+                        <button class="close-modal" onclick="document.getElementById('auth-modal').remove()">×</button>
+                    </div>
+                    
+                    <!-- Переключатель Вход/Регистрация -->
+                    <div class="auth-tabs">
+                        <div class="auth-tab ${mode === 'login' ? 'active' : ''}" onclick="switchAuthTab('login')">Войти</div>
+                        <div class="auth-tab ${mode === 'register' ? 'active' : ''}" onclick="switchAuthTab('register')">Регистрация</div>
+                    </div>
+
+                    <!-- ФОРМА ЛОГИНА -->
+                    <form id="login-form" class="${mode === 'login' ? '' : 'hidden'}" onsubmit="handleLogin(event)">
+                        <input type="text" id="login-user" placeholder="@username или Email" required>
+                        <input type="password" id="login-pass" placeholder="Пароль" required>
                         <button type="submit" class="btn btn-primary" style="width:100%">Войти</button>
+                    </form>
+
+                    <!-- ФОРМА РЕГИСТРАЦИИ -->
+                    <form id="register-form" class="${mode === 'register' ? '' : 'hidden'}" onsubmit="handleRegister(event)">
+                        <input type="text" id="reg-username" placeholder="Никнейм (@username)" required>
+                        <input type="text" id="reg-nickname" placeholder="Отображаемое имя" required>
+                        <input type="password" id="reg-pass" placeholder="Пароль" required>
+                        <button type="submit" class="btn btn-success" style="width:100%;">Зарегистрироваться</button>
                     </form>
                 </div>
             </div>
         `;
     }
 
-    async function handleLogin(e) {
+    window.switchAuthTab = function(tab) {
+        const loginForm = document.getElementById('login-form');
+        const regForm = document.getElementById('register-form');
+        const title = document.getElementById('auth-title');
+        const tabs = document.querySelectorAll('.auth-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if(tab === 'login') {
+            loginForm.classList.remove('hidden');
+            regForm.classList.add('hidden');
+            title.textContent = "Вход";
+            tabs[0].classList.add('active');
+        } else {
+            loginForm.classList.add('hidden');
+            regForm.classList.remove('hidden');
+            title.textContent = "Новый аккаунт";
+            tabs[1].classList.add('active');
+        }
+    };
+
+    window.handleLogin = async function(e) {
         e.preventDefault();
         const u = document.getElementById('login-user').value;
         const p = document.getElementById('login-pass').value;
@@ -977,15 +1152,45 @@
         
         if(res.ok) {
             const data = await res.json();
-            localStorage.setItem('beluga_token', data.token);
+            localStorage.setItem('beluga_token', data.access_token);
             location.reload();
         } else {
-            alert("Неверный логин или пароль");
+            const err = await res.json();
+            alert("❌ Ошибка: " + (err.detail || "Неверные данные"));
         }
-    }
+    };
+
+    window.handleRegister = async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('reg-username').value.trim();
+        const nickname = document.getElementById('reg-nickname').value.trim();
+        const password = document.getElementById('reg-pass').value;
+
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username, password, nickname })
+            });
+
+            if(res.ok) {
+                const data = await res.json();
+                localStorage.setItem('beluga_token', data.access_token);
+                alert("✅ Регистрация успешна! Добро пожаловать.");
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert("❌ Ошибка: " + (err.detail || "Не удалось зарегистрироваться"));
+            }
+        } catch(err) {
+            console.error(err);
+            alert("❌ Сервер недоступен");
+        }
+    };
 
     function logout() {
         localStorage.removeItem('beluga_token');
+        sessionStorage.removeItem('beluga_admin_pin');
         location.reload();
     }
     
