@@ -16,7 +16,7 @@ import asyncpg
 # ==========================================
 # CONFIG & SECURITY (STDLIB ONLY)
 # ==========================================
-SECRET_KEY = os.getenv("SECRET_KEY", "belugacordbeta28")
+SECRET_KEY = os.getenv("SECRET_KEY", "belugacord_secret_2026_change_me")
 
 # Render gives postgres:// but asyncpg needs postgresql://
 _raw_dsn = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/belugacord")
@@ -152,14 +152,15 @@ async def init_db():
                 updated_at TIMESTAMPTZ DEFAULT NOW()
             );
         """)
-        # Seed admin
+        
+        # Seed OWNER if database is empty
         cnt = await conn.fetchval("SELECT COUNT(*) FROM users")
         if cnt == 0:
             await conn.execute("""
                 INSERT INTO users (username, email, password_hash, nickname, role, coins, candy_balance)
-                VALUES ('admin', 'admin@beluga.com', $1, 'Beluga Owner', 'owner', 999999, 999999)
+                VALUES ('_fan_beluga_', 'fanbeluga@beluga.com', $1, 'Beluga Owner', 'owner', 999999, 999999)
             """, get_password_hash("admin123"))
-            print(">>> Seeded admin: login=admin pass=admin123")
+            print(">>> Seeded OWNER: login=_fan_beluga_ pass=admin123")
 
 # ==========================================
 # MODELS
