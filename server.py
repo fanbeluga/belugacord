@@ -8,8 +8,9 @@ import base64
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request, Header
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles # <--- НОВЫЙ ИМПОРТ
 from pydantic import BaseModel
 import asyncpg
 
@@ -17,7 +18,7 @@ import asyncpg
 # CONFIG & SECURITY (STDLIB ONLY)
 # ==========================================
 SECRET_KEY = os.getenv("SECRET_KEY", "belugacord_secret_2026_change_me")
-ADMIN_PIN_DEFAULT = "1234" # Пароль от Бог-админки
+ADMIN_PIN_DEFAULT = "1234" 
 
 _raw_dsn = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/belugacord")
 DB_DSN = _raw_dsn.replace("postgres://", "postgresql://", 1)
@@ -147,7 +148,7 @@ class RegisterReq(BaseModel):
     nickname: str
 
 # ==========================================
-# APP
+# APP SETUP
 # ==========================================
 app = FastAPI(title="Belugacord API v2.8")
 
@@ -163,6 +164,7 @@ async def _startup():
     await init_db()
     print("DB ready.")
 
+# Dependency for Auth
 async def get_current_user(request: Request) -> dict:
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
@@ -194,7 +196,6 @@ async def require_admin_with_pin(user: dict = Depends(get_current_user), x_admin
     if user["role"] not in ("admin", "owner"):
         raise HTTPException(403, "Admin only")
     
-    # Check PIN against DB
     p = await get_pool()
     async with p.acquire() as conn:
         stored_pin = await conn.fetchval("SELECT value FROM system_settings WHERE key='admin_pin'")
@@ -205,7 +206,16 @@ async def require_admin_with_pin(user: dict = Depends(get_current_user), x_admin
     return user
 
 # ==========================================
-# AUTH
+# STATIC FILES MOUNTING (CRITICAL FIX)
+# ==========================================
+# Монтируем текущую директорию как статику. 
+# Это позволит браузеру скачать index.html, logo.png и другие файлы напрямую.
+# Важно: делать это ПОСЛЕ определения всех API роутов, чтобы они не перекрылись статикой.
+# Но так как у нас все API начинаются с /api/, можно монтировать в конец или использовать catch-all.
+# Безопаснее всего смонтировать "/" в самом конце файла кода, после всех @app decorators.
+
+# ==========================================
+# AUTH ENDPOINTS
 # ==========================================
 @app.post("/api/login")
 async def login(req: LoginReq):
@@ -235,7 +245,7 @@ async def me(user: dict = Depends(get_current_user)):
     return user
 
 # ==========================================
-# CHATS
+# CHATS ENDPOINTS
 # ==========================================
 @app.get("/api/chats/list")
 async def chats_list(user: dict = Depends(get_current_user)):
@@ -282,7 +292,7 @@ async def create_dm(target_user_id: int, user: dict = Depends(get_current_user))
         return {"chat_id": cid}
 
 # ==========================================
-# FRIENDS
+# FRIENDS ENDPOINTS
 # ==========================================
 @app.get("/api/friends/list")
 async def friends_list(user: dict = Depends(get_current_user)):
@@ -314,14 +324,14 @@ async def friend_request(target_username: str, user: dict = Depends(get_current_
         return {"status": "sent"}
 
 # ==========================================
-# BATTLE PASS
+# BATTLE PASS ENDPOINTS
 # ==========================================
 BP_SEASON = {"season_name": "Halloween Spooktober", "max_level": 50, "xp_per_level": 100}
 
 def _gen_bp_rewards():
     out = []
-    fe = ["🎃","️","🦇","️","💀","","","🍬"]
-    ve = ["✨","🏆","","🔥","","🌟","💎","🎁"]
+    fe = ["🎃","️","🦇","️","💀","","",""]
+    ve = ["✨","🏆","","","","🌟","💎","🎁"]
     for lvl in range(1, 51):
         out.append({"level": lvl, "track": "free", "type": "coins" if lvl % 2 == 0 else "candy",
                     "value": str(lvl * 10), "emoji": fe[lvl % len(fe)], "name": f"L{lvl} Free"})
@@ -359,7 +369,7 @@ async def add_bp_xp_logic(conn, user_id: int, amount: int):
     return lvl, xp, up
 
 # ==========================================
-# TEACHER QUIZ
+# TEACHER QUIZ ENDPOINTS
 # ==========================================
 QUIZ = [
     {"q":"Столица Франции?","opts":["Лондон","Париж","Берлин","Мадрид"],"ans":1},
@@ -443,7 +453,7 @@ async def quiz_answer(answer_idx: int, user: dict = Depends(get_current_user)):
         return {"correct": correct, "next_index": nxt, "finished": done, "rewards": rewards}
 
 # ==========================================
-# SHOP
+# SHOP ENDPOINTS
 # ==========================================
 SHOP = [
     {"id":1,"name":"Рамка Призрак","price":500,"currency":"candy","emoji":"👻","type":"frame"},
@@ -473,7 +483,7 @@ async def shop_buy(item_id: int, user: dict = Depends(get_current_user)):
     return {"status": "success", "message": f"Куплено: {item['name']}"}
 
 # ==========================================
-# ADMIN TITLES & SCAM (Protected by PIN)
+# ADMIN TITLES & SCAM ENDPOINTS
 # ==========================================
 @app.get("/api/admin/titles/list")
 async def titles_list(admin: dict = Depends(require_admin_with_pin)):
@@ -504,7 +514,7 @@ async def scam_toggle(user_id: int, is_scammer: bool, admin: dict = Depends(requ
     return {"status": "updated", "is_scammer": is_scammer}
 
 # ==========================================
-# WEBSOCKET
+# WEBSOCKET HANDLER
 # ==========================================
 active_connections: Dict[int, WebSocket] = {}
 
@@ -542,6 +552,31 @@ async def ws_endpoint(websocket: WebSocket):
     except Exception as e:
         print("WS err:", e)
         if user_id in active_connections: del active_connections[user_id]
+
+# ==========================================
+# FINAL STEP: MOUNT STATIC FILES
+# ==========================================
+# Это должно быть в САМОМ КОНЦЕ файла, после всех определений app.get/post/websocket
+# Оно перехватывает все запросы, которые не попали в API (/api/*), и пытается найти файл на диске.
+if os.path.exists("./static"):
+    app.mount("/", StaticFiles(directory="./static", html=True), name="static")
+else:
+    # Если папки static нет, пробуем отдать index.html из корня через fallback маршрут
+    from fastapi.responses import FileResponse
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Защита от попытки получить доступ к системным файлам через ../
+        if full_path.startswith(".."):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        
+        file_path = os.path.join(".", full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        # Если файл не найден, но это GET запрос (например, переход по ссылке внутри SPA),
+        # отдаем index.html, чтобы фронтенд сам разобрался с роутингом
+        return FileResponse("./index.html")
 
 if __name__ == "__main__":
     import uvicorn
