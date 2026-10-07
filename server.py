@@ -415,11 +415,20 @@ def get_role(row):
 
 def is_premium(row):
     if not row: return False
+    if not isinstance(row,dict): row=dict(row)
     if row.get("username")==ADMIN_USERNAME: return True
     tier=row.get("premium_tier")
     if not tier: return False
     exp=row.get("premium_expires")
-    if exp and exp<datetime.datetime.now(datetime.timezone.utc): return False
+    if exp:
+        try:
+            now_utc=datetime.datetime.now(datetime.timezone.utc)
+            # если exp без таймзоны — делаем aware
+            if exp.tzinfo is None:
+                exp=exp.replace(tzinfo=datetime.timezone.utc)
+            if exp<now_utc: return False
+        except Exception as e:
+            print(f"[is_premium] {e}")
     return tier in ("premium","pro")
 
 def has_scam_perm(row,perm):
