@@ -1573,3 +1573,832 @@ async def calls_history(token:str):
              "callee_name":r["callee_display"] or r["callee_username"],
              "call_type":r["call_type"],"status":r["status"],"duration":r["duration"],
              "created_at":_iso(r["created_at"])} for r in rows]10
+# ============ OWNER / ADMIN CHECKS ============
+async def check_owner(user):
+    if not user: raise HTTPException(401,"Не авторизован")
+    if user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+
+async def check_admin(user):
+    if not user: raise HTTPException(401,"Не авторизован")
+    if not (user.get("is_admin") or user["username"]==ADMIN_USERNAME): raise HTTPException(403,"Не админ")
+
+# ============ OWNER ============
+@app.post("/api/owner/verify")
+async def owner_verify(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    if data.get("password")!=OWNER_PASSWORD: raise HTTPException(403,"Неверный")
+    return {"ok":True}
+
+@app.get("/api/owner/stats")
+async def owner_stats(token:str):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        u=await conn.fetchval("SELECT COUNT(*) FROM users WHERE id!=0")
+        m=await conn.fetchval("SELECT COUNT(*) FROM messages")
+        c=await conn.fetchval("SELECT COALESCE(SUM(coins),0) FROM users")
+        g=await conn.fetchval("SELECT COUNT(*) FROM gifts")
+        scam=await conn.fetchval("SELECT COUNT(*) FROM users WHERE is_scam=TRUE")
+        prem=await conn.fetchval("SELECT COUNT(*) FROM users WHERE premium_tier IS NOT NULL")
+        dms=await conn.fetchval("SELECT COUNT(*) FROM dms")
+        srv=await conn.fetchval("SELECT COUNT(*) FROM servers")
+        grp=await conn.fetchval("SELECT COUNT(*) FROM groups")
+        calls=0
+        try: calls=await conn.fetchval("SELECT COUNT(*) FROM call_history")
+        except: pass
+    return {"users":u,"messages":m,"coins":c,"gifts":g,"online":len(online_users),
+            "scam_count":scam,"premium":prem,"dms":dms,"servers":srv,"groups":grp,"calls":calls}
+
+@app.post("/api/owner/give_coins")
+async def owner_give_coins(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        amt=int(data.get("amount",100))
+        await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",amt,t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/take_coins")
+async def owner_take_coins(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        amt=int(data.get("amount",100))
+        await conn.execute("UPDATE users SET coins=GREATEST(0,coins-$1) WHERE id=$2",amt,t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/give_candy")
+async def owner_give_candy(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        amt=int(data.get("amount",50))
+        await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",amt,t["id"])
+    await manager.send_to(t["id"],{"type":"candy_received","amount":amt})
+    return {"ok":True}
+
+@app.post("/api/owner/give_all")
+async def owner_give_all(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    amt=int(data.get("amount",100))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET coins=coins+$1 WHERE id!=0",amt)
+    return {"ok":True}
+
+@app.post("/api/owner/give_premium")
+async def owner_give_premium(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    days=int(data.get("days",30))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET premium_tier='premium',premium_expires=COALESCE(premium_expires,NOW())+INTERVAL '1 day' * $1 WHERE id=$2",days,t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/mute")
+async def owner_mute(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    minutes=int(data.get("minutes",60))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET mute_until=NOW()+INTERVAL '1 minute' * $1 WHERE id=$2",minutes,t["id"])
+    await manager.send_to(t["id"],{"type":"muted","reason":f"Мут {minutes} мин"})
+    return {"ok":True}
+
+@app.post("/api/owner/reset_pass")
+async def owner_reset_pass(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    new_pw=str(data.get("new_password") or "beluga123")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET password_hash=$1 WHERE id=$2",hash_password(new_pw),t["id"])
+    return {"ok":True,"new_password":new_pw}
+
+@app.post("/api/owner/change_nick")
+async def owner_change_nick(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    new=sanitize_username(data.get("new_username") or "")
+    if not new: raise HTTPException(400,"Ник")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        exists=await conn.fetchrow("SELECT id FROM users WHERE username=$1 AND id!=$2",new,t["id"])
+        if exists: raise HTTPException(400,"Занято")
+        await conn.execute("UPDATE users SET username=$1 WHERE id=$2",new,t["id"])
+        if data.get("new_display_name"):
+            await conn.execute("UPDATE users SET display_name=$1 WHERE id=$2",str(data["new_display_name"])[:64],t["id"])
+    return {"ok":True,"new_username":new}
+
+@app.post("/api/owner/force_logout")
+async def owner_force_logout(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+    await manager.send_to(t["id"],{"type":"force_logout"})
+    await manager.kick(t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/grant_admin")
+async def owner_grant_admin(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET is_admin=TRUE WHERE id=$1",t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/revoke_admin")
+async def owner_revoke_admin(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET is_admin=FALSE WHERE id=$1",t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/legend")
+async def owner_legend(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        cur=await conn.fetchval("SELECT is_legend FROM users WHERE id=$1",t["id"])
+        await conn.execute("UPDATE users SET is_legend=$1 WHERE id=$2",not cur,t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/toggle_streamer")
+async def owner_toggle_streamer(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        cur=await conn.fetchval("SELECT is_streamer FROM users WHERE id=$1",t["id"])
+        await conn.execute("UPDATE users SET is_streamer=$1 WHERE id=$2",not cur,t["id"])
+    return {"ok":True}
+
+@app.post("/api/owner/read_chat")
+async def owner_read_chat(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        rows=await conn.fetch("""SELECT d.text,d.created_at,u.username,u.display_name FROM dms d
+            JOIN users u ON u.id=d.from_user WHERE d.from_user=$1 OR d.to_user=$1 ORDER BY d.id DESC LIMIT 50""",t["id"])
+    return {"messages":[{"text":r["text"],"created_at":_iso(r["created_at"]),"username":r["username"],"display_name":r["display_name"]} for r in rows]}
+
+@app.get("/api/owner/spy/{user_id}")
+async def owner_spy(user_id:int,token:str):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await conn.fetchrow("SELECT * FROM users WHERE id=$1",user_id)
+        if not t: raise HTTPException(404,"Не найден")
+    return user_public(t,user_id)
+
+@app.post("/api/owner/delete_all_msgs")
+async def owner_delete_all_msgs(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM messages")
+        await conn.execute("DELETE FROM dms")
+        await conn.execute("DELETE FROM group_messages")
+    await manager.broadcast({"type":"force_reload"})
+    return {"ok":True}
+
+@app.post("/api/owner/economy/tax")
+async def owner_economy_tax(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    tax=float(data.get("tax",0))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("""INSERT INTO system_settings(key,value) VALUES('economy_tax',$1)
+            ON CONFLICT (key) DO UPDATE SET value=$1,updated_at=NOW()""",str(tax))
+    return {"ok":True}
+
+@app.get("/api/owner/economy/info")
+async def owner_economy_info(token:str):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        row=await conn.fetchrow("SELECT value FROM system_settings WHERE key='economy_tax'")
+    return {"tax":float(row["value"]) if row else 0}
+
+# ============ OWNER: ТИТУЛЫ ============
+@app.get("/api/owner/titles/all")
+async def owner_titles_all(token:str):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("SELECT * FROM titles_catalog ORDER BY id DESC")
+    return {"titles":[dict(r) for r in rows]}
+
+@app.post("/api/owner/titles/create")
+async def owner_titles_create(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    name=(data.get("name") or "").strip()[:64]
+    if not name: raise HTTPException(400,"Название")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        r=await conn.fetchrow("""INSERT INTO titles_catalog(name,emoji,color,is_public,condition_type,condition_value,creator_id)
+            VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id""",
+            name,data.get("emoji","⭐")[:8],data.get("color","#d946ef")[:32],
+            bool(data.get("is_public",False)),"custom",0,user["id"])
+    return {"ok":True,"id":r["id"]}
+
+@app.post("/api/owner/titles/grant")
+async def owner_titles_grant(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    tid=int(data.get("title_id",0))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await conn.fetchrow("SELECT * FROM titles_catalog WHERE id=$1",tid)
+        if not t: raise HTTPException(404,"Нет титула")
+        target=await _get_target(conn,data)
+        if not target: raise HTTPException(404,"Юзер не найден")
+        target_full=await conn.fetchrow("SELECT title_owned FROM users WHERE id=$1",target["id"])
+        owned=_safe_json(target_full["title_owned"],[])
+        if tid not in owned: owned.append(tid)
+        await conn.execute("UPDATE users SET title_owned=$1 WHERE id=$2",json.dumps(owned),target["id"])
+    await manager.send_to(target["id"],{"type":"title_given","title_id":tid,"name":t["name"],"emoji":t["emoji"]})
+    return {"ok":True}
+
+@app.post("/api/owner/titles/delete")
+async def owner_titles_delete(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM titles_catalog WHERE id=$1",int(data.get("title_id",0)))
+    return {"ok":True}
+
+# ============ OWNER: ABUSE ============
+@app.post("/api/abuse/random_gift")
+async def abuse_random_gift(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    g=await get_all_gifts()
+    gid=random.choice(list(g.keys()))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("INSERT INTO gifts(from_user,to_user,gift) VALUES($1,$2,$3)",user["id"],t["id"],gid)
+    await manager.send_to(t["id"],{"type":"gift_received","gift_emoji":g[gid].get("emoji"),"gift_name":g[gid]["name"],"from_name":user.get("display_name") or user["username"]})
+    return {"ok":True,"gift":gid}
+
+@app.post("/api/abuse/random_coins")
+async def abuse_random_coins(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    amt=random.randint(100,10000)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",amt,t["id"])
+    await manager.send_to(t["id"],{"type":"coins_approved","amount":amt})
+    return {"ok":True,"amount":amt}
+
+@app.post("/api/abuse/random_candy")
+async def abuse_random_candy(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    amt=random.randint(10,500)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+        await conn.execute("UPDATE users SET candy=candy+$1 WHERE id=$2",amt,t["id"])
+    await manager.send_to(t["id"],{"type":"candy_received","amount":amt})
+    return {"ok":True,"amount":amt}
+
+@app.get("/api/abuse/online")
+async def abuse_online(token:str):
+    user=await get_current_user(token); await check_owner(user)
+    if not online_users: return {"users":[]}
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("SELECT id,username,display_name FROM users WHERE id=ANY($1::int[])",list(online_users))
+    return {"users":[dict(r) for r in rows]}
+
+# ============ OWNER: TROLL ============
+@app.post("/api/owner/troll")
+async def owner_troll(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    kind=(data.get("troll") or "confetti")[:32]
+    await manager.broadcast({"type":"troll","kind":kind,"from":user["username"]})
+    return {"ok":True}
+
+@app.post("/api/owner/storm")
+async def owner_storm(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    await manager.broadcast({"type":"storm","from":user["username"]})
+    return {"ok":True}
+
+@app.post("/api/owner/troll_user")
+async def owner_troll_user(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    effect=(data.get("effect") or "shake")[:32]
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await _get_target(conn,data)
+        if not t: raise HTTPException(404,"Не найден")
+    await manager.send_to(t["id"],{"type":"troll_user","effect":effect})
+    return {"ok":True}
+
+# ============ OWNER: NFT / GIFTS / CASES ============
+@app.post("/api/owner/create_nft")
+async def owner_create_nft(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        r=await conn.fetchrow("""INSERT INTO nft_series(name,emoji,total,price,rarity,created_by)
+            VALUES($1,$2,$3,$4,$5,$6) RETURNING id""",
+            (data.get("name") or "NFT")[:64],data.get("emoji","🎨")[:8],
+            int(data.get("total",100)),int(data.get("price",1000)),
+            data.get("rarity","common")[:16],user["id"])
+    return {"ok":True,"id":r["id"]}
+
+@app.post("/api/owner/create_gift")
+async def owner_create_gift(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    gid=(data.get("gift_id") or "").strip().lower()[:32]
+    if not gid: raise HTTPException(400,"ID нужен")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("""INSERT INTO custom_gifts(gift_id,name,emoji,image,price,is_sticker)
+            VALUES($1,$2,$3,$4,$5,FALSE) ON CONFLICT (gift_id) DO UPDATE SET name=$2,emoji=$3,image=$4,price=$5""",
+            gid,(data.get("name") or "")[:64],data.get("emoji","🎁")[:8],data.get("image"),int(data.get("price",100)))
+    return {"ok":True}
+
+@app.post("/api/owner/cases/create")
+async def owner_cases_create(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        r=await conn.fetchrow("INSERT INTO cases(name,emoji,price) VALUES($1,$2,$3) RETURNING id",
+            (data.get("name") or "Кейс")[:64],data.get("emoji","🎁")[:8],int(data.get("price",500)))
+    return {"ok":True,"id":r["id"]}
+
+# ============ OWNER: SYSTEM ============
+@app.post("/api/owner/announce_full")
+async def owner_announce_full(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    username=(data.get("username") or user["username"])[:32]
+    avatar=(data.get("avatar") or user.get("avatar") or "")
+    text=(data.get("text") or "").strip()[:1000]
+    if not text: raise HTTPException(400,"Пусто")
+    payload={"type":"abuse_announce","username":username,"avatar":avatar,"text":text}
+    sent=0
+    for uid in list(manager.connections.keys()):
+        try: await manager.send_to(uid,payload); sent+=1
+        except: pass
+    return {"ok":True,"sent":sent}
+
+@app.post("/api/owner/hot_swap")
+async def owner_hot_swap(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    sent=0
+    for uid in list(manager.connections.keys()):
+        try: await manager.send_to(uid,{"type":"force_reload"}); sent+=1
+        except: pass
+    return {"ok":True,"sent":sent}
+
+@app.post("/api/owner/clean_db")
+async def owner_clean_db(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM game_scores WHERE created_at < NOW() - INTERVAL '30 days'")
+        await conn.execute("DELETE FROM admin_logs WHERE created_at < NOW() - INTERVAL '90 days'")
+    return {"ok":True}
+
+@app.get("/api/owner/logs")
+async def owner_logs(token:str,limit:int=100):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("""SELECT l.*,u.username FROM admin_logs l
+            LEFT JOIN users u ON u.id=l.admin_id ORDER BY l.id DESC LIMIT $1""",limit)
+    return {"logs":[dict(r) for r in rows]}
+
+@app.post("/api/owner/holiday/force")
+async def owner_holiday_force(data:dict):
+    global forced_holiday
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    hid=(data.get("holiday_id") or "").strip()
+    if hid=="none" or not hid:
+        forced_holiday=None
+        await manager.broadcast({"type":"holiday_theme","holiday":None})
+        return {"ok":True,"forced":None}
+    h=next((x for x in HOLIDAYS if x[1]==hid),None)
+    if not h: raise HTTPException(404,"Не найден")
+    forced_holiday=hid
+    payload={"id":h[1],"name":h[2],"emoji":h[3],"color":h[4],"country":h[5],"forced":True}
+    await manager.broadcast({"type":"holiday_theme","holiday":payload})
+    return {"ok":True,"forced":payload}
+
+# ============ BP ADMIN ============
+@app.get("/api/bp/admin/info")
+async def bp_admin_info(token:str):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        row=await conn.fetchrow("SELECT * FROM bp_season WHERE active=TRUE ORDER BY id DESC LIMIT 1")
+        if not row: return {"name":"","emoji":"🎃","days_total":30,"max_level":50,"xp_per_level":1000,"is_active":False}
+        quests=await conn.fetch("SELECT * FROM bp_quests WHERE active=TRUE ORDER BY id")
+        rewards=await conn.fetch("SELECT * FROM bp_rewards WHERE active=TRUE ORDER BY level,track")
+    return {"name":row["name"],"emoji":row["emoji"],"days_total":row.get("days_total") or 30,"max_level":row.get("max_level") or 50,"xp_per_level":row.get("xp_per_level") or 1000,"is_active":row["active"],
+            "quests":[dict(q) for q in quests],
+            "rewards":{"free":[dict(r) for r in rewards if r.get("track")=="free"],"premium":[dict(r) for r in rewards if r.get("track")=="premium"]}}
+
+@app.post("/api/bp/admin/apply_preset")
+async def bp_admin_apply_preset(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    preset_name=(data.get("preset") or "halloween").lower()
+    if preset_name not in BP_PRESETS: raise HTTPException(400,"Нет пресета")
+    preset=BP_PRESETS[preset_name]
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE bp_season SET active=FALSE,ended_at=NOW() WHERE active=TRUE")
+        await conn.execute("DELETE FROM bp_quests")
+        await conn.execute("DELETE FROM bp_rewards")
+        ends=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=preset["days_total"])
+        await conn.execute("INSERT INTO bp_season(name,description,emoji,days_total,max_level,ends_at,active,xp_per_level) VALUES($1,$2,$3,$4,$5,$6,TRUE,1000)",preset["name"],preset["description"],preset["emoji"],preset["days_total"],preset["max_level"],ends)
+        for q in preset["quests"]:
+            await conn.execute("INSERT INTO bp_quests(name,description,goal,xp_reward,action_type,target_count) VALUES($1,'',$2,$3,$4,$2)",q["name"],q["target_count"],q["xp_reward"],q["action_type"])
+        for r in preset["rewards"]:
+            await conn.execute("INSERT INTO bp_rewards(level,reward,reward_type,reward_value,reward_item_id,track) VALUES($1,$2,$3,$4,$5,$6)",r["level"],r["reward"],r["reward_type"],r["reward_value"],r.get("reward_item_id"),r.get("track","free"))
+    await manager.broadcast({"type":"bp_update"})
+    return {"ok":True,"name":preset["name"]}
+
+# ============ ADMIN ============
+@app.post("/api/admin/verify")
+async def admin_verify(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user or not (user.get("is_admin") or user["username"]==ADMIN_USERNAME or user.get("is_moderator")): raise HTTPException(403,"Не админ")
+    pw=data.get("password") or ""
+    if pw!="12344321" and pw!=OWNER_PASSWORD: raise HTTPException(403,"Неверный")
+    return {"ok":True}
+
+@app.get("/api/admin/users")
+async def admin_users(token:str,limit:int=200):
+    user=await get_current_user(token); await check_admin(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("SELECT id,username,display_name,is_admin,is_moderator,is_scam,is_banned,coins,candy,title FROM users WHERE id!=0 ORDER BY id LIMIT $1",limit)
+    return {"users":[dict(r) for r in rows]}
+
+@app.post("/api/admin/action")
+async def admin_action(data:dict):
+    user=await get_current_user(data.get("token")); await check_admin(user)
+    tid=int(data.get("target_id",0) or data.get("user_id",0))
+    action=data.get("action")
+    is_owner=user["username"]==ADMIN_USERNAME
+    if action=="ban" and not is_owner: raise HTTPException(403,"Только владелец")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        if action=="ban": await conn.execute("UPDATE users SET is_banned=TRUE,ban_reason=$1 WHERE id=$2",data.get("reason",""),tid)
+        elif action=="unban": await conn.execute("UPDATE users SET is_banned=FALSE WHERE id=$1",tid)
+        elif action=="mute":
+            d=int(data.get("duration",3600))
+            await conn.execute("UPDATE users SET mute_until=NOW()+INTERVAL '1 second' * $1 WHERE id=$2",d,tid)
+    await log_admin(user["id"],action,tid)
+    if action=="ban":
+        await manager.send_to(tid,{"type":"banned","reason":data.get("reason","")})
+        await manager.kick(tid)
+    return {"ok":True}
+
+@app.post("/api/admin/toggle_scam")
+async def admin_toggle_scam(data:dict):
+    user=await get_current_user(data.get("token")); await check_admin(user)
+    tid=int(data.get("target_id",0) or data.get("user_id",0))
+    p=await get_pool()
+    async with p.acquire() as conn:
+        if not tid and data.get("username"):
+            row=await conn.fetchrow("SELECT id FROM users WHERE username=$1",data["username"])
+            if row: tid=row["id"]
+        if not tid: raise HTTPException(404,"Не найден")
+        cur=await conn.fetchval("SELECT is_scam FROM users WHERE id=$1",tid)
+        new=not bool(cur)
+        perms=json.dumps(SCAM_DEFAULT_PERMS) if new else "{}"
+        await conn.execute("UPDATE users SET is_scam=$1,scam_perms=$2 WHERE id=$3",new,perms,tid)
+    await manager.broadcast({"type":"user_updated","user_id":tid})
+    return {"ok":True,"is_scam":new}
+
+@app.get("/api/admin/scam_perms/{user_id}")
+async def admin_scam_perms_get(user_id:int,token:str):
+    user=await get_current_user(token); await check_admin(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        row=await conn.fetchrow("SELECT is_scam,scam_perms FROM users WHERE id=$1",user_id)
+        if not row: raise HTTPException(404,"Не найден")
+    perms=_safe_json(row["scam_perms"],{})
+    full={k:perms.get(k,SCAM_DEFAULT_PERMS[k]) for k in SCAM_DEFAULT_PERMS}
+    return {"is_scam":row["is_scam"],"perms":full,"defaults":SCAM_DEFAULT_PERMS}
+
+@app.get("/api/admin/scam_perms")
+async def admin_scam_perms_default(token:str):
+    user=await get_current_user(token); await check_admin(user)
+    return SCAM_DEFAULT_PERMS
+
+@app.post("/api/admin/scam_perms/set")
+async def admin_scam_perms_set(data:dict):
+    user=await get_current_user(data.get("token")); await check_admin(user)
+    tid=int(data.get("target_id",0) or data.get("user_id",0))
+    perms=data.get("perms") or {}
+    clean={k:bool(v) for k,v in perms.items() if k in SCAM_DEFAULT_PERMS}
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET scam_perms=$1 WHERE id=$2",json.dumps(clean),tid)
+    await manager.broadcast({"type":"user_updated","user_id":tid})
+    return {"ok":True,"perms":clean}
+
+@app.get("/api/support/all")
+async def support_all(token:str):
+    user=await get_current_user(token); await check_owner(user)
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("""SELECT st.*,u.username AS from_username,u.display_name AS from_display,t.username AS target_username
+            FROM support_tickets st LEFT JOIN users u ON u.id=st.from_user LEFT JOIN users t ON t.id=st.target_user
+            ORDER BY st.status='pending' DESC, st.id DESC LIMIT 200""")
+    return [{"id":r["id"],"from_username":r["from_username"],"from_display":r["from_display"],"target_username":r["target_username"],"ticket_type":r["ticket_type"],"title":r["title"],"description":r["description"],"evidence":r["evidence"],"status":r["status"],"created_at":_iso(r["created_at"])} for r in rows]
+
+@app.post("/api/support/resolve")
+async def support_resolve(data:dict):
+    user=await get_current_user(data.get("token")); await check_owner(user)
+    tid=int(data.get("ticket_id",0))
+    action=(data.get("action") or "reject").strip()
+    reply=(data.get("reply") or "")[:1000]
+    if action not in ("approve","reject"): raise HTTPException(400,"approve/reject")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        t=await conn.fetchrow("SELECT * FROM support_tickets WHERE id=$1",tid)
+        if not t: raise HTTPException(404,"Нет заявки")
+        await conn.execute("UPDATE support_tickets SET status=$1,admin_reply=$2,resolved_by=$3,resolved_at=NOW() WHERE id=$4","approved" if action=="approve" else "rejected",reply,user["id"],tid)
+        if action=="approve" and t["ticket_type"]=="unscam" and t["from_user"]:
+            await conn.execute("UPDATE users SET is_scam=FALSE,scam_perms='{}' WHERE id=$1",t["from_user"])
+        if action=="approve" and t["ticket_type"]=="unban" and t["from_user"]:
+            await conn.execute("UPDATE users SET is_banned=FALSE WHERE id=$1",t["from_user"])
+        if action=="approve" and t["ticket_type"] in ("report_scam","report_spam") and t["target_user"]:
+            await conn.execute("UPDATE users SET is_banned=TRUE,ban_reason=$1 WHERE id=$2",f"По жалобе #{tid}",t["target_user"])
+            try: await manager.kick(t["target_user"])
+            except: pass
+    return {"ok":True}
+
+# ============ WEBSOCKET ============
+@app.websocket("/ws")
+async def websocket_endpoint(ws:WebSocket,token:str):
+    user=await get_current_user(token)
+    if not user: await ws.close(); return
+    if user.get("is_banned"): await ws.close(); return
+    uid=user["id"]
+    await manager.connect(uid,ws)
+    try: await ws.send_json({"type":"online_list","users":list(online_users)})
+    except: pass
+    await manager.broadcast({"type":"user_online","user_id":uid},exclude=uid)
+    try:
+        while True:
+            raw=await ws.receive_text()
+            try: data=json.loads(raw)
+            except: continue
+            t=data.get("type")
+            if t=="ping":
+                try: await ws.send_json({"type":"pong"})
+                except: pass
+                continue
+            # мут
+            is_muted=False
+            if user.get("mute_until"):
+                try:
+                    mu=_aware(user["mute_until"])
+                    if mu and mu>datetime.datetime.now(datetime.timezone.utc): is_muted=True
+                except: pass
+            if t in ("message","dm","group_msg") and is_muted:
+                await manager.send_to(uid,{"type":"muted","reason":"Ты в муте"})
+                continue
+
+            # ========== ЗВОНКИ ==========
+            if t=="call_invite":
+                to_id=int(data.get("to_user",0))
+                call_type=data.get("call_type","audio")
+                if not to_id: continue
+                if user.get("is_scam") and not has_scam_perm(user,"call"):
+                    await manager.send_to(uid,{"type":"call_error","reason":"SCAM: звонки запрещены"}); continue
+                busy=False
+                for cid,c in list(active_calls.items()):
+                    if c["caller"]==uid or c["callee"]==uid or c["caller"]==to_id or c["callee"]==to_id:
+                        busy=True; break
+                if busy:
+                    await manager.send_to(uid,{"type":"call_busy","reason":"Кто-то уже в звонке"}); continue
+                call_id=secrets.token_hex(8)
+                active_calls[call_id]={"caller":uid,"callee":to_id,"type":call_type,"started":time.time()}
+                dn=user.get("display_name") or user["username"]
+                await manager.send_to(to_id,{"type":"call_incoming","call_id":call_id,"from_user":uid,"from_name":dn,"from_avatar":user.get("avatar") or user.get("gif_avatar"),"call_type":call_type})
+                await manager.send_to(uid,{"type":"call_ringing","call_id":call_id})
+                await grant_achievement(uid,"first_call")
+
+            elif t=="call_accept":
+                call_id=data.get("call_id")
+                if call_id not in active_calls: continue
+                c=active_calls[call_id]
+                if c["callee"]!=uid: continue
+                await manager.send_to(c["caller"],{"type":"call_accepted","call_id":call_id,"by_user":uid,"by_name":user.get("display_name") or user["username"]})
+
+            elif t=="call_reject":
+                call_id=data.get("call_id")
+                if call_id in active_calls:
+                    c=active_calls[call_id]
+                    await manager.send_to(c["caller"],{"type":"call_rejected","call_id":call_id})
+                    del active_calls[call_id]
+
+            elif t=="call_cancel":
+                call_id=data.get("call_id")
+                if call_id in active_calls:
+                    c=active_calls[call_id]
+                    await manager.send_to(c["callee"],{"type":"call_cancelled","call_id":call_id})
+                    del active_calls[call_id]
+
+            elif t=="call_end":
+                call_id=data.get("call_id")
+                dur=int(data.get("duration",0))
+                if call_id in active_calls:
+                    c=active_calls[call_id]
+                    other=c["callee"] if c["caller"]==uid else c["caller"]
+                    await manager.send_to(other,{"type":"call_ended","call_id":call_id})
+                    try:
+                        p=await get_pool()
+                        async with p.acquire() as conn:
+                            await conn.execute("INSERT INTO call_history(call_id,caller,callee,call_type,status,duration) VALUES($1,$2,$3,$4,'ended',$5)",call_id,c["caller"],c["callee"],c["type"],dur)
+                    except: pass
+                    del active_calls[call_id]
+
+            elif t in ("webrtc_offer","webrtc_answer","webrtc_ice"):
+                to_id=int(data.get("to_user",0))
+                call_id=data.get("call_id")
+                if not to_id: continue
+                payload={"type":t,"from_user":uid,"call_id":call_id}
+                if t=="webrtc_offer": payload["sdp"]=data.get("sdp")
+                elif t=="webrtc_answer": payload["sdp"]=data.get("sdp")
+                else: payload["candidate"]=data.get("candidate")
+                await manager.send_to(to_id,payload)
+
+            elif t=="call_media_state":
+                call_id=data.get("call_id")
+                if call_id not in active_calls: continue
+                c=active_calls[call_id]
+                other=c["callee"] if c["caller"]==uid else c["caller"]
+                await manager.send_to(other,{"type":"call_media_state","call_id":call_id,"from_user":uid,"mic":data.get("mic",True),"cam":data.get("cam",False),"screen":data.get("screen",False)})
+
+            # ========== СООБЩЕНИЯ ==========
+            elif t=="message":
+                ch=data.get("channel_id");text=(data.get("text") or "")[:2000]
+                furl=data.get("file_url");tid=data.get("temp_id");reply=data.get("reply_to")
+                effect=data.get("effect","none")
+                msg_kind=data.get("msg_kind","text")
+                voice_dur=int(data.get("voice_duration",0))
+                fsize=int(data.get("file_size",0))
+                if not ch: continue
+                if user.get("is_scam") and not has_scam_perm(user,"chat_send"):
+                    await manager.send_to(uid,{"type":"muted","reason":"SCAM: сообщения запрещены"}); continue
+                p=await get_pool()
+                async with p.acquire() as conn:
+                    msg=await conn.fetchrow("INSERT INTO messages(channel_id,user_id,text,file_url,file_size,reply_to,effect,msg_kind,voice_duration) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",int(ch),uid,text,furl,fsize,reply,effect,msg_kind,voice_dur)
+                    await conn.execute("UPDATE users SET messages_count=messages_count+1 WHERE id=$1",uid)
+                    mc=await conn.fetchval("SELECT messages_count FROM users WHERE id=$1",uid)
+                    members=await conn.fetch("SELECT sm.user_id FROM server_members sm JOIN channels c ON c.server_id=sm.server_id WHERE c.id=$1",int(ch))
+                if mc==1: await grant_achievement(uid,"first_msg")
+                if fsize>0: await grant_achievement(uid,"first_file")
+                await grant_xp(uid,1)
+                await bp_add_progress(uid,"send_message",1)
+                dn=user.get("display_name") or user["username"]
+                payload={"type":"message","id":msg["id"],"channel_id":int(ch),"user_id":uid,
+                    "username":user["username"],"display_name":dn,
+                    "avatar":user.get("avatar"),"gif_avatar":user.get("gif_avatar"),"avatar_pos":user.get("avatar_pos"),
+                    "text":text,"file_url":furl,"file_size":fsize,"reply_to":reply,"effect":effect,
+                    "msg_kind":msg_kind,"voice_duration":voice_dur,
+                    "created_at":_iso(msg["created_at"]),
+                    "is_scam":user.get("is_scam"),"title":user.get("title"),"active_frame":user.get("active_frame"),
+                    "temp_id":tid}
+                for m in members: await manager.send_to(m["user_id"],payload)
+
+            elif t=="dm":
+                to_id=int(data.get("to_user",0));text=(data.get("text") or "")[:2000]
+                furl=data.get("file_url");tid=data.get("temp_id")
+                msg_kind=data.get("msg_kind","text")
+                voice_dur=int(data.get("voice_duration",0))
+                fsize=int(data.get("file_size",0))
+                if await is_blocked(uid,to_id): continue
+                if user.get("is_scam") and to_id!=SUPPORT_BOT_ID:
+                    p=await get_pool()
+                    async with p.acquire() as conn:
+                        has_history=await conn.fetchval("SELECT 1 FROM dms WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1) LIMIT 1",uid,to_id)
+                    if not has_history and not has_scam_perm(user,"dm_send"):
+                        await manager.send_to(uid,{"type":"muted","reason":"SCAM: писать первым запрещено"}); continue
+                p=await get_pool()
+                async with p.acquire() as conn:
+                    msg=await conn.fetchrow("INSERT INTO dms(from_user,to_user,text,file_url,file_size,msg_kind,voice_duration) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",uid,to_id,text,furl,fsize,msg_kind,voice_dur)
+                await grant_xp(uid,1)
+                await bp_add_progress(uid,"send_dm",1)
+                if fsize>0: await grant_achievement(uid,"first_file")
+                dn=user.get("display_name") or user["username"]
+                payload={"type":"dm","id":msg["id"],"from_user":uid,"to_user":to_id,
+                    "username":user["username"],"display_name":dn,
+                    "avatar":user.get("avatar"),"gif_avatar":user.get("gif_avatar"),"avatar_pos":user.get("avatar_pos"),
+                    "text":text,"file_url":furl,"file_size":fsize,"msg_kind":msg_kind,"voice_duration":voice_dur,
+                    "created_at":_iso(msg["created_at"]),
+                    "temp_id":tid,"is_scam":user.get("is_scam"),"title":user.get("title")}
+                await manager.send_to(to_id,payload)
+                await manager.send_to(uid,payload)
+
+            elif t=="group_msg":
+                gid=int(data.get("group_id",0));text=(data.get("text") or "")[:2000]
+                furl=data.get("file_url");tid=data.get("temp_id")
+                msg_kind=data.get("msg_kind","text")
+                voice_dur=int(data.get("voice_duration",0))
+                fsize=int(data.get("file_size",0))
+                if user.get("is_scam") and not has_scam_perm(user,"chat_send"): continue
+                p=await get_pool()
+                async with p.acquire() as conn:
+                    m=await conn.fetchrow("SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2",gid,uid)
+                    if not m: continue
+                    msg=await conn.fetchrow("INSERT INTO group_messages(group_id,user_id,text,file_url,file_size,msg_kind,voice_duration) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",gid,uid,text,furl,fsize,msg_kind,voice_dur)
+                    members=await conn.fetch("SELECT user_id FROM group_members WHERE group_id=$1",gid)
+                if fsize>0: await grant_achievement(uid,"first_file")
+                dn=user.get("display_name") or user["username"]
+                payload={"type":"group_msg","id":msg["id"],"group_id":gid,"user_id":uid,
+                    "username":user["username"],"display_name":dn,
+                    "avatar":user.get("avatar"),"gif_avatar":user.get("gif_avatar"),
+                    "text":text,"file_url":furl,"file_size":fsize,"msg_kind":msg_kind,"voice_duration":voice_dur,
+                    "created_at":_iso(msg["created_at"]),
+                    "temp_id":tid,"is_scam":user.get("is_scam"),"title":user.get("title")}
+                for m in members: await manager.send_to(m["user_id"],payload)
+
+            elif t=="typing":
+                ch=data.get("channel_id")
+                p=await get_pool()
+                async with p.acquire() as conn:
+                    members=await conn.fetch("SELECT sm.user_id FROM server_members sm JOIN channels c ON c.server_id=sm.server_id WHERE c.id=$1",int(ch))
+                for m in members:
+                    if m["user_id"]!=uid:
+                        await manager.send_to(m["user_id"],{"type":"typing","channel_id":ch,"username":user.get("display_name") or user["username"]})
+
+            elif t=="typing_dm":
+                await manager.send_to(int(data.get("to_user",0)),{"type":"typing_dm","from":uid,"username":user.get("display_name") or user["username"]})
+
+    except WebSocketDisconnect: pass
+    except Exception as e:
+        print("="*60)
+        print(f"[WS ERROR] {type(e).__name__}: {e}")
+        traceback.print_exc()
+        print("="*60)
+        try: await ws.send_json({"type":"error","detail":f"{type(e).__name__}: {e}"})
+        except: pass
+    finally:
+        manager.disconnect(uid,ws)
+        for cid,c in list(active_calls.items()):
+            if c["caller"]==uid or c["callee"]==uid:
+                other=c["callee"] if c["caller"]==uid else c["caller"]
+                try: await manager.send_to(other,{"type":"call_ended","call_id":cid})
+                except: pass
+                del active_calls[cid]
+        try:
+            p=await get_pool()
+            async with p.acquire() as conn:
+                await conn.execute("UPDATE users SET last_seen=NOW() WHERE id=$1",uid)
+        except: pass
+        await manager.broadcast({"type":"user_offline","user_id":uid})
+
+# ============ STATIC ============
+@app.get("/manifest.json")
+async def manifest():
+    return {"name":"Belugacord 3.1","short_name":"Belugacord","start_url":"/","display":"standalone","background_color":"#1a0a2e","theme_color":"#1a0a2e"}
+
+@app.get("/")
+async def index():
+    try:
+        with open("index.html","r",encoding="utf-8") as f: return HTMLResponse(f.read())
+    except Exception as e:
+        return HTMLResponse(f"<h1>index.html не найден</h1><p>{e}</p>",status_code=500)
+
+if __name__=="__main__":
+    import uvicorn
+    port=int(os.environ.get("PORT",8000))
+    uvicorn.run(app,host="0.0.0.0",port=port,ws="websockets",proxy_headers=True,forwarded_allow_ips="*")
