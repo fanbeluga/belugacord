@@ -1,5 +1,5 @@
-# BELUGACORD 3.1 BETA — server.py
-# ZIP/RAR, лимиты 25/50 МБ для премиума, звонки, автомиграции
+# BELUGACORD 3.2 BETA — server.py
+# Блокировка, стирание переписки, airplane_mode, quick_settings, фикс реакций
 import os,json,time,secrets,hashlib,random,datetime,asyncio,re,traceback
 from typing import Optional
 import asyncpg
@@ -13,18 +13,21 @@ from fastapi.middleware.cors import CORSMiddleware
 DATABASE_URL=os.environ.get("DATABASE_URL","")
 UPLOAD_DIR="uploads"
 os.makedirs(UPLOAD_DIR,exist_ok=True)
-SECRET_KEY=os.environ.get("SECRET_KEY","belugacord_secret_2031")
+SECRET_KEY=os.environ.get("SECRET_KEY","belugacord_secret_2032")
 RESEND_API_KEY=os.environ.get("RESEND_API_KEY","")
 ADMIN_USERNAME="_fan_beluga_"
 ADMIN_DISPLAY="👑 Владелец"
 OWNER_PASSWORD="12344321"
-CURRENT_VERSION="3.1"
+CURRENT_VERSION="3.2"
 SUPPORT_BOT_ID=0
 SUPPORT_BOT_NAME="support_bot"
 SUPPORT_BOT_DISPLAY="🤖 Support Bot"
 
+# Иконка для уведомлений — лежит в корне
+NOTIF_ICON="/icon.png"
+
 ALLOWED_EXT={
-    '.png','.jpg','.jpeg','.gif','.webp','.svg','.bmp','.avif',
+    '.png','.jpg','.jpeg','.gif','.webp','.svg','.bmp','.avif','.ico',
     '.mp4','.webm','.mov','.mkv','.avi',
     '.mp3','.wav','.ogg','.m4a','.opus','.aac','.flac',
     '.pdf','.txt','.json','.csv','.xml',
@@ -33,14 +36,14 @@ ALLOWED_EXT={
     '.py','.js','.html','.css','.md'
 }
 ALLOWED_MIME={
-    'image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml','image/bmp','image/avif',
-    'video/mp4','video/webm','video/quicktime','video/x-matroska','video/x-msvideo','video/avi',
+    'image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml','image/bmp','image/avif','image/x-icon',
+    'video/mp4','video/webm','video/quicktime','video/x-matroska','video/x-msvideo',
     'audio/mpeg','audio/mp3','audio/wav','audio/x-wav','audio/ogg','audio/mp4','audio/webm',
-    'audio/opus','audio/aac','audio/x-m4a','audio/flac','audio/x-flac',
+    'audio/opus','audio/aac','audio/x-m4a','audio/flac',
     'application/zip','application/x-zip-compressed','application/x-zip',
-    'application/x-rar-compressed','application/vnd.rar','application/x-rar',
+    'application/x-rar-compressed','application/vnd.rar',
     'application/x-7z-compressed','application/x-7z',
-    'application/x-tar','application/gzip','application/x-gzip',
+    'application/x-tar','application/gzip',
     'application/pdf','text/plain','application/json','text/csv','application/xml','text/xml',
     'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -249,6 +252,15 @@ async def no_cache_api(request:Request,call_next):
 
 app.mount("/uploads",StaticFiles(directory=UPLOAD_DIR),name="uploads")
 
+# Отдача icon.png из корня
+@app.get("/icon.png")
+async def serve_icon():
+    for path in ["icon.png",os.path.join(UPLOAD_DIR,"icon.png")]:
+        if os.path.exists(path):
+            with open(path,"rb") as f:
+                return HTMLResponse(content=f.read(),media_type="image/png")
+    return HTMLResponse("",status_code=404)
+
 pool=None
 online_users=set()
 forced_holiday=None
@@ -307,6 +319,10 @@ async def init_db():
             chest_at TIMESTAMPTZ,
             candy INTEGER DEFAULT 0,
             scam_perms TEXT DEFAULT '{}',
+            airplane_mode BOOLEAN DEFAULT FALSE,
+            notif_enabled BOOLEAN DEFAULT TRUE,
+            sound_enabled BOOLEAN DEFAULT TRUE,
+            theme VARCHAR(16) DEFAULT 'dark',
             last_seen TIMESTAMPTZ DEFAULT NOW(),
             created_at TIMESTAMPTZ DEFAULT NOW()
         )""")
@@ -331,7 +347,15 @@ async def init_db():
         # ===== FRIENDS =====
         await conn.execute("""CREATE TABLE IF NOT EXISTS friendships(id SERIAL PRIMARY KEY,user_a INTEGER REFERENCES users(id) ON DELETE CASCADE,user_b INTEGER REFERENCES users(id) ON DELETE CASCADE,created_at TIMESTAMPTZ DEFAULT NOW(),UNIQUE(user_a,user_b))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS friend_requests(id SERIAL PRIMARY KEY,from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,to_user INTEGER REFERENCES users(id) ON DELETE CASCADE,created_at TIMESTAMPTZ DEFAULT NOW())""")
-        await conn.execute("""CREATE TABLE IF NOT EXISTS blocks(id SERIAL PRIMARY KEY,blocker INTEGER REFERENCES users(id) ON DELETE CASCADE,blocked INTEGER REFERENCES users(id) ON DELETE CASCADE,created_at TIMESTAMPTZ DEFAULT NOW(),UNIQUE(blocker,blocked))""")
+        # ===== БЛОКИРОВКА (3.2) =====
+        await conn.execute("""CREATE TABLE IF NOT EXISTS user_blocks(
+            id SERIAL PRIMARY KEY,
+            blocker INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            blocked INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            chat_cleared BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            UNIQUE(blocker,blocked)
+        )""")
         # ===== GROUPS =====
         await conn.execute("""CREATE TABLE IF NOT EXISTS groups(id SERIAL PRIMARY KEY,name VARCHAR(64) NOT NULL,avatar TEXT,description VARCHAR(256),owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,last_message_at TIMESTAMPTZ,created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS group_members(group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,joined_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(group_id,user_id))""")
@@ -411,6 +435,10 @@ async def init_db():
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS scam_perms TEXT DEFAULT '{}'",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS active_frame VARCHAR(32)",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS frame_owned TEXT DEFAULT '[]'",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS airplane_mode BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS notif_enabled BOOLEAN DEFAULT TRUE",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS sound_enabled BOOLEAN DEFAULT TRUE",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(16) DEFAULT 'dark'",
             "ALTER TABLE users ALTER COLUMN premium_expires TYPE TIMESTAMPTZ USING premium_expires AT TIME ZONE 'UTC'",
             "ALTER TABLE users ALTER COLUMN mute_until TYPE TIMESTAMPTZ USING mute_until AT TIME ZONE 'UTC'",
             "ALTER TABLE users ALTER COLUMN created_at TYPE TIMESTAMPTZ USING created_at AT TIME ZONE 'UTC'",
@@ -446,13 +474,15 @@ async def init_db():
             # friendships
             "ALTER TABLE friendships ALTER COLUMN created_at TYPE TIMESTAMPTZ USING created_at AT TIME ZONE 'UTC'",
             "ALTER TABLE friend_requests ALTER COLUMN created_at TYPE TIMESTAMPTZ USING created_at AT TIME ZONE 'UTC'",
+            # user_blocks миграции
+            "ALTER TABLE user_blocks ADD COLUMN IF NOT EXISTS chat_cleared BOOLEAN DEFAULT FALSE",
             # calls
             "ALTER TABLE call_history ADD COLUMN IF NOT EXISTS duration INTEGER DEFAULT 0",
         ]
         for sql in migrations:
             try: await conn.execute(sql)
             except Exception as e: print(f"[migr] {str(e)[:100]}")
-        # Заполняем display_name
+
         await conn.execute("UPDATE users SET display_name=username WHERE display_name IS NULL")
         await conn.execute("UPDATE users SET is_admin=TRUE WHERE username=$1",ADMIN_USERNAME)
         await conn.execute("UPDATE users SET display_name=$1 WHERE username=$2",ADMIN_DISPLAY,ADMIN_USERNAME)
@@ -479,7 +509,7 @@ async def init_db():
                 await conn.execute("INSERT INTO bp_rewards(level,reward,reward_type,reward_value,reward_item_id,track) VALUES($1,$2,$3,$4,$5,$6)",r["level"],r["reward"],r["reward_type"],r["reward_value"],r.get("reward_item_id"),r.get("track","free"))
             print(f"🎃 БП автостарт: {preset['name']}")
 
-        print("✅ БД 3.1 готова (миграции применены)")
+        print("✅ БД 3.2 готова (миграции применены)")
 
 # ============ HELPERS ============
 async def get_current_user(token):
@@ -502,7 +532,7 @@ async def send_email(to_email,subject,html):
     if not RESEND_API_KEY: return {"ok":False,"error":"no_key"}
     try:
         async with httpx.AsyncClient() as client:
-            r=await client.post("https://api.resend.com/emails",headers={"Authorization":f"Bearer {RESEND_API_KEY}","Content-Type":"application/json"},json={"from":"Belugacord <onboarding@resend.dev>","to":[to_email],"subject":subject,"html":html},timeout=15)
+            r=await client.post("https://api.resend.com/emails",headers={"Authorization":f"Bearer {RESEND_API_KEY}","Content-Type":"application/json"},json={"from":"BelugaCord <onboarding@resend.dev>","to":[to_email],"subject":subject,"html":html},timeout=15)
             return {"ok":r.status_code in (200,201)}
     except Exception as e: return {"ok":False,"error":str(e)}
 
@@ -539,8 +569,7 @@ def is_premium(row):
     if exp:
         try:
             now_utc=datetime.datetime.now(datetime.timezone.utc)
-            e=_aware(exp)
-            if e<now_utc: return False
+            if _aware(exp)<now_utc: return False
         except: pass
     return tier in ("premium","pro")
 
@@ -598,6 +627,10 @@ def user_public(row,viewer_id=None):
             "level":row.get("level",1) or 1,
             "xp":row.get("xp",0) or 0,
             "candy":row.get("candy",0) or 0,
+            "airplane_mode":bool(row.get("airplane_mode",False)),
+            "notif_enabled":bool(row.get("notif_enabled",True)),
+            "sound_enabled":bool(row.get("sound_enabled",True)),
+            "theme":row.get("theme") or "dark",
             "created_at":_iso(row.get("created_at")),
             "role":get_role(row),
             "online":is_online
@@ -616,14 +649,6 @@ async def get_all_gifts():
             for r in rows: gifts[r["gift_id"]]={"name":r["name"],"emoji":r["emoji"],"image":r["image"],"price":r["price"]}
     except: pass
     return gifts
-
-async def is_blocked(user_id,other_id):
-    try:
-        p=await get_pool()
-        async with p.acquire() as conn:
-            row=await conn.fetchrow("SELECT id FROM blocks WHERE (blocker=$1 AND blocked=$2) OR (blocker=$2 AND blocked=$1)",user_id,other_id)
-            return bool(row)
-    except: return False
 
 async def grant_xp(uid,amount):
     try:
@@ -672,6 +697,14 @@ async def _get_target(conn,data):
         return await conn.fetchrow("SELECT id,username,display_name FROM users WHERE username=$1",str(data["username"]).lstrip("@"))
     return None
 
+async def is_blocked(user_id,other_id):
+    try:
+        p=await get_pool()
+        async with p.acquire() as conn:
+            row=await conn.fetchrow("SELECT id FROM user_blocks WHERE (blocker=$1 AND blocked=$2) OR (blocker=$2 AND blocked=$1)",user_id,other_id)
+            return bool(row)
+    except: return False
+
 # ============ STARTUP ============
 @app.on_event("startup")
 async def startup():
@@ -717,28 +750,34 @@ manager=ConnectionManager()
 @app.get("/api/changelog")
 async def changelog():
     return {"current":CURRENT_VERSION,"all":{
-        "3.1":{"title":"Belugacord 3.1 Beta","items":[
-            "🛡️ Кнопка «Админка» для админов и модераторов",
-            "📢 Анонс всем — показывается у всех онлайн",
-            "🎨 Рабочие рамки — предпросмотр + выбор",
-            "📦 ZIP, RAR, 7Z архивы до 10 МБ",
-            "💎 Премиум — до 25 МБ на файл",
-            "🚀 Pro — до 50 МБ на файл",
-            "📁 Иконки файлов (архивы/PDF/DOC/TXT)",
-            "🎙️ Голосовые сообщения с плеером",
-            "📞 Аудио/видеозвонки WebRTC",
-            "🖥️ Демонстрация экрана",
-            "⚙️ Выбор микрофона, камеры, динамика",
-            "📥 История звонков",
-            "🎭 Ник отдельно от username",
-            "🔐 Секретный вход 5 кликов по логотипу",
-            "🔔 Автопоказ кнопок по роли",
-            "💾 file_size в сообщениях",
-            "🎯 Пул соединений до 10",
-            "🛡️ Отдельная call_history таблица"
+        "3.2":{"title":"BelugaCord 3.2 Beta","items":[
+            "📱 Новый мобильный интерфейс (сетка 4 колонки, стекло)",
+            "🌐 Шторка управления (свайп сверху)",
+            "✈️ Режим полёта — блокирует отправку сообщений",
+            "🔕 DND и 🌙 Невидимка",
+            "🎨 3 темы: тёмная / светлая / стекло",
+            "🚫 Блокировка с имбовой плашкой",
+            "🗑️ Кнопка «Стереть переписку» (удаляет ВСЕ DM)",
+            "🔓 Кнопка «Разблокировать»",
+            "📜 Кнопка «Проверить чат» (если не стёрта)",
+            "🐛 Фикс реакций на сообщения",
+            "🐛 Фикс аватарок чужих юзеров",
+            "🐛 Фикс баннеров чужих юзеров",
+            "💬 Список последних чатов с превью",
+            "🔴 Красный бейдж непрочитанных",
+            "📢 Анонс всем от владельца",
+            "👑 Кнопки админки/бога на главном экране",
+            "🔔 Web Push уведомления (когда вкладка свёрнута)",
+            "🐱 Формат: «Вася: привет»",
+            "🎙️ «Вася отправил голосовое 🎙️»",
+            "📦 «Вася отправил архив 📦»",
+            "✈️ Airplane mode в БД",
+            "🔔 notif_enabled / sound_enabled",
+            "🎨 theme сохраняется в профиле",
+            "🚀 Свайп вверх = открыть главный экран"
         ]},
-        "3.0":{"title":"Belugacord 3.0 Beta","items":["📞 Звонки","🖥️ Экран","🎙️ Голосовые","📷 Фото/видео до 10МБ"]},
-        "2.9":{"title":"Belugacord 2.9 Beta","items":["🎭 Ник отдельно","🎨 Эффекты","👥 Друзья","🎁 Подарки"]},
+        "3.1":{"title":"BelugaCord 3.1 Beta","items":["🛡️ Кнопки админки","🎨 Рамки","📦 ZIP","📞 Звонки"]},
+        "3.0":{"title":"BelugaCord 3.0 Beta","items":["📞 WebRTC","🎙️ Голосовые","📷 Медиа"]},
     }}
 
 @app.get("/api/achievements/all")
@@ -772,7 +811,7 @@ async def register(data:dict):
         try:
             async with p.acquire() as conn:
                 await conn.execute("UPDATE users SET email_code=$1,email_code_expires=NOW()+INTERVAL '1 hour' WHERE id=$2",code,row["id"])
-            asyncio.create_task(send_email(em,"Belugacord — подтверждение",f"<h2>Привет, {raw_display}!</h2><p>Код: <b>{code}</b></p>"))
+            asyncio.create_task(send_email(em,"BelugaCord — подтверждение",f"<h2>Привет, {raw_display}!</h2><p>Код: <b>{code}</b></p>"))
         except: pass
     return {"token":make_token(row["id"],row["username"]),"user":user_public(row,row["id"])}
 
@@ -827,6 +866,23 @@ async def update_profile(data:dict):
             data.get("bio"),data.get("fav_music"),data.get("custom_status"),user["id"])
     if new_display is not None:
         await manager.broadcast({"type":"user_updated","user_id":user["id"],"display_name":new_display})
+    return {"ok":True}
+
+@app.post("/api/user/quick_setting")
+async def quick_setting(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    key=str(data.get("key") or "")
+    val=data.get("value")
+    allowed={"airplane_mode":"airplane_mode","notif_enabled":"notif_enabled","sound_enabled":"sound_enabled","theme":"theme"}
+    col=allowed.get(key)
+    if not col: raise HTTPException(400,"Неизвестный ключ")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        if col=="theme":
+            await conn.execute("UPDATE users SET theme=$1 WHERE id=$2",str(val)[:16],user["id"])
+        else:
+            await conn.execute(f"UPDATE users SET {col}=$1 WHERE id=$2",bool(val),user["id"])
     return {"ok":True}
 
 @app.post("/api/user/change_username")
@@ -900,7 +956,6 @@ async def friends_list(token:str):
             item=user_public(o,uid)
             item["status"]="incoming"
             item["request_id"]=r["request_id"]
-            item["requested_at"]=_iso(r["created_at"])
             result.append(item)
         out=await conn.fetch("SELECT id AS request_id,to_user AS other_id,created_at FROM friend_requests WHERE from_user=$1 ORDER BY created_at DESC",uid)
         for r in out:
@@ -909,7 +964,6 @@ async def friends_list(token:str):
             item=user_public(o,uid)
             item["status"]="outgoing"
             item["request_id"]=r["request_id"]
-            item["requested_at"]=_iso(r["created_at"])
             result.append(item)
     def sort_key(x):
         prio={"incoming":0,"accepted":1,"outgoing":2}.get(x.get("status"),3)
@@ -961,8 +1015,6 @@ async def friends_accept(data:dict):
     await manager.send_to(r["from_user"],{"type":"friend_accepted","friend_id":user["id"],"username":user["username"],"display_name":user.get("display_name") or user["username"],"avatar":user.get("avatar")})
     if other:
         await manager.send_to(user["id"],{"type":"friend_accepted","friend_id":other["id"],"username":other["username"],"display_name":other.get("display_name") or other["username"],"avatar":other["avatar"]})
-    try: await bp_add_progress(user["id"],"add_friend",1)
-    except: pass
     return {"ok":True}
 
 @app.post("/api/friends/decline")
@@ -977,7 +1029,7 @@ async def friends_decline(data:dict):
         if not r: return {"ok":True}
         if r["to_user"]!=user["id"]: raise HTTPException(403,"Не твоя")
         await conn.execute("DELETE FROM friend_requests WHERE id=$1",rid)
-    await manager.send_to(r["from_user"],{"type":"friend_declined","by_id":user["id"],"username":user["username"]})
+    await manager.send_to(r["from_user"],{"type":"friend_declined","by_id":user["id"]})
     return {"ok":True}
 
 @app.post("/api/friends/cancel")
@@ -1000,10 +1052,104 @@ async def friends_remove(data:dict):
     p=await get_pool()
     async with p.acquire() as conn:
         await conn.execute("DELETE FROM friendships WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)",user["id"],tid)
-    await manager.send_to(tid,{"type":"friend_removed","by_id":user["id"],"username":user["username"]})
+    await manager.send_to(tid,{"type":"friend_removed","by_id":user["id"]})
     return {"ok":True}
 
-# ============ SERVERS ============
+# ============ БЛОКИРОВКА (3.2) ============
+@app.post("/api/block/add")
+async def block_add(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    tid=int(data.get("user_id",0))
+    if not tid: raise HTTPException(400,"user_id нужен")
+    if tid==user["id"]: raise HTTPException(400,"Себя нельзя")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        try:
+            await conn.execute("INSERT INTO user_blocks(blocker,blocked) VALUES($1,$2) ON CONFLICT DO NOTHING",user["id"],tid)
+        except: pass
+        await conn.execute("DELETE FROM friendships WHERE (user_a=$1 AND user_b=$2) OR (user_a=$2 AND user_b=$1)",user["id"],tid)
+        await conn.execute("DELETE FROM friend_requests WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)",user["id"],tid)
+    await manager.send_to(tid,{"type":"you_are_blocked","by_id":user["id"]})
+    return {"ok":True}
+
+@app.post("/api/block/remove")
+async def block_remove(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    tid=int(data.get("user_id",0))
+    if not tid: raise HTTPException(400,"user_id нужен")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM user_blocks WHERE blocker=$1 AND blocked=$2",user["id"],tid)
+    await manager.send_to(tid,{"type":"you_are_unblocked","by_id":user["id"]})
+    return {"ok":True}
+
+@app.get("/api/block/list")
+async def block_list(token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("""SELECT b.blocked AS id,u.username,u.display_name,u.avatar,b.chat_cleared
+            FROM user_blocks b JOIN users u ON u.id=b.blocked
+            WHERE b.blocker=$1 ORDER BY b.created_at DESC""",user["id"])
+    return [dict(r) for r in rows]
+
+@app.post("/api/dm/clear")
+async def dm_clear(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    tid=int(data.get("user_id",0))
+    if not tid: raise HTTPException(400,"user_id нужен")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        row=await conn.fetchrow("SELECT id FROM user_blocks WHERE blocker=$1 AND blocked=$2",user["id"],tid)
+        if not row:
+            raise HTTPException(403,"Можно стирать только при блокировке")
+        await conn.execute("""DELETE FROM dms WHERE 
+            (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)""",user["id"],tid)
+        await conn.execute("UPDATE user_blocks SET chat_cleared=TRUE WHERE blocker=$1 AND blocked=$2",user["id"],tid)
+    await manager.send_to(tid,{"type":"chat_cleared","by_id":user["id"]})
+    return {"ok":True}
+
+# ============ DM (с блокировкой) ============
+@app.get("/api/dm/{user_id}/messages")
+async def dm_messages(user_id:int,token:str,force:int=0):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        block_row=await conn.fetchrow("""SELECT blocker,chat_cleared FROM user_blocks 
+            WHERE (blocker=$1 AND blocked=$2) OR (blocker=$2 AND blocked=$1)""",user["id"],user_id)
+        if block_row:
+            blocked_by_me=(block_row["blocker"]==user["id"])
+            cleared=block_row["chat_cleared"]
+            if cleared and not force:
+                return {"blocked":True,"blocked_by_me":blocked_by_me,"cleared":True,"messages":[],"user_id":user_id}
+            rows=await conn.fetch("""SELECT d.id,d.from_user,d.to_user,d.text,d.file_url,d.file_size,d.created_at,d.read_at,d.msg_kind,d.voice_duration,
+                u.username,u.display_name,u.avatar,u.gif_avatar,u.avatar_pos,u.is_scam,u.title
+                FROM dms d JOIN users u ON u.id=d.from_user
+                WHERE (d.from_user=$1 AND d.to_user=$2) OR (d.from_user=$2 AND d.to_user=$1)
+                ORDER BY d.id ASC LIMIT 200""",user["id"],user_id)
+            out=[]
+            for r in rows:
+                dd=dict(r);dd["created_at"]=_iso(dd.get("created_at"));dd["read_at"]=_iso(dd.get("read_at"))
+                out.append(dd)
+            return {"blocked":True,"blocked_by_me":blocked_by_me,"cleared":False,"messages":out,"user_id":user_id}
+        rows=await conn.fetch("""SELECT d.id,d.from_user,d.to_user,d.text,d.file_url,d.file_size,d.created_at,d.read_at,d.msg_kind,d.voice_duration,
+            u.username,u.display_name,u.avatar,u.gif_avatar,u.avatar_pos,u.is_scam,u.title
+            FROM dms d JOIN users u ON u.id=d.from_user
+            WHERE (d.from_user=$1 AND d.to_user=$2) OR (d.from_user=$2 AND d.to_user=$1)
+            ORDER BY d.id ASC LIMIT 200""",user["id"],user_id)
+        await conn.execute("UPDATE dms SET read_at=NOW() WHERE from_user=$1 AND to_user=$2 AND read_at IS NULL",user_id,user["id"])
+    out=[]
+    for r in rows:
+        dd=dict(r);dd["created_at"]=_iso(dd.get("created_at"));dd["read_at"]=_iso(dd.get("read_at"))
+        out.append(dd)
+    return out
+
+# ============ SERVERS / GROUPS ============
 @app.get("/api/servers/list")
 async def servers_list(token:str):
     user=await get_current_user(token)
@@ -1037,17 +1183,6 @@ async def server_channels(server_id:int,token:str):
         rows=await conn.fetch("SELECT id,name,type FROM channels WHERE server_id=$1 ORDER BY id",server_id)
     return [dict(r) for r in rows]
 
-@app.post("/api/channels/create")
-async def channel_create(data:dict):
-    user=await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401,"Не авторизован")
-    sid=int(data.get("server_id",0));name=(data.get("name") or "").strip()[:64]
-    if not name: raise HTTPException(400,"Имя нужно")
-    p=await get_pool()
-    async with p.acquire() as conn:
-        r=await conn.fetchrow("INSERT INTO channels(server_id,name) VALUES($1,$2) RETURNING id,name",sid,name)
-    return {"id":r["id"],"name":r["name"]}
-
 @app.get("/api/channels/{channel_id}/messages")
 async def channel_messages(channel_id:int,token:str):
     user=await get_current_user(token)
@@ -1065,25 +1200,6 @@ async def channel_messages(channel_id:int,token:str):
         out.append(d)
     return {"messages":out}
 
-@app.get("/api/dm/{user_id}/messages")
-async def dm_messages(user_id:int,token:str):
-    user=await get_current_user(token)
-    if not user: raise HTTPException(401,"Не авторизован")
-    if await is_blocked(user["id"],user_id): raise HTTPException(403,"Заблокировано")
-    p=await get_pool()
-    async with p.acquire() as conn:
-        rows=await conn.fetch("""SELECT d.id,d.from_user,d.to_user,d.text,d.file_url,d.file_size,d.created_at,d.read_at,d.msg_kind,d.voice_duration,
-            u.username,u.display_name,u.avatar,u.gif_avatar,u.avatar_pos,u.is_scam,u.title
-            FROM dms d JOIN users u ON u.id=d.from_user
-            WHERE (d.from_user=$1 AND d.to_user=$2) OR (d.from_user=$2 AND d.to_user=$1) ORDER BY d.id ASC LIMIT 200""",user["id"],user_id)
-        await conn.execute("UPDATE dms SET read_at=NOW() WHERE from_user=$1 AND to_user=$2 AND read_at IS NULL",user_id,user["id"])
-    out=[]
-    for r in rows:
-        d=dict(r);d["created_at"]=_iso(d.get("created_at"));d["read_at"]=_iso(d.get("read_at"))
-        out.append(d)
-    return out
-
-# ============ GROUPS ============
 @app.get("/api/groups/list")
 async def groups_list(token:str):
     user=await get_current_user(token)
@@ -1142,18 +1258,23 @@ async def message_reaction(data:dict):
     user=await get_current_user(data.get("token"))
     if not user: raise HTTPException(401,"Не авторизован")
     mid=int(data.get("message_id",0));emoji=data.get("emoji","👍")
+    if not mid: raise HTTPException(400,"message_id нужен")
+    if len(emoji)>8: emoji=emoji[:8]
     p=await get_pool()
     async with p.acquire() as conn:
         row=await conn.fetchrow("SELECT reactions FROM messages WHERE id=$1",mid)
-        if not row: raise HTTPException(404,"Нет")
+        if not row: raise HTTPException(404,"Нет сообщения")
         react=_safe_json(row["reactions"],{})
         arr=react.get(emoji,[])
         if user["id"] in arr: arr.remove(user["id"])
         else: arr.append(user["id"])
-        react[emoji]=arr
+        if arr: react[emoji]=arr
+        else:
+            try: del react[emoji]
+            except: pass
         await conn.execute("UPDATE messages SET reactions=$1 WHERE id=$2",json.dumps(react),mid)
     await manager.broadcast({"type":"reaction_update","id":mid,"reactions":react})
-    return {"ok":True}
+    return {"ok":True,"reactions":react}
 
 @app.post("/api/messages/save")
 async def message_save(data:dict):
@@ -1175,7 +1296,7 @@ async def messages_saved(token:str):
         rows=await conn.fetch("SELECT id,text,created_at FROM user_saved_messages WHERE user_id=$1 ORDER BY id DESC",user["id"])
     return [{"id":r["id"],"text":r["text"],"created_at":_iso(r["created_at"])} for r in rows]
 
-# ============ UPLOAD (с новыми лимитами и ZIP) ============
+# ============ UPLOAD ============
 def _get_file_limit(user):
     if not user: return 10*1024*1024
     if user.get("username")==ADMIN_USERNAME: return 50*1024*1024
@@ -1190,17 +1311,14 @@ async def upload(token:str=Form(...),file:UploadFile=File(...)):
     if not user: raise HTTPException(401,"Не авторизован")
     lim=_get_file_limit(user)
     mime=(file.content_type or "application/octet-stream").lower()
-    if mime not in ALLOWED_MIME:
-        raise HTTPException(400,f"Тип файла запрещён: {mime}")
+    if mime not in ALLOWED_MIME: raise HTTPException(400,f"Тип запрещён: {mime}")
     ext=os.path.splitext(file.filename or "")[1].lower()[:8]
-    if ext and ext not in ALLOWED_EXT:
-        raise HTTPException(400,f"Расширение запрещено: {ext}")
+    if ext and ext not in ALLOWED_EXT: raise HTTPException(400,f"Расш. запрещено: {ext}")
     content=await file.read()
     if len(content)>lim:
         mb=lim//1024//1024
         raise HTTPException(400,f"Файл больше {mb} МБ")
-    if len(content)==0:
-        raise HTTPException(400,"Пустой файл")
+    if len(content)==0: raise HTTPException(400,"Пустой файл")
     name=f"{secrets.token_hex(8)}{ext}"
     with open(os.path.join(UPLOAD_DIR,name),"wb") as f: f.write(content)
     return {"url":f"/uploads/{name}","size":len(content),"mime":mime,"limit":lim,"name":file.filename or name}
@@ -1254,7 +1372,6 @@ async def gift_send(data:dict):
         cnt=await conn.fetchval("SELECT COUNT(*) FROM gifts WHERE from_user=$1",user["id"])
     if cnt==1: await grant_achievement(user["id"],"first_gift")
     await manager.send_to(to_id,{"type":"gift_received","gift_emoji":gift.get("emoji"),"gift_name":gift["name"],"from_name":user.get("display_name") or user["username"]})
-    await bp_add_progress(user["id"],"give_gift",1)
     return {"ok":True}
 
 @app.get("/api/cases/list")
@@ -1406,42 +1523,6 @@ async def titles_create(data:dict):
         await conn.execute("UPDATE users SET title_owned=$1 WHERE id=$2",json.dumps(owned),user["id"])
     return {"ok":True,"id":r["id"]}
 
-@app.post("/api/titles/give")
-async def titles_give(data:dict):
-    user=await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401,"Не авторизован")
-    tid=int(data.get("title_id",0))
-    p=await get_pool()
-    async with p.acquire() as conn:
-        t=await conn.fetchrow("SELECT * FROM titles_catalog WHERE id=$1",tid)
-        if not t: raise HTTPException(404,"Нет титула")
-        is_owner=user["username"]==ADMIN_USERNAME
-        is_creator=t["creator_id"]==user["id"]
-        if not (is_owner or is_creator): raise HTTPException(403,"Только владелец или создатель")
-        target=await _get_target(conn,data)
-        if not target: raise HTTPException(404,"Юзер не найден")
-        target_full=await conn.fetchrow("SELECT title_owned FROM users WHERE id=$1",target["id"])
-        owned=_safe_json(target_full["title_owned"],[])
-        if tid not in owned: owned.append(tid)
-        await conn.execute("UPDATE users SET title_owned=$1 WHERE id=$2",json.dumps(owned),target["id"])
-    await manager.send_to(target["id"],{"type":"title_given","title_id":tid,"name":t["name"],"emoji":t["emoji"]})
-    return {"ok":True}
-
-@app.post("/api/titles/delete")
-async def titles_delete(data:dict):
-    user=await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401,"Не авторизован")
-    tid=int(data.get("title_id",0))
-    p=await get_pool()
-    async with p.acquire() as conn:
-        t=await conn.fetchrow("SELECT * FROM titles_catalog WHERE id=$1",tid)
-        if not t: raise HTTPException(404,"Нет")
-        is_owner=user["username"]==ADMIN_USERNAME
-        is_creator=t["creator_id"]==user["id"]
-        if not (is_owner or is_creator): raise HTTPException(403,"Нет прав")
-        await conn.execute("DELETE FROM titles_catalog WHERE id=$1",tid)
-    return {"ok":True}
-
 # ============ SUPPORT ============
 @app.post("/api/support/ticket")
 async def support_ticket(data:dict):
@@ -1550,7 +1631,6 @@ async def games_submit(data:dict):
     async with p.acquire() as conn:
         await conn.execute("INSERT INTO game_scores(user_id,game,score) VALUES($1,$2,$3)",user["id"],game,score)
     await grant_xp(user["id"],5)
-    await bp_add_progress(user["id"],"play_game",1)
     return {"ok":True}
 
 # ============ CALL HISTORY ============
@@ -1572,7 +1652,7 @@ async def calls_history(token:str):
              "caller_name":r["caller_display"] or r["caller_username"],
              "callee_name":r["callee_display"] or r["callee_username"],
              "call_type":r["call_type"],"status":r["status"],"duration":r["duration"],
-             "created_at":_iso(r["created_at"])} for r in rows]10
+             "created_at":_iso(r["created_at"])} for r in rows]
 # ============ OWNER / ADMIN CHECKS ============
 async def check_owner(user):
     if not user: raise HTTPException(401,"Не авторизован")
@@ -1744,17 +1824,6 @@ async def owner_legend(data:dict):
         await conn.execute("UPDATE users SET is_legend=$1 WHERE id=$2",not cur,t["id"])
     return {"ok":True}
 
-@app.post("/api/owner/toggle_streamer")
-async def owner_toggle_streamer(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        t=await _get_target(conn,data)
-        if not t: raise HTTPException(404,"Не найден")
-        cur=await conn.fetchval("SELECT is_streamer FROM users WHERE id=$1",t["id"])
-        await conn.execute("UPDATE users SET is_streamer=$1 WHERE id=$2",not cur,t["id"])
-    return {"ok":True}
-
 @app.post("/api/owner/read_chat")
 async def owner_read_chat(data:dict):
     user=await get_current_user(data.get("token")); await check_owner(user)
@@ -1796,15 +1865,6 @@ async def owner_economy_tax(data:dict):
             ON CONFLICT (key) DO UPDATE SET value=$1,updated_at=NOW()""",str(tax))
     return {"ok":True}
 
-@app.get("/api/owner/economy/info")
-async def owner_economy_info(token:str):
-    user=await get_current_user(token); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        row=await conn.fetchrow("SELECT value FROM system_settings WHERE key='economy_tax'")
-    return {"tax":float(row["value"]) if row else 0}
-
-# ============ OWNER: ТИТУЛЫ ============
 @app.get("/api/owner/titles/all")
 async def owner_titles_all(token:str):
     user=await get_current_user(token); await check_owner(user)
@@ -1851,7 +1911,6 @@ async def owner_titles_delete(data:dict):
         await conn.execute("DELETE FROM titles_catalog WHERE id=$1",int(data.get("title_id",0)))
     return {"ok":True}
 
-# ============ OWNER: ABUSE ============
 @app.post("/api/abuse/random_gift")
 async def abuse_random_gift(data:dict):
     user=await get_current_user(data.get("token")); await check_owner(user)
@@ -1863,7 +1922,7 @@ async def abuse_random_gift(data:dict):
         if not t: raise HTTPException(404,"Не найден")
         await conn.execute("INSERT INTO gifts(from_user,to_user,gift) VALUES($1,$2,$3)",user["id"],t["id"],gid)
     await manager.send_to(t["id"],{"type":"gift_received","gift_emoji":g[gid].get("emoji"),"gift_name":g[gid]["name"],"from_name":user.get("display_name") or user["username"]})
-    return {"ok":True,"gift":gid}
+    return {"ok":True}
 
 @app.post("/api/abuse/random_coins")
 async def abuse_random_coins(data:dict):
@@ -1898,66 +1957,22 @@ async def abuse_online(token:str):
         rows=await conn.fetch("SELECT id,username,display_name FROM users WHERE id=ANY($1::int[])",list(online_users))
     return {"users":[dict(r) for r in rows]}
 
-# ============ OWNER: TROLL ============
-@app.post("/api/owner/troll")
-async def owner_troll(data:dict):
+@app.post("/api/owner/holiday/force")
+async def owner_holiday_force(data:dict):
+    global forced_holiday
     user=await get_current_user(data.get("token")); await check_owner(user)
-    kind=(data.get("troll") or "confetti")[:32]
-    await manager.broadcast({"type":"troll","kind":kind,"from":user["username"]})
-    return {"ok":True}
+    hid=(data.get("holiday_id") or "").strip()
+    if hid=="none" or not hid:
+        forced_holiday=None
+        await manager.broadcast({"type":"holiday_theme","holiday":None})
+        return {"ok":True,"forced":None}
+    h=next((x for x in HOLIDAYS if x[1]==hid),None)
+    if not h: raise HTTPException(404,"Не найден")
+    forced_holiday=hid
+    payload={"id":h[1],"name":h[2],"emoji":h[3],"color":h[4],"country":h[5],"forced":True}
+    await manager.broadcast({"type":"holiday_theme","holiday":payload})
+    return {"ok":True,"forced":payload}
 
-@app.post("/api/owner/storm")
-async def owner_storm(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    await manager.broadcast({"type":"storm","from":user["username"]})
-    return {"ok":True}
-
-@app.post("/api/owner/troll_user")
-async def owner_troll_user(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    effect=(data.get("effect") or "shake")[:32]
-    p=await get_pool()
-    async with p.acquire() as conn:
-        t=await _get_target(conn,data)
-        if not t: raise HTTPException(404,"Не найден")
-    await manager.send_to(t["id"],{"type":"troll_user","effect":effect})
-    return {"ok":True}
-
-# ============ OWNER: NFT / GIFTS / CASES ============
-@app.post("/api/owner/create_nft")
-async def owner_create_nft(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        r=await conn.fetchrow("""INSERT INTO nft_series(name,emoji,total,price,rarity,created_by)
-            VALUES($1,$2,$3,$4,$5,$6) RETURNING id""",
-            (data.get("name") or "NFT")[:64],data.get("emoji","🎨")[:8],
-            int(data.get("total",100)),int(data.get("price",1000)),
-            data.get("rarity","common")[:16],user["id"])
-    return {"ok":True,"id":r["id"]}
-
-@app.post("/api/owner/create_gift")
-async def owner_create_gift(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    gid=(data.get("gift_id") or "").strip().lower()[:32]
-    if not gid: raise HTTPException(400,"ID нужен")
-    p=await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("""INSERT INTO custom_gifts(gift_id,name,emoji,image,price,is_sticker)
-            VALUES($1,$2,$3,$4,$5,FALSE) ON CONFLICT (gift_id) DO UPDATE SET name=$2,emoji=$3,image=$4,price=$5""",
-            gid,(data.get("name") or "")[:64],data.get("emoji","🎁")[:8],data.get("image"),int(data.get("price",100)))
-    return {"ok":True}
-
-@app.post("/api/owner/cases/create")
-async def owner_cases_create(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        r=await conn.fetchrow("INSERT INTO cases(name,emoji,price) VALUES($1,$2,$3) RETURNING id",
-            (data.get("name") or "Кейс")[:64],data.get("emoji","🎁")[:8],int(data.get("price",500)))
-    return {"ok":True,"id":r["id"]}
-
-# ============ OWNER: SYSTEM ============
 @app.post("/api/owner/announce_full")
 async def owner_announce_full(data:dict):
     user=await get_current_user(data.get("token")); await check_owner(user)
@@ -1980,54 +1995,6 @@ async def owner_hot_swap(data:dict):
         try: await manager.send_to(uid,{"type":"force_reload"}); sent+=1
         except: pass
     return {"ok":True,"sent":sent}
-
-@app.post("/api/owner/clean_db")
-async def owner_clean_db(data:dict):
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("DELETE FROM game_scores WHERE created_at < NOW() - INTERVAL '30 days'")
-        await conn.execute("DELETE FROM admin_logs WHERE created_at < NOW() - INTERVAL '90 days'")
-    return {"ok":True}
-
-@app.get("/api/owner/logs")
-async def owner_logs(token:str,limit:int=100):
-    user=await get_current_user(token); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        rows=await conn.fetch("""SELECT l.*,u.username FROM admin_logs l
-            LEFT JOIN users u ON u.id=l.admin_id ORDER BY l.id DESC LIMIT $1""",limit)
-    return {"logs":[dict(r) for r in rows]}
-
-@app.post("/api/owner/holiday/force")
-async def owner_holiday_force(data:dict):
-    global forced_holiday
-    user=await get_current_user(data.get("token")); await check_owner(user)
-    hid=(data.get("holiday_id") or "").strip()
-    if hid=="none" or not hid:
-        forced_holiday=None
-        await manager.broadcast({"type":"holiday_theme","holiday":None})
-        return {"ok":True,"forced":None}
-    h=next((x for x in HOLIDAYS if x[1]==hid),None)
-    if not h: raise HTTPException(404,"Не найден")
-    forced_holiday=hid
-    payload={"id":h[1],"name":h[2],"emoji":h[3],"color":h[4],"country":h[5],"forced":True}
-    await manager.broadcast({"type":"holiday_theme","holiday":payload})
-    return {"ok":True,"forced":payload}
-
-# ============ BP ADMIN ============
-@app.get("/api/bp/admin/info")
-async def bp_admin_info(token:str):
-    user=await get_current_user(token); await check_owner(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        row=await conn.fetchrow("SELECT * FROM bp_season WHERE active=TRUE ORDER BY id DESC LIMIT 1")
-        if not row: return {"name":"","emoji":"🎃","days_total":30,"max_level":50,"xp_per_level":1000,"is_active":False}
-        quests=await conn.fetch("SELECT * FROM bp_quests WHERE active=TRUE ORDER BY id")
-        rewards=await conn.fetch("SELECT * FROM bp_rewards WHERE active=TRUE ORDER BY level,track")
-    return {"name":row["name"],"emoji":row["emoji"],"days_total":row.get("days_total") or 30,"max_level":row.get("max_level") or 50,"xp_per_level":row.get("xp_per_level") or 1000,"is_active":row["active"],
-            "quests":[dict(q) for q in quests],
-            "rewards":{"free":[dict(r) for r in rewards if r.get("track")=="free"],"premium":[dict(r) for r in rewards if r.get("track")=="premium"]}}
 
 @app.post("/api/bp/admin/apply_preset")
 async def bp_admin_apply_preset(data:dict):
@@ -2103,34 +2070,6 @@ async def admin_toggle_scam(data:dict):
     await manager.broadcast({"type":"user_updated","user_id":tid})
     return {"ok":True,"is_scam":new}
 
-@app.get("/api/admin/scam_perms/{user_id}")
-async def admin_scam_perms_get(user_id:int,token:str):
-    user=await get_current_user(token); await check_admin(user)
-    p=await get_pool()
-    async with p.acquire() as conn:
-        row=await conn.fetchrow("SELECT is_scam,scam_perms FROM users WHERE id=$1",user_id)
-        if not row: raise HTTPException(404,"Не найден")
-    perms=_safe_json(row["scam_perms"],{})
-    full={k:perms.get(k,SCAM_DEFAULT_PERMS[k]) for k in SCAM_DEFAULT_PERMS}
-    return {"is_scam":row["is_scam"],"perms":full,"defaults":SCAM_DEFAULT_PERMS}
-
-@app.get("/api/admin/scam_perms")
-async def admin_scam_perms_default(token:str):
-    user=await get_current_user(token); await check_admin(user)
-    return SCAM_DEFAULT_PERMS
-
-@app.post("/api/admin/scam_perms/set")
-async def admin_scam_perms_set(data:dict):
-    user=await get_current_user(data.get("token")); await check_admin(user)
-    tid=int(data.get("target_id",0) or data.get("user_id",0))
-    perms=data.get("perms") or {}
-    clean={k:bool(v) for k,v in perms.items() if k in SCAM_DEFAULT_PERMS}
-    p=await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("UPDATE users SET scam_perms=$1 WHERE id=$2",json.dumps(clean),tid)
-    await manager.broadcast({"type":"user_updated","user_id":tid})
-    return {"ok":True,"perms":clean}
-
 @app.get("/api/support/all")
 async def support_all(token:str):
     user=await get_current_user(token); await check_owner(user)
@@ -2139,7 +2078,7 @@ async def support_all(token:str):
         rows=await conn.fetch("""SELECT st.*,u.username AS from_username,u.display_name AS from_display,t.username AS target_username
             FROM support_tickets st LEFT JOIN users u ON u.id=st.from_user LEFT JOIN users t ON t.id=st.target_user
             ORDER BY st.status='pending' DESC, st.id DESC LIMIT 200""")
-    return [{"id":r["id"],"from_username":r["from_username"],"from_display":r["from_display"],"target_username":r["target_username"],"ticket_type":r["ticket_type"],"title":r["title"],"description":r["description"],"evidence":r["evidence"],"status":r["status"],"created_at":_iso(r["created_at"])} for r in rows]
+    return [{"id":r["id"],"from_username":r["from_username"],"target_username":r["target_username"],"ticket_type":r["ticket_type"],"title":r["title"],"description":r["description"],"evidence":r["evidence"],"status":r["status"],"created_at":_iso(r["created_at"])} for r in rows]
 
 @app.post("/api/support/resolve")
 async def support_resolve(data:dict):
@@ -2193,6 +2132,10 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 except: pass
             if t in ("message","dm","group_msg") and is_muted:
                 await manager.send_to(uid,{"type":"muted","reason":"Ты в муте"})
+                continue
+            # airplane mode
+            if t in ("message","dm","group_msg") and user.get("airplane_mode"):
+                await manager.send_to(uid,{"type":"error","detail":"✈️ Режим полёта — отправка запрещена"})
                 continue
 
             # ========== ЗВОНКИ ==========
@@ -2305,15 +2248,14 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 msg_kind=data.get("msg_kind","text")
                 voice_dur=int(data.get("voice_duration",0))
                 fsize=int(data.get("file_size",0))
-                if await is_blocked(uid,to_id): continue
-                if user.get("is_scam") and to_id!=SUPPORT_BOT_ID:
-                    p=await get_pool()
-                    async with p.acquire() as conn:
-                        has_history=await conn.fetchval("SELECT 1 FROM dms WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1) LIMIT 1",uid,to_id)
-                    if not has_history and not has_scam_perm(user,"dm_send"):
-                        await manager.send_to(uid,{"type":"muted","reason":"SCAM: писать первым запрещено"}); continue
+                if not to_id: continue
+                # Проверка блокировки: если меня заблокировали — не доставляем, но сохраняем
+                blocked=False
                 p=await get_pool()
                 async with p.acquire() as conn:
+                    blk=await conn.fetchrow("SELECT blocker,chat_cleared FROM user_blocks WHERE (blocker=$1 AND blocked=$2) OR (blocker=$2 AND blocked=$1)",uid,to_id)
+                    if blk:
+                        blocked=True
                     msg=await conn.fetchrow("INSERT INTO dms(from_user,to_user,text,file_url,file_size,msg_kind,voice_duration) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",uid,to_id,text,furl,fsize,msg_kind,voice_dur)
                 await grant_xp(uid,1)
                 await bp_add_progress(uid,"send_dm",1)
@@ -2325,7 +2267,10 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                     "text":text,"file_url":furl,"file_size":fsize,"msg_kind":msg_kind,"voice_duration":voice_dur,
                     "created_at":_iso(msg["created_at"]),
                     "temp_id":tid,"is_scam":user.get("is_scam"),"title":user.get("title")}
-                await manager.send_to(to_id,payload)
+                # Доставляем получателю только если НЕ заблокирован
+                if not blocked:
+                    await manager.send_to(to_id,payload)
+                # Себе всегда
                 await manager.send_to(uid,payload)
 
             elif t=="group_msg":
@@ -2389,7 +2334,14 @@ async def websocket_endpoint(ws:WebSocket,token:str):
 # ============ STATIC ============
 @app.get("/manifest.json")
 async def manifest():
-    return {"name":"Belugacord 3.1","short_name":"Belugacord","start_url":"/","display":"standalone","background_color":"#1a0a2e","theme_color":"#1a0a2e"}
+    return {"name":"BelugaCord 3.2","short_name":"BelugaCord","start_url":"/","display":"standalone","background_color":"#1a0a2e","theme_color":"#1a0a2e","icons":[{"src":"/icon.png","sizes":"192x192","type":"image/png"}]}
+
+@app.get("/sw.js")
+async def service_worker():
+    try:
+        with open("sw.js","r",encoding="utf-8") as f:
+            return HTMLResponse(f.read(),media_type="application/javascript")
+    except: return HTMLResponse("// no sw",media_type="application/javascript")
 
 @app.get("/")
 async def index():
