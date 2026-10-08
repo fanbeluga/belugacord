@@ -268,7 +268,6 @@ input,textarea,select{font-family:inherit}
 }
 @media (min-width:901px){
   #mobileHome,#shade,#shadeHandle{display:none!important}
-  #loginScreen{display:flex!important}
 }
 </style>
 </head>
@@ -1555,7 +1554,7 @@ function connectWS(){
     var d;try{d=JSON.parse(ev.data);}catch(e){return;}
     if(d.type==='pong')return;
     if(d.type==='message'){if(d.temp_id){var el=document.getElementById('msg-'+d.temp_id);if(el)el.remove();}if(d.channel_id===curChannelId){addMsg(d);sndMsg();}}
-    else if(d.type==='dm'){if(d.temp_id){var el=document.getElementById('msg-'+d.temp_id);if(el)el.remove();}if(curDM&&(d.from_user===curDM.id||d.to_user===curDM.id)){addMsg(d);if(d.from_user!==me.id)sndMsg();}else if(d.from_user!==me.id){unread['dm-'+d.from_user]=(unread['dm-'+d.from_user]||0)+1;toast('💬 '+esc(d.display_name||d.username));sndMsg();pushNotif(d);updMobile();loadChatList();}}
+    else if(d.type==='dm'){if(d.temp_id){var el=document.getElementById('msg-'+d.temp_id);if(el)el.remove();}if(curDM&&(d.from_user===curDM.id||d.to_user===curDM.id)){addMsg(d);if(d.from_user!==me.id)sndMsg();}else if(d.from_user!==me.id){unread['dm-'+d.from_user]=(unread['dm-'+d.from_user]||0)+1;toast('💬 '+esc(d.display_name||d.username));sndMsg();pushNotif2(d);updMobile();loadChatList();}}
     else if(d.type==='group_msg'){if(d.temp_id){var el=document.getElementById('msg-'+d.temp_id);if(el)el.remove();}if(curGroup&&d.group_id===curGroup.id){addMsg(d);if(d.user_id!==me.id)sndMsg();}}
     else if(d.type==='gift_received'){toast('🎁 '+esc(d.gift_name||'')+' от '+esc(d.from_name||''));confetti();}
     else if(d.type==='banned'){toast('🚫','err');setTimeout(logout,1500);}
