@@ -46,54 +46,6 @@ input,textarea,select{font-family:inherit}
 .lg-swipe{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.5);font-size:12px;animation:pulseUp 2s infinite;z-index:3}
 @keyframes pulseUp{0%,100%{transform:translate(-50%,0);opacity:.4}50%{transform:translate(-50%,-6px);opacity:1}}
 
-/* MOBILE HOME */
-#mobileHome{position:fixed;inset:0;z-index:2000;display:none;flex-direction:column;overflow:hidden;transition:transform .5s cubic-bezier(.4,0,.2,1);will-change:transform}
-#mobileHome.show{display:flex}
-#mobileHome.swiped{transform:translateY(100vh)}
-.mh-bg{position:absolute;inset:0;background:linear-gradient(180deg,#1a0a2e 0%,#0a0a12 100%);z-index:0}
-.mh-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 15%,rgba(217,70,239,.2),transparent 40%),radial-gradient(circle at 80% 85%,rgba(34,211,238,.15),transparent 40%)}
-.mh-scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:55px 18px 110px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.mh-scroll::-webkit-scrollbar{display:none}
-.mh-clock{text-align:center;margin-bottom:20px;color:#fff}
-.mh-time{font-size:64px;font-weight:200;letter-spacing:-3px;line-height:1}
-.mh-date{font-size:13px;opacity:.7;margin-top:4px;text-transform:uppercase;letter-spacing:2px}
-.mh-stat{padding:14px 18px;margin-bottom:22px;display:flex;justify-content:space-around;align-items:center;color:#fff}
-.mh-si{text-align:center;flex:1}
-.mh-sn{font-size:22px;font-weight:900;background:linear-gradient(135deg,#d946ef,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.mh-sl{font-size:10px;opacity:.6;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
-.mh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px}
-.mh-tile{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform .12s;user-select:none;position:relative}
-.mh-tile:active{transform:scale(.9)}
-.mh-ti{width:58px;height:58px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);position:relative}
-.mh-ti.pk{background:linear-gradient(135deg,#d946ef,#8b5cf6)}
-.mh-ti.bl{background:linear-gradient(135deg,#22d3ee,#0ea5e9)}
-.mh-ti.gl{background:linear-gradient(135deg,#ffd700,#ff8c00)}
-.mh-ti.gr{background:linear-gradient(135deg,#22c55e,#16a34a)}
-.mh-ti.rd{background:linear-gradient(135deg,#f43f5e,#dc2626)}
-.mh-ti.pp{background:var(--pk)}
-.mh-ti.ow{background:var(--ow)}
-.mh-tl{font-size:10px;color:#fff;text-align:center;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mh-bd{position:absolute;top:-5px;right:-5px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg);z-index:2}
-.mh-dock{position:fixed;bottom:16px;left:16px;right:16px;z-index:10;display:flex;gap:6px;padding:8px;border-radius:24px;background:rgba(20,15,35,.85);border:1px solid rgba(255,255,255,.08)}
-.mh-db{flex:1;padding:10px 4px;border-radius:16px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--td);transition:all .15s}
-.mh-db.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
-.mh-db .i{font-size:20px}
-.mh-db .l{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
-
-/* SHADE */
-#shadeHandle{position:fixed;top:0;left:0;right:0;height:28px;z-index:2600;cursor:grab}
-#shade{position:fixed;top:-100vh;left:0;right:0;max-height:75vh;background:rgba(10,5,20,.97);z-index:2500;padding:48px 18px 28px;transition:top .35s cubic-bezier(.4,0,.2,1);border-radius:0 0 28px 28px;box-shadow:0 20px 50px rgba(0,0,0,.7)}
-#shade.open{top:0}
-.sh-time{text-align:center;color:#fff;font-size:44px;font-weight:200;margin-bottom:14px;letter-spacing:-2px}
-.sh-close{position:absolute;top:14px;right:18px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center}
-.sh-title{font-size:11px;font-weight:800;color:var(--td);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;text-align:center}
-.sh-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.sh-b{padding:13px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px;color:#fff;transition:all .15s;font-weight:700;font-size:13px}
-.sh-b:active{transform:scale(.97)}
-.sh-b.on{background:linear-gradient(135deg,var(--ac),var(--ac2));border-color:transparent}
-.sh-b .i{font-size:19px}
-.sh-b .l{flex:1;text-align:left}
-
 /* PC WINDOW */
 #winWindow{position:fixed;top:0;left:0;right:0;bottom:48px;background:var(--bg2);display:none;flex-direction:column;overflow:hidden;z-index:10}
 #winWindow.show{display:flex}
@@ -296,44 +248,6 @@ input,textarea,select{font-family:inherit}
     </div>
   </div>
   <div class="lg-swipe">↑ Свайп вверх</div>
-</div>
-
-<!-- MOBILE HOME -->
-<div id="mobileHome">
-  <div class="mh-bg"></div>
-  <div class="mh-scroll">
-    <div class="mh-clock"><div class="mh-time" id="mhTime">15:35</div><div class="mh-date" id="mhDate">ЧТ, 8 ОКТ</div></div>
-    <div class="mh-stat gl">
-      <div class="mh-si"><div class="mh-sn" id="mOnline">0</div><div class="mh-sl">🟢 Онлайн</div></div>
-      <div class="mh-si"><div class="mh-sn" id="mUnread">0</div><div class="mh-sl">💬 Непроч.</div></div>
-      <div class="mh-si"><div class="mh-sn" id="mCoins">0</div><div class="mh-sl">🏅 Баланс</div></div>
-    </div>
-    <div class="mh-grid" id="mobileGrid"></div>
-  </div>
-  <div class="mh-dock" id="mobileDock">
-    <button class="mh-db on" onclick="mobOpen('chats')"><span class="i">💬</span><span class="l">Чаты</span></button>
-    <button class="mh-db" onclick="mobOpen('friends')"><span class="i">👥</span><span class="l">Друзья</span></button>
-    <button class="mh-db" onclick="mobOpen('search')"><span class="i">🔍</span><span class="l">Поиск</span></button>
-    <button class="mh-db" onclick="mobOpen('profile')"><span class="i">👤</span><span class="l">Профиль</span></button>
-  </div>
-</div>
-
-<!-- SHADE -->
-<div id="shadeHandle"></div>
-<div id="shade">
-  <button class="sh-close" onclick="closeShade()">✕</button>
-  <div class="sh-time" id="shTime">15:35</div>
-  <div class="sh-title">Быстрые настройки</div>
-  <div class="sh-grid">
-    <button class="sh-b" id="shAir" onclick="quickToggle('airplane')"><span class="i">✈️</span><span class="l">Полёт</span></button>
-    <button class="sh-b" id="shDnd" onclick="quickToggle('dnd')"><span class="i">🔕</span><span class="l">DND</span></button>
-    <button class="sh-b" id="shInv" onclick="quickToggle('invisible')"><span class="i">🌙</span><span class="l">Невидимка</span></button>
-    <button class="sh-b" id="shThm" onclick="quickToggle('theme')"><span class="i">🎨</span><span class="l">Тема</span></button>
-    <button class="sh-b" id="shNot" onclick="quickToggle('notif')"><span class="i">🔔</span><span class="l">Уведомления</span></button>
-    <button class="sh-b" id="shSnd" onclick="quickToggle('sound')"><span class="i">🎵</span><span class="l">Звук</span></button>
-    <button class="sh-b" onclick="closeShade();quickCallLast()"><span class="i">📞</span><span class="l">Позвонить</span></button>
-    <button class="sh-b" onclick="closeShade();openSettings()"><span class="i">⚙️</span><span class="l">Настройки</span></button>
-  </div>
 </div>
 
 <!-- PC WINDOW -->
@@ -914,13 +828,8 @@ async function enterApp(){
 
   if(me.theme)applyTheme(me.theme);
 
-  if(isMobile){
-    document.getElementById('mobileHome').classList.add('show');
-    buildMobileGrid();
-  } else {
-    document.getElementById('winWindow').classList.add('show');
-    document.getElementById('taskbar').classList.add('show');
-  }
+  document.getElementById('winWindow').classList.add('show');
+document.getElementById('taskbar').classList.add('show');
 
   var smAv=document.getElementById('smAv');
   if(smAv){var s=me.gif_avatar||me.avatar;if(s)smAv.innerHTML='<img src="'+s+'" style="width:100%;height:100%;object-fit:cover">';else smAv.textContent=(me.display_name||me.username).charAt(0).toUpperCase();}
