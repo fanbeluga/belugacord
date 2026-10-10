@@ -20,7 +20,7 @@ CURRENT_VERSION="3.3"
 SUPPORT_BOT_ID=0
 SUPPORT_BOT_NAME="support_bot"
 SUPPORT_BOT_DISPLAY="🤖 Support Bot"
-NOTIF_ICON="/icon-192x192.png"
+NOTIF_ICON="/icon-192×192.png"
 MAX_TEXT=10000
 
 ALLOWED_EXT={'.png','.jpg','.jpeg','.gif','.webp','.svg','.bmp','.avif','.ico','.mp4','.webm','.mov','.mkv','.avi','.mp3','.wav','.ogg','.m4a','.opus','.aac','.flac','.pdf','.txt','.json','.csv','.xml','.zip','.rar','.7z','.tar','.gz','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.py','.js','.html','.css','.md'}
