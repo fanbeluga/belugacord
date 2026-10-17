@@ -1167,7 +1167,6 @@ input,textarea,select{font-family:inherit}
     </div>
   </div>
 </div>
-
 </body>
 <script>
 /* ========== BELUGACORD 3.6 — JS ЧАСТЬ 3/4 ========== */
@@ -2175,7 +2174,7 @@ async function loadMyChannels(){
     if(!r.ok){
       var errTxt=await r.text();
       console.error('[channels/my]',r.status,errTxt);
-      list.innerHTML='<div style="text-align:center;padding:20px;color:#f43f5e">Ошибка HTTP '+r.status+'<br><button class="sb gn" onclick="loadMyChannels()" style="max-width:200px;margin:10px auto 0">🔄 Попробовать</button></div>';
+      list.innerHTML='<div style="text-align:center;padding:20px;color:#f43f5e"><b>Ошибка HTTP '+r.status+'</b><br><div style="font-size:10px;word-break:break-all;margin:10px 0;background:rgba(0,0,0,0.5);padding:8px;border-radius:8px;color:#ffb3b3">'+esc(errTxt).substring(0,300)+'</div><button class="sb gn" onclick="loadMyChannels()" style="max-width:200px;margin:10px auto 0">🔄 Попробовать</button></div>';
       return;
     }
     var my=await r.json();
