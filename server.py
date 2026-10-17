@@ -184,7 +184,7 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS user_chat_settings(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,chat_type VARCHAR(16),chat_id INTEGER,pinned BOOLEAN DEFAULT FALSE,archived BOOLEAN DEFAULT FALSE,mute_until TIMESTAMPTZ,UNIQUE(user_id,chat_type,chat_id))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS saved_searches(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,name VARCHAR(64),query TEXT,filters TEXT DEFAULT '{}',created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS daily_bonus(user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,streak INTEGER DEFAULT 0,last_claim DATE)""")
-await conn.execute("""CREATE TABLE IF NOT EXISTS referrals(
+        await conn.execute("""CREATE TABLE IF NOT EXISTS referrals(
     id SERIAL PRIMARY KEY,
     code VARCHAR(16) UNIQUE NOT NULL,
     owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -192,7 +192,7 @@ await conn.execute("""CREATE TABLE IF NOT EXISTS referrals(
     registrations INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW()
 )""")
-await conn.execute("""CREATE TABLE IF NOT EXISTS referral_uses(
+       await conn.execute("""CREATE TABLE IF NOT EXISTS referral_uses(
     id SERIAL PRIMARY KEY,
     code VARCHAR(16),
     referrer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
