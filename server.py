@@ -184,23 +184,26 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS user_chat_settings(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,chat_type VARCHAR(16),chat_id INTEGER,pinned BOOLEAN DEFAULT FALSE,archived BOOLEAN DEFAULT FALSE,mute_until TIMESTAMPTZ,UNIQUE(user_id,chat_type,chat_id))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS saved_searches(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,name VARCHAR(64),query TEXT,filters TEXT DEFAULT '{}',created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS daily_bonus(user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,streak INTEGER DEFAULT 0,last_claim DATE)""")
+        
+        # ИСПРАВЛЕННЫЙ БЛОК (было 7 пробелов, стало 8)
         await conn.execute("""CREATE TABLE IF NOT EXISTS referrals(
-    id SERIAL PRIMARY KEY,
-    code VARCHAR(16) UNIQUE NOT NULL,
-    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    clicks INTEGER DEFAULT 0,
-    registrations INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-)""")
-       await conn.execute("""CREATE TABLE IF NOT EXISTS referral_uses(
-    id SERIAL PRIMARY KEY,
-    code VARCHAR(16),
-    referrer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    new_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    reward_ref INTEGER DEFAULT 0,
-    reward_new INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-)""")
+            id SERIAL PRIMARY KEY,
+            code VARCHAR(16) UNIQUE NOT NULL,
+            owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            clicks INTEGER DEFAULT 0,
+            registrations INTEGER DEFAULT 0,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS referral_uses(
+            id SERIAL PRIMARY KEY,
+            code VARCHAR(16),
+            referrer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            new_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            reward_ref INTEGER DEFAULT 0,
+            reward_new INTEGER DEFAULT 0,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )""")
+        
         await conn.execute("""CREATE TABLE IF NOT EXISTS user_sessions(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,token_hash VARCHAR(64),device VARCHAR(128),ip VARCHAR(64),last_active TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS custom_emoji(id SERIAL PRIMARY KEY,owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,emoji_id VARCHAR(32) UNIQUE,url TEXT,created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS achievement_log(user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,key VARCHAR(32),got_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(user_id,key))""")
@@ -260,7 +263,6 @@ async def init_db():
             for q in [("Напиши 10 сообщений","send_message",10,100),("Сыграй 1 игру","play_game",1,100),("Отправь 1 DM","send_dm",1,100),("Позвони другу","call",1,500),("Голосовое","voice",1,300)]:
                 await conn.execute("INSERT INTO bp_quests(name,action_type,target_count,xp_reward) VALUES($1,$2,$3,$4)",*q)
         print("✅ БД 3.6 готова")
-
 async def get_current_user(token):
     parsed=parse_token(token)
     if not parsed: return None
@@ -643,8 +645,6 @@ async def users_search(q:str,token:str):
     async with p.acquire() as conn:
         rows=await conn.fetch("SELECT * FROM users WHERE (username ILIKE $1 OR display_name ILIKE $1) AND id!=$2 AND id!=0 ORDER BY username LIMIT 25",f"%{q}%",user["id"])
     return [user_public(r,user["id"]) for r in rows]
-# BELUGACORD 3.6 — server.py — ЧАСТЬ 2/3
-# Друзья, DM, группы, каналы, обсуждения
 
 # ============ FRIENDS ============
 @app.get("/api/friends/list")
@@ -1724,9 +1724,6 @@ async def message_save(data:dict):
     async with p.acquire() as conn:
         await conn.execute("INSERT INTO user_saved_messages(user_id,text) VALUES($1,$2)",user["id"],text)
     return {"ok":True}
-# BELUGACORD 3.6 — server.py — ЧАСТЬ 3/3
-# Админка, ранги, owner-панель, WS, статика
-
 # ============ АДМИНКА ============
 @app.post("/api/admin/verify")
 async def admin_verify(data:dict):
