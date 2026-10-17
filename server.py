@@ -184,6 +184,23 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS user_chat_settings(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,chat_type VARCHAR(16),chat_id INTEGER,pinned BOOLEAN DEFAULT FALSE,archived BOOLEAN DEFAULT FALSE,mute_until TIMESTAMPTZ,UNIQUE(user_id,chat_type,chat_id))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS saved_searches(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,name VARCHAR(64),query TEXT,filters TEXT DEFAULT '{}',created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS daily_bonus(user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,streak INTEGER DEFAULT 0,last_claim DATE)""")
+await conn.execute("""CREATE TABLE IF NOT EXISTS referrals(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(16) UNIQUE NOT NULL,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    clicks INTEGER DEFAULT 0,
+    registrations INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+)""")
+await conn.execute("""CREATE TABLE IF NOT EXISTS referral_uses(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(16),
+    referrer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    new_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    reward_ref INTEGER DEFAULT 0,
+    reward_new INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+)""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS user_sessions(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,token_hash VARCHAR(64),device VARCHAR(128),ip VARCHAR(64),last_active TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS custom_emoji(id SERIAL PRIMARY KEY,owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,emoji_id VARCHAR(32) UNIQUE,url TEXT,created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS achievement_log(user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,key VARCHAR(32),got_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(user_id,key))""")
@@ -468,7 +485,7 @@ async def register(data:dict):
     raw_u=(data.get("username") or "").strip().lower()
     raw_d=(data.get("display_name") or raw_u).strip()
     pw=data.get("password") or ""
-    em=(data.get("email") or "").strip() or None
+    ref_code=(data.get("ref_code") or "").strip()
     if not raw_u and raw_d: raw_u=translit(raw_d).lower()
     raw_u=sanitize_username(raw_u)
     if len(pw)<4: raise HTTPException(400,"Пароль мин 4")
@@ -478,6 +495,17 @@ async def register(data:dict):
         exists=await conn.fetchrow("SELECT id FROM users WHERE username=$1",raw_u)
         if exists: raise HTTPException(400,"Занято")
         row=await conn.fetchrow("INSERT INTO users(username,display_name,password_hash,is_admin) VALUES($1,$2,$3,$4) RETURNING *",raw_u,raw_d,hash_password(pw),raw_u==ADMIN_USERNAME)
+        if ref_code:
+            ref=await conn.fetchrow("SELECT owner_id FROM referrals WHERE code=$1",ref_code)
+            if ref and ref["owner_id"]!=row["id"]:
+                try:
+                    await conn.execute("UPDATE users SET coins=coins+20000 WHERE id=$1",ref["owner_id"])
+                    await conn.execute("UPDATE users SET coins=coins+500 WHERE id=$1",row["id"])
+                    await conn.execute("""INSERT INTO referral_uses(code,referrer_id,new_user_id,reward_ref,reward_new)
+                        VALUES($1,$2,$3,20000,500)""",ref_code,ref["owner_id"],row["id"])
+                    await conn.execute("UPDATE referrals SET registrations=registrations+1 WHERE code=$1",ref_code)
+                    await manager.send_to(ref["owner_id"],{"type":"referral_bonus","amount":20000,"new_username":raw_u})
+                except Exception as e: print(f"[referral] {e}")
     return {"token":make_token(row["id"],row["username"]),"user":user_public(row,row["id"])}
 
 @app.post("/api/login")
@@ -2380,6 +2408,80 @@ async def duel_fire(data:dict):
         if win: await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2",bet*2,user["id"])
     return {"ok":True,"win":win}
 
+# ============ РЕФЕРАЛЬНАЯ ПРОГРАММА ============
+@app.post("/api/referral/create")
+async def referral_create(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    if user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    owner_id=int(data.get("owner_id",0))
+    if not owner_id: raise HTTPException(400,"owner_id")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        target=await conn.fetchrow("SELECT id,username FROM users WHERE id=$1",owner_id)
+        if not target: raise HTTPException(404,"Юзер не найден")
+        existing=await conn.fetchrow("SELECT code FROM referrals WHERE owner_id=$1",owner_id)
+        if existing:
+            return {"ok":True,"code":existing["code"],"existing":True,"owner_username":target["username"]}
+        code=secrets.token_urlsafe(8)[:10]
+        await conn.execute("INSERT INTO referrals(code,owner_id) VALUES($1,$2)",code,owner_id)
+    return {"ok":True,"code":code,"owner_username":target["username"]}
+
+@app.get("/api/referral/list")
+async def referral_list(token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    if user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        rows=await conn.fetch("""SELECT r.*,u.username AS owner_username,u.display_name AS owner_display
+            FROM referrals r JOIN users u ON u.id=r.owner_id ORDER BY r.id DESC""")
+    return [{"id":r["id"],"code":r["code"],"owner_id":r["owner_id"],"owner_username":r["owner_username"],
+             "owner_display":r["owner_display"],"clicks":r["clicks"],"registrations":r["registrations"],
+             "created_at":_iso(r["created_at"])} for r in rows]
+
+@app.post("/api/referral/delete")
+async def referral_delete(data:dict):
+    user=await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401,"Не авторизован")
+    if user["username"]!=ADMIN_USERNAME: raise HTTPException(403,"Только владелец")
+    rid=int(data.get("id",0))
+    if not rid: raise HTTPException(400,"id")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("DELETE FROM referrals WHERE id=$1",rid)
+    return {"ok":True}
+
+@app.post("/api/referral/click")
+async def referral_click(data:dict):
+    code=(data.get("code") or "").strip()
+    if not code: raise HTTPException(400,"code")
+    p=await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE referrals SET clicks=clicks+1 WHERE code=$1",code)
+    return {"ok":True}
+
+@app.get("/api/check_channel_username")
+async def check_channel_username(u:str,token:str):
+    user=await get_current_user(token)
+    if not user: raise HTTPException(401,"Не авторизован")
+    u=(u or "").lower().strip()
+    if len(u)<4: return {"available":False,"reason":"Мин 4"}
+    if len(u)>32: return {"available":False,"reason":"Макс 32"}
+    if not re.match(r'^[a-z][a-z0-9_]*$',u):
+        return {"available":False,"reason":"Только a-z, 0-9, _"}
+    if u in RESERVED_USERNAMES:
+        return {"available":False,"reason":"Зарезервировано"}
+    p=await get_pool()
+    async with p.acquire() as conn:
+        u1=await conn.fetchval("SELECT 1 FROM users WHERE username=$1",u)
+        if u1: return {"available":False,"reason":"Занято юзером"}
+        u2=await conn.fetchval("SELECT 1 FROM channels WHERE username=$1",u)
+        if u2: return {"available":False,"reason":"Занято каналом"}
+        u3=await conn.fetchval("SELECT 1 FROM groups WHERE username=$1",u)
+        if u3: return {"available":False,"reason":"Занято группой"}
+    return {"available":True}
+
 # ============ WEBSOCKET ============
 @app.websocket("/ws")
 async def websocket_endpoint(ws:WebSocket,token:str):
@@ -2549,6 +2651,14 @@ async def sw():
     try:
         with open("sw.js","r",encoding="utf-8") as f: return HTMLResponse(f.read(),media_type="application/javascript")
     except: return HTMLResponse("// no sw",media_type="application/javascript")
+
+@app.get("/ref/{code}")
+async def ref_redirect(code:str):
+    try:
+        with open("index.html","r",encoding="utf-8") as f:
+            return HTMLResponse(f.read())
+    except Exception:
+        return HTMLResponse("<h1>index.html нет</h1>",status_code=500)
 
 @app.get("/")
 async def index():
