@@ -1229,15 +1229,31 @@ async function submitAuth(){
   if(!u||!p){err.textContent='Заполни поля';return;}
   var url=authMode==='login'?'/api/login':'/api/register';
   var body={username:u,password:p};
-  if(authMode==='register')body.display_name=d||u;
+  if(authMode==='register'){
+    body.display_name=d||u;
+    var refCode=localStorage.getItem('bc_ref_code');
+    if(refCode)body.ref_code=refCode;
+  }
   try{
     var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     var data=await r.json();
     if(!r.ok){err.textContent=data.detail||'Ошибка';return;}
-    token=data.token;localStorage.setItem('bc_token',token);me=data.user;enterApp();
+    token=data.token;localStorage.setItem('bc_token',token);
+    localStorage.removeItem('bc_ref_code');
+    me=data.user;enterApp();
   }catch(ex){err.textContent='Ошибка соединения';}
 }
-function logout(){if(!confirm('Выйти?'))return;localStorage.removeItem('bc_token');token='';me=null;if(ws){try{ws.close();}catch(e){}}location.reload();}
+// Проверка реф-ссылки при загрузке
+(function(){
+  var path=location.pathname;
+  var m=path.match(/^\/ref\/([A-Za-z0-9_-]+)$/);
+  if(m){
+    var code=m[1];
+    localStorage.setItem('bc_ref_code',code);
+    history.replaceState(null,'','/');
+    fetch('/api/referral/click',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code})}).catch(function(){});
+  }
+})();
 async function boot(){
   if(token){
     try{
@@ -1970,6 +1986,7 @@ function handleWS(d){
   else if(d.type==='rank_changed'){if(d.rank)toast('🏆 '+d.rank.emoji+' '+d.rank.name);else toast('🏆 Ранг снят');fetch('/api/me?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(u){me=u;updateMeInfo();}).catch(function(){});}
   else if(d.type==='force_theme'){if(d.theme){me.theme=d.theme;applyTheme();}if(d.font_size){me.font_size=d.font_size;applyFont();}toast('🎨');}
   else if(d.type==='mass_give'){toast('🎁 +'+d.amount+' '+d.field);loadCoins();}
+  else if(d.type==='referral_bonus'){toast('🔗 Реферал! +'+d.amount+' 🏅 от @'+d.new_username);loadCoins();}
   else if(d.type==='maintenance'){toast('🛠️ '+(d.text||''),'warn');}
   else if(d.type==='user_updated'){if(d.user_id===me.id)fetch('/api/me?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(u){me=u;updateMeInfo();}).catch(function(){});}
 }
@@ -2155,11 +2172,17 @@ async function loadMyChannels(){
   list.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">⏳</div>';
   try{
     var r=await fetch('/api/channels/my?token='+encodeURIComponent(token));
+    if(!r.ok){
+      var errTxt=await r.text();
+      console.error('[channels/my]',r.status,errTxt);
+      list.innerHTML='<div style="text-align:center;padding:20px;color:#f43f5e">Ошибка HTTP '+r.status+'<br><button class="sb gn" onclick="loadMyChannels()" style="max-width:200px;margin:10px auto 0">🔄 Попробовать</button></div>';
+      return;
+    }
     var my=await r.json();
     var cat=chanCategoryFilter;
     var cat_q=cat?'&category='+cat:'';
     var cat_r=await fetch('/api/channels/catalog?token='+encodeURIComponent(token)+cat_q);
-    var cat_data=await cat_r.json();
+    var cat_data=cat_r.ok?await cat_r.json():[];
     var all=[];
     if(Array.isArray(my))my.forEach(function(c){all.push(c);});
     if(Array.isArray(cat_data))cat_data.forEach(function(c){if(!all.some(function(x){return x.id===c.id;}))all.push(c);});
@@ -2172,7 +2195,10 @@ async function loadMyChannels(){
       card.onclick=function(){openChannelView(c.id);};
       list.appendChild(card);
     });
-  }catch(e){list.innerHTML='<div style="text-align:center;padding:20px;color:#f43f5e">Ошибка</div>';}
+  }catch(e){
+    console.error('[channels]',e);
+    list.innerHTML='<div style="text-align:center;padding:20px;color:#f43f5e">Ошибка сети<br><button class="sb gn" onclick="loadMyChannels()" style="max-width:200px;margin:10px auto 0">🔄 Попробовать</button></div>';
+  }
 }
 async function searchChannels(q){
   if(!q||q.length<2){loadMyChannels();return;}
@@ -2194,21 +2220,26 @@ async function searchChannels(q){
 }
 
 /* Модалка создания канала */
+var chCheckTimer=null;
 function checkChannelUsername(v){
   var s=g('chUserStatus');if(!s)return;
-  v=v.toLowerCase();
+  v=v.toLowerCase().trim();
+  clearTimeout(chCheckTimer);
   if(!v){s.textContent='';return;}
   if(v.length<4){s.innerHTML='<span style="color:#f43f5e">Мин 4</span>';return;}
   if(!/^[a-z][a-z0-9_]*$/.test(v)){s.innerHTML='<span style="color:#f43f5e">Только a-z, 0-9, _</span>';return;}
   s.innerHTML='<span style="color:var(--tm)">Проверка...</span>';
-  fetch('/api/users/search?q='+encodeURIComponent(v)+'&token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(us){
-    if(us&&us.length&&us[0].username===v){s.innerHTML='<span style="color:#f43f5e">❌ Занято юзером</span>';return;}
-    fetch('/api/channels/search?q='+encodeURIComponent(v)+'&token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(cs){
-      if(cs&&cs.length&&cs[0].username===v){s.innerHTML='<span style="color:#f43f5e">❌ Занято каналом</span>';return;}
-      s.innerHTML='<span style="color:#22c55e">✅ Свободен</span>';
-    });
-  });
+  chCheckTimer=setTimeout(function(){
+    fetch('/api/check_channel_username?u='+encodeURIComponent(v)+'&token='+encodeURIComponent(token))
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.available)s.innerHTML='<span style="color:#22c55e">✅ Свободен</span>';
+        else s.innerHTML='<span style="color:#f43f5e">❌ '+(d.reason||'Занято')+'</span>';
+      })
+      .catch(function(){s.innerHTML='<span style="color:#f43f5e">Ошибка</span>';});
+  },600);
 }
+
 async function createChannel(){
   var name=g('chName').value.trim();
   if(!name){toast('⚠️ Название','warn');return;}
@@ -2216,19 +2247,25 @@ async function createChannel(){
   var bio=g('chBio').value.trim();
   var cat=g('chCategory').value;
   var isPriv=g('chPrivate').classList.contains('on');
+  toast('⏳ Создаю...','warn');
   try{
     var r=await fetch('/api/channels/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,name:name,username:username||undefined,bio:bio,category:cat,is_private:isPriv})});
-    var d=await r.json();
-    if(!r.ok){toast('❌ '+(d.detail||''),'err');return;}
+    var txt=await r.text();
+    console.log('[createChannel]',r.status,txt);
+    if(!r.ok){
+      var d;try{d=JSON.parse(txt);}catch(e){d={detail:txt.substring(0,100)};}
+      toast('❌ '+(d.detail||'Ошибка '+r.status),'err');
+      return;
+    }
+    var d=JSON.parse(txt);
     toast('✅ Канал создан');
     cm('mCreateChannel');
     g('chName').value='';g('chUsername').value='';g('chBio').value='';g('chCategory').value='';g('chPrivate').classList.remove('on');
     loadChannels();loadPanel();
     openChannelView(d.id);
-  }catch(e){toast('❌','err');}
+  }catch(e){toast('❌ '+e.message,'err');}
 }
 
-/* Просмотр канала */
 async function openChannelView(cid){
   curChannel={id:cid};
   om('mChannelView');
@@ -2256,6 +2293,7 @@ async function openChannelView(cid){
     loadChannelPosts(cid);
   }catch(e){toast('❌','err');}
 }
+
 async function loadChannelPosts(cid){
   var box=g('cvPosts');if(!box)return;
   box.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">⏳</div>';
@@ -2288,11 +2326,13 @@ async function loadChannelPosts(cid){
     });
   }catch(e){box.innerHTML='<div style="text-align:center;padding:20px;color:#f43f5e">Ошибка</div>';}
 }
+
 async function toggleChannelSub(){
   if(!curChannelData)return;
   var url=curChannelData.is_subscribed?'/api/channels/'+curChannel.id+'/unsubscribe':'/api/channels/'+curChannel.id+'/subscribe';
   try{var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});if(r.ok){openChannelView(curChannel.id);loadPanel();}}catch(e){}
 }
+
 async function publishChannelPost(){
   var t=g('cvPostText').value.trim();
   if(!t){toast('⚠️','warn');return;}
@@ -2302,18 +2342,17 @@ async function publishChannelPost(){
     else{var d=await r.json();toast('❌ '+(d.detail||''),'err');}
   }catch(e){toast('❌','err');}
 }
+
 async function reactChannelPost(cid,pid,emoji){try{await fetch('/api/channels/'+cid+'/posts/'+pid+'/react',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,emoji:emoji})});loadChannelPosts(cid);}catch(e){}}
 async function deleteChannelPost(cid,pid){if(!confirm('Удалить пост?'))return;try{var r=await fetch('/api/channels/'+cid+'/posts/'+pid+'/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});if(r.ok){toast('🗑️');loadChannelPosts(cid);}}catch(e){}}
 async function pinChannelPost(cid,pid){try{var r=await fetch('/api/channels/'+cid+'/posts/'+pid+'/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});if(r.ok){toast('📌');loadChannelPosts(cid);}}catch(e){}}
 function openChannelPostMedia(){toast('📎 Скоро','warn');}
 
-/* Меню канала */
 function openChannelMenu(){
   if(!curChannelData)return;
   om('mChannelMenu');
   var body=g('channelMenuBody');
   var isOwner=curChannelData.is_owner;
-  var isAdmin=curChannelData.is_admin;
   var h='<h3 style="text-align:center;margin-bottom:14px">⋮ '+esc(curChannelData.name)+'</h3>';
   if(isOwner){
     h+='<div class="sb gr" onclick="cm(\'mChannelMenu\');openEditChannel()">✏️ Редактировать</div>';
@@ -2494,7 +2533,7 @@ async function loadOwnerStats(){
   }catch(e){}
 }
 
-var OWNER_TABS=[{id:'dashboard',l:'📊 Дашборд'},{id:'users',l:'👥 Юзеры'},{id:'economy',l:'💰 Экономика'},{id:'ranks',l:'🏆 Ранги'},{id:'broadcast',l:'📢 Рассылки'},{id:'system',l:'🛠️ Система'},{id:'stats',l:'📈 Статистика'},{id:'logs',l:'📋 Логи'},{id:'live',l:'🔴 LIVE'},{id:'console',l:'💻 Консоль'},{id:'theme',l:'🎨 Темы ВСЕМ'}];
+var OWNER_TABS=[{id:'dashboard',l:'📊 Дашборд'},{id:'users',l:'👥 Юзеры'},{id:'economy',l:'💰 Экономика'},{id:'ranks',l:'🏆 Ранги'},{id:'referrals',l:'🔗 Рефералы'},{id:'broadcast',l:'📢 Рассылки'},{id:'system',l:'🛠️ Система'},{id:'stats',l:'📈 Статистика'},{id:'logs',l:'📋 Логи'},{id:'live',l:'🔴 LIVE'},{id:'console',l:'💻 Консоль'},{id:'theme',l:'🎨 Темы ВСЕМ'}];
 function initOwnerTabs(){var c=g('ownerTabs');if(!c)return;c.innerHTML=OWNER_TABS.map(function(t){return '<button class="own-tab'+(t.id==='dashboard'?' on':'')+'" onclick="ownerTab(\''+t.id+'\',this)">'+t.l+'</button>';}).join('');}
 function ownerTab(tab,ev){
   if(ev){document.querySelectorAll('.own-tab').forEach(function(b){b.classList.remove('on');});ev.classList.add('on');}
@@ -2509,6 +2548,7 @@ function ownerTab(tab,ev){
   else if(tab==='logs')ownerLogsTab(b);
   else if(tab==='live')ownerLive(b);
   else if(tab==='console')ownerConsole(b);
+  else if(tab==='referrals')ownerReferrals(b);
   else if(tab==='theme')ownerThemeTab(b);
 }
 async function ownerDashboard(b){
@@ -2644,6 +2684,56 @@ async function runConsole(){
 }
 function ownerThemeTab(b){
   b.innerHTML='<div style="padding:14px;background:var(--glass);border-radius:14px;margin-bottom:14px"><div style="font-weight:800">🎨 Сменить тему ВСЕМ</div></div><button class="sb" style="background:linear-gradient(135deg,#0a0a12,#1e1530)" onclick="if(confirm(\'Тёмная всем?\'))oPost(\'/api/owner/mass/theme\',{theme:\'dark\'})">🌑 Тёмная</button><button class="sb" style="background:linear-gradient(135deg,#eef0f5,#fff);color:#1a0a2e" onclick="if(confirm(\'Светлая всем?\'))oPost(\'/api/owner/mass/theme\',{theme:\'light\'})">☀️ Светлая</button><button class="sb" style="background:#000;border:1px solid var(--gb)" onclick="if(confirm(\'AMOLED всем?\'))oPost(\'/api/owner/mass/theme\',{theme:\'amoled\'})">⚫ AMOLED</button>';
+}
+
+/* РЕФЕРАЛКА */
+async function ownerReferrals(b){
+  b.innerHTML='<div style="padding:14px;background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(217,70,239,.1));border-radius:14px;margin-bottom:14px"><div style="font-weight:900;color:var(--gold)">🔗 РЕФЕРАЛЬНАЯ ПРОГРАММА</div><div style="font-size:12px;color:var(--tm);margin-top:6px">Реферер +20000🏅 · Новый юзер +500🏅</div></div><button class="sb gn" onclick="createReferral()">➕ Создать ссылку для юзера</button><div id="referralsList" style="margin-top:14px"><div style="text-align:center;padding:20px;color:var(--tm)">Загрузка...</div></div>';
+  loadReferralsList();
+}
+async function loadReferralsList(){
+  var c=g('referralsList');if(!c)return;
+  try{
+    var r=await fetch('/api/referral/list?token='+encodeURIComponent(token));
+    var list=await r.json();
+    if(!Array.isArray(list)||!list.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Пока нет ссылок</div>';return;}
+    var origin=location.origin;
+    c.innerHTML=list.map(function(ref){
+      var fullUrl=origin+'/ref/'+ref.code;
+      return '<div style="background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:12px;margin-bottom:8px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px"><div style="flex:1;min-width:0">'+
+        '<div style="font-weight:800">@'+esc(ref.owner_username)+'</div>'+
+        '<div style="font-size:11px;color:var(--ac3);word-break:break-all;margin-top:4px">'+esc(fullUrl)+'</div>'+
+        '<div style="font-size:11px;color:var(--tm);margin-top:6px">👁️ '+ref.clicks+' · ✅ '+ref.registrations+'</div>'+
+        '</div><div style="display:flex;flex-direction:column;gap:4px">'+
+        '<button class="fbtn" onclick="copyRefUrl(\''+fullUrl+'\')">📋</button>'+
+        '<button class="fbtn rd" onclick="deleteReferral('+ref.id+')">🗑️</button>'+
+        '</div></div></div>';
+    }).join('');
+  }catch(e){c.innerHTML='Ошибка';}
+}
+function copyRefUrl(url){try{navigator.clipboard.writeText(url);toast('📋 Ссылка скопирована');}catch(e){}}
+function createReferral(){
+  prompt2('ID юзера (кому дать рефку)\nНапример: 5','',async function(uid){
+    if(!uid||!/^\d+$/.test(uid.trim())){toast('⚠️ ID цифрами','warn');return;}
+    try{
+      var r=await fetch('/api/referral/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,owner_id:parseInt(uid.trim())})});
+      var d=await r.json();
+      if(r.ok){
+        var url=location.origin+'/ref/'+d.code;
+        toast('✅ Ссылка: '+url);
+        if(d.existing)toast('(уже была)','warn');
+        loadReferralsList();
+      }else toast('❌ '+(d.detail||''),'err');
+    }catch(e){toast('❌','err');}
+  });
+}
+async function deleteReferral(id){
+  if(!confirm('Удалить ссылку?'))return;
+  try{
+    var r=await fetch('/api/referral/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,id:id})});
+    if(r.ok){toast('🗑️');loadReferralsList();}
+  }catch(e){}
 }
 
 /* ГРУППЫ */
