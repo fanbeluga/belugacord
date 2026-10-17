@@ -1108,6 +1108,7 @@ input,textarea,select{font-family:inherit}
 <!-- ===== ЗАПИСЬ ВИДЕО-КРУЖКА ===== -->
 <div id="vnoteRec">
   <button class="cancel-btn" onclick="cancelVnote()">✕</button>
+  <button class="cancel-btn" style="right:80px;display:flex;align-items:center;justify-content:center;z-index:10" onclick="flipVnoteCam()">🔄</button>
   <div class="preview">
     <video id="vnotePreview" autoplay playsinline muted></video>
   </div>
@@ -1682,10 +1683,27 @@ function seekVoice(id,ev){var v=voicePlayers[id];if(!v||!v.a.duration)return;var
 
 /* VIDEO NOTE */
 var vnoteStream=null,vnoteRec=null,vnoteChunks=[],vnoteStart=0,vnoteTimerInt=null,vnoteMaxTimer=null;
+var vnoteFacing='user';
+async function flipVnoteCam(){
+  vnoteFacing=vnoteFacing==='user'?'environment':'user';
+  try{
+    if(vnoteStream)vnoteStream.getTracks().forEach(function(t){t.stop();});
+    vnoteStream=await navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:vnoteFacing,width:{ideal:480},height:{ideal:480}}});
+    var pv=g('vnotePreview');
+    if(pv){
+      pv.srcObject=vnoteStream;
+      pv.style.transform=vnoteFacing==='user'?'scaleX(-1)':'none';
+    }
+    if(vnoteRec){
+      toast('⏹️ Останови запись перед сменой камеры','warn');
+    }
+  }catch(e){toast('❌ '+e.message,'err');}
+}
 async function openVnoteRec(){
   if(curType==='none'){toast('⚠️','warn');return;}
-  try{vnoteStream=await navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:'user',width:{ideal:480},height:{ideal:480}}});}catch(e){toast('❌ камера','err');return;}
-  var pv=g('vnotePreview');if(pv)pv.srcObject=vnoteStream;
+  vnoteFacing='user';
+  try{vnoteStream=await navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:vnoteFacing,width:{ideal:480},height:{ideal:480}}});}catch(e){toast('❌ камера','err');return;}
+  var pv=g('vnotePreview');if(pv){pv.srcObject=vnoteStream;pv.style.transform='scaleX(-1)';}
   g('vnoteRec').classList.add('open');
   g('vnoteRec').classList.remove('recording');
   g('vnoteRecBtn').textContent='📹';
@@ -1969,12 +1987,46 @@ async function startCall(pid,pname,pav,ctype){
   wsSend({type:'call_invite',to_user:pid,call_type:ctype});
   openCallUI();
 }
-function openCallUI(){cSt.active=true;om('mCall');if(g('callName'))g('callName').textContent=cSt.peerName||'...';if(g('callSt'))g('callSt').textContent='⏳ Подключение...';var av=g('callAv');if(av){if(cSt.peerAvatar)av.innerHTML='<img src="'+esc(cSt.peerAvatar)+'" style="width:100%;height:100%;object-fit:cover">';else av.textContent=(cSt.peerName||'?').charAt(0).toUpperCase();}}
+async function openCallUI(){
+  cSt.active=true;
+  om('mCall');
+  if(g('callName'))g('callName').textContent=cSt.peerName||'...';
+  if(g('callSt'))g('callSt').textContent='⏳ Подключение...';
+  var av=g('callAv');
+  if(av){
+    if(cSt.peerAvatar)av.innerHTML='<img src="'+esc(cSt.peerAvatar)+'" style="width:100%;height:100%;object-fit:cover">';
+    else av.textContent=(cSt.peerName||'?').charAt(0).toUpperCase();
+  }
+  if(g('cbCam'))g('cbCam').classList.toggle('on',cSt.camOn);
+  if(g('cbMic'))g('cbMic').classList.toggle('mut',!cSt.micOn);
+  if(g('callTime'))g('callTime').textContent='00:00';
+  try{
+    if(!cLS){
+      var constraints={audio:true,video:cSt.camOn?{facingMode:'user',width:{ideal:1280},height:{ideal:720}}:false};
+      cLS=await navigator.mediaDevices.getUserMedia(constraints);
+      if(g('localVideo')){
+        g('localVideo').srcObject=cLS;
+        g('localVideo').style.display=cSt.camOn?'block':'none';
+      }
+    }
+  }catch(e){
+    toast('❌ Микрофон/камера: '+e.message,'err');
+  }
+}
 function handleIncomingCall(d){if(cSt.active){wsSend({type:'call_reject',call_id:d.call_id});return;}incCall=d;var av=g('incAv');if(av){if(d.from_avatar)av.innerHTML='<img src="'+esc(d.from_avatar)+'" style="width:100%;height:100%;object-fit:cover">';else av.textContent=(d.from_name||'?').charAt(0).toUpperCase();}if(g('incName'))g('incName').textContent=d.from_name||'';if(g('incType'))g('incType').textContent=(d.call_type==='video'?'📹':'📞');om('mCallIncoming');beep(660,.4,.3);}
 async function acceptCall(){if(!incCall)return;var i=incCall;cm('mCallIncoming');cSt.isCaller=false;cSt.callId=i.call_id;cSt.type=i.call_type;cSt.peerId=i.from_user;cSt.peerName=i.from_name;cSt.peerAvatar=i.from_avatar;cSt.camOn=(i.call_type==='video');cSt.micOn=true;openCallUI();wsSend({type:'call_accept',call_id:i.call_id});incCall=null;}
 function rejectCall(){if(!incCall)return;wsSend({type:'call_reject',call_id:incCall.call_id});cm('mCallIncoming');incCall=null;}
 async function handleAccepted(){if(!cSt.active)return;if(cSt.isCaller&&!cP){try{await startCaller();}catch(e){toast('❌ '+e.message,'err');endCall();}}}
-async function getLS(){var c={audio:true,video:cSt.camOn?{width:{ideal:1280},height:{ideal:720}}:false};cLS=await navigator.mediaDevices.getUserMedia(c);if(g('localVideo')){g('localVideo').srcObject=cLS;g('localVideo').style.display=cSt.camOn?'block':'none';}return cLS;}
+async function getLS(){
+  if(cLS)return cLS;
+  var c={audio:true,video:cSt.camOn?{facingMode:'user',width:{ideal:1280},height:{ideal:720}}:false};
+  cLS=await navigator.mediaDevices.getUserMedia(c);
+  if(g('localVideo')){
+    g('localVideo').srcObject=cLS;
+    g('localVideo').style.display=cSt.camOn?'block':'none';
+  }
+  return cLS;
+}
 function makePC(){cP=new RTCPeerConnection(ICE);cP.onicecandidate=function(e){if(e.candidate&&cSt.peerId)wsSend({type:'webrtc_ice',to_user:cSt.peerId,call_id:cSt.callId,candidate:e.candidate});};cP.ontrack=function(e){var rv=g('remoteVideo');if(rv&&rv.srcObject!==e.streams[0])rv.srcObject=e.streams[0];if(g('callSt'))g('callSt').textContent='🟢';if(!cSt.startedAt){cSt.startedAt=Date.now();clearInterval(cSt.timer);cSt.timer=setInterval(updCallTimer,1000);}};cP.onconnectionstatechange=function(){var st=cP.connectionState;if(st==='failed'||st==='closed')setTimeout(function(){if(cSt.active)endCall();},1200);};return cP;}
 async function startCaller(){await getLS();makePC();cLS.getTracks().forEach(function(t){cP.addTrack(t,cLS);});var o=await cP.createOffer();await cP.setLocalDescription(o);wsSend({type:'webrtc_offer',to_user:cSt.peerId,call_id:cSt.callId,sdp:o});}
 async function onOffer(d){if(!cSt.active||cSt.callId!==d.call_id)return;try{if(!cP){await getLS();makePC();cLS.getTracks().forEach(function(t){cP.addTrack(t,cLS);});}await cP.setRemoteDescription(new RTCSessionDescription(d.sdp));var a=await cP.createAnswer();await cP.setLocalDescription(a);wsSend({type:'webrtc_answer',to_user:cSt.peerId,call_id:cSt.callId,sdp:a});if(!cSt.startedAt){cSt.startedAt=Date.now();clearInterval(cSt.timer);cSt.timer=setInterval(updCallTimer,1000);}}catch(e){toast('❌','err');}}
@@ -1982,10 +2034,88 @@ async function onAnswer(d){if(!cP)return;try{await cP.setRemoteDescription(new R
 async function onIce(d){if(!cP||!d.candidate)return;try{await cP.addIceCandidate(new RTCIceCandidate(d.candidate));}catch(e){}}
 function updCallTimer(){if(!cSt.startedAt)return;var s=Math.floor((Date.now()-cSt.startedAt)/1000);if(g('callTime'))g('callTime').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function tglMic(){if(!cLS)return;cSt.micOn=!cSt.micOn;cLS.getAudioTracks().forEach(function(t){t.enabled=cSt.micOn;});if(g('cbMic'))g('cbMic').classList.toggle('mut',!cSt.micOn);}
-async function tglCam(){if(!cSt.active)return;cSt.camOn=!cSt.camOn;if(g('cbCam'))g('cbCam').classList.toggle('on',cSt.camOn);}
-async function tglScr(){toast('🖥️ Скоро','warn');}
-function endCall(){var d=cSt.startedAt?Math.floor((Date.now()-cSt.startedAt)/1000):0;if(cSt.callId)wsSend({type:'call_end',call_id:cSt.callId,duration:d});cleanupCall();}
-function cleanupCall(){try{if(cP)cP.close();}catch(e){}cP=null;try{if(cLS)cLS.getTracks().forEach(function(t){t.stop();});}catch(e){}cLS=null;clearInterval(cSt.timer);cSt={active:false,callId:null,peerId:null,peerName:null,peerAvatar:null,type:'audio',isCaller:false,micOn:true,camOn:false,screenOn:false,startedAt:0,timer:null};cm('mCall');cm('mCallIncoming');var lv=g('localVideo');if(lv){lv.style.display='none';lv.srcObject=null;}var rv=g('remoteVideo');if(rv)rv.srcObject=null;incCall=null;}
+async function tglCam(){
+  if(!cSt.active)return;
+  cSt.camOn=!cSt.camOn;
+  if(g('cbCam'))g('cbCam').classList.toggle('on',cSt.camOn);
+  if(!cP)return;
+  var sender=cP.getSenders().find(function(x){return x.track&&x.track.kind==='video';});
+  if(cSt.camOn){
+    try{
+      var vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}}});
+      var nt=vs.getVideoTracks()[0];
+      if(sender)await sender.replaceTrack(nt);
+      else if(cLS)cP.addTrack(nt,cLS);
+      if(!cLS)cLS=vs;
+      else{
+        var old=cLS.getVideoTracks()[0];
+        if(old){cLS.removeTrack(old);old.stop();}
+        cLS.addTrack(nt);
+      }
+      if(g('localVideo')){
+        g('localVideo').srcObject=cLS;
+        g('localVideo').style.display='block';
+      }
+    }catch(e){
+      toast('❌ Камера: '+e.message,'err');
+      cSt.camOn=false;
+      if(g('cbCam'))g('cbCam').classList.remove('on');
+    }
+  }else{
+    if(sender)await sender.replaceTrack(null);
+    if(cLS)cLS.getVideoTracks().forEach(function(t){t.stop();cLS.removeTrack(t);});
+    if(g('localVideo'))g('localVideo').style.display='none';
+  }
+}
+async function tglScr(){
+  if(!cP){toast('⚠️ Не в звонке','warn');return;}
+  if(cSt.screenOn){
+    if(cSS){cSS.getTracks().forEach(function(t){t.stop();});cSS=null;}
+    cSt.screenOn=false;
+    if(g('cbScr'))g('cbScr').classList.remove('on');
+    var s=cP.getSenders().find(function(x){return x.track&&x.track.kind==='video';});
+    if(s)await s.replaceTrack(null);
+  }else{
+    try{
+      cSS=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30},audio:false});
+      cSt.screenOn=true;
+      if(g('cbScr'))g('cbScr').classList.add('on');
+      var st=cSS.getVideoTracks()[0];
+      var s2=cP.getSenders().find(function(x){return x.track&&x.track.kind==='video';});
+      if(s2)await s2.replaceTrack(st);
+      else if(cLS)cP.addTrack(st,cSS);
+      if(g('localVideo')){
+        g('localVideo').srcObject=cSS;
+        g('localVideo').style.display='block';
+      }
+      st.onended=function(){if(cSt.screenOn)tglScr();};
+    }catch(e){
+      toast('❌ Экран: '+e.message,'err');
+    }
+  }
+}
+function endCall(){
+  var d=cSt.startedAt?Math.floor((Date.now()-cSt.startedAt)/1000):0;
+  if(cSt.callId)wsSend({type:'call_end',call_id:cSt.callId,duration:d});
+  cleanupCall();
+}
+function cleanupCall(){
+  try{if(cP)cP.close();}catch(e){}
+  cP=null;
+  try{if(cLS)cLS.getTracks().forEach(function(t){t.stop();});}catch(e){}
+  cLS=null;
+  try{if(cSS)cSS.getTracks().forEach(function(t){t.stop();});}catch(e){}
+  cSS=null;
+  clearInterval(cSt.timer);
+  cSt={active:false,callId:null,peerId:null,peerName:null,peerAvatar:null,type:'audio',isCaller:false,micOn:true,camOn:false,screenOn:false,startedAt:0,timer:null};
+  cm('mCall');cm('mCallIncoming');
+  var lv=g('localVideo');if(lv){lv.style.display='none';lv.srcObject=null;}
+  var rv=g('remoteVideo');if(rv)rv.srcObject=null;
+  if(g('cbMic'))g('cbMic').classList.remove('mut');
+  if(g('cbCam'))g('cbCam').classList.remove('on');
+  if(g('cbScr'))g('cbScr').classList.remove('on');
+  incCall=null;
+}
 function startCallFromChat(){if(curPeer){var t=confirm('📹 Видео?')?'video':'audio';startCall(curPeer.id,curPeer.name,curPeer.avatar,t);}}
 
 function bindInputOnce(){
