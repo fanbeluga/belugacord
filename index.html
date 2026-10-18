@@ -507,6 +507,9 @@ body.skin-ghost{--ac:#a855f7;--ac2:#6366f1}
 @media (min-width:901px){
   .cw-back{display:none!important}
 }
+.cw-post-in{padding:10px 12px 14px;background:var(--bg3);border-top:1px solid var(--br);padding-bottom:calc(14px + env(safe-area-inset-bottom));flex-shrink:0;min-height:80px}
+.cw-post-in textarea{color:var(--tx) !important;background:transparent !important;border:none !important;outline:none !important}
+.cw-post-in .cw-ib{background:var(--glass);border:1px solid var(--gb);border-radius:22px;display:flex;align-items:flex-end;padding:6px 12px;gap:6px}
 </style>
 </head>
 <body>
@@ -3089,9 +3092,32 @@ function initDrag(container,img,onSave){
   var isD=false,sx=0,sy=0,px=50,py=50;
   var parts=(img.style.objectPosition||'50% 50%').split(' ');
   px=parseFloat(parts[0])||50;py=parseFloat(parts[1])||50;
-  container.onpointerdown=function(e){if(img.style.display==='none')return;isD=true;sx=e.clientX;sy=e.clientY;container.setPointerCapture(e.pointerId);};
-  container.onpointermove=function(e){if(!isD)return;var dx=e.clientX-sx,dy=e.clientY-sy;var r=container.getBoundingClientRect();var nx=Math.max(0,Math.min(100,px-dx/r.width*100));var ny=Math.max(0,Math.min(100,py-dy/r.height*100));img.style.objectPosition=nx+'% '+ny+'%';};
-  container.onpointerup=function(e){if(!isD)return;isD=false;var op=img.style.objectPosition||'50% 50%';onSave(op);};
+  container.style.touchAction='none';
+  container.addEventListener('pointerdown',function(e){
+    if(img.style.display==='none')return;
+    isD=true;sx=e.clientX;sy=e.clientY;
+    try{container.setPointerCapture(e.pointerId);}catch(ex){}
+    e.preventDefault();
+  });
+  container.addEventListener('pointermove',function(e){
+    if(!isD)return;
+    var dx=e.clientX-sx,dy=e.clientY-sy;
+    var r=container.getBoundingClientRect();
+    var nx=Math.max(0,Math.min(100,px-dx/r.width*100));
+    var ny=Math.max(0,Math.min(100,py-dy/r.height*100));
+    img.style.objectPosition=nx+'% '+ny+'%';
+  });
+  container.addEventListener('pointerup',function(e){
+    if(!isD)return;
+    isD=false;
+    var op=img.style.objectPosition||'50% 50%';
+    onSave(op);
+  });
+  container.addEventListener('pointercancel',function(){
+    isD=false;
+    var op=img.style.objectPosition||'50% 50%';
+    onSave(op);
+  });
 }
 async function uploadChannelAvatar(input){
   var f=input.files[0];if(!f||!curChannel)return;
@@ -3664,13 +3690,46 @@ function closeHouse(){
 function renderHouseItems(){
   var box=g('houseItems');if(!box)return;
   box.innerHTML='';
-  if(!houseData||!houseData.items||!houseData.items.length){box.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;text-align:center;padding:20px">Дом пуст<br><br>Купи мебель в магазине 🛒</div>';return;}
+  if(!houseData||!houseData.items||!houseData.items.length){
+    box.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;text-align:center;padding:20px">Дом пуст<br><br>Купи мебель в магазине 🛒</div>';
+    return;
+  }
   var cat={"sofa":"🛋️","table":"🪑","bed":"🛏️","tv":"📺","plant":"🪴","lamp":"💡","carpet":"🟫","fridge":"🧊","flashlight":"🔦"};
   houseData.items.forEach(function(it){
-    var el=document.createElement('div');el.className='house-item';
+    var el=document.createElement('div');
+    el.className='house-item';
     el.style.left=it.x+'%';el.style.top=it.y+'%';
+    el.style.touchAction='none';
     el.textContent=cat[it.item_id]||'📦';
-    el.onclick=function(){toast(cat[it.item_id]||it.item_id,'warn');};
+    
+    // таскание предмета
+    var isD=false,sx=0,sy=0,origX=it.x,origY=it.y;
+    el.addEventListener('pointerdown',function(e){
+      isD=true;sx=e.clientX;sy=e.clientY;
+      origX=parseFloat(el.style.left)||50;
+      origY=parseFloat(el.style.top)||50;
+      try{el.setPointerCapture(e.pointerId);}catch(ex){}
+      e.preventDefault();e.stopPropagation();
+    });
+    el.addEventListener('pointermove',function(e){
+      if(!isD)return;
+      var parentRect=box.getBoundingClientRect();
+      var dx=(e.clientX-sx)/parentRect.width*100;
+      var dy=(e.clientY-sy)/parentRect.height*100;
+      var nx=Math.max(5,Math.min(95,origX+dx));
+      var ny=Math.max(5,Math.min(95,origY+dy));
+      el.style.left=nx+'%';el.style.top=ny+'%';
+    });
+    el.addEventListener('pointerup',function(e){
+      if(!isD)return;
+      isD=false;
+      var nx=parseFloat(el.style.left)||50;
+      var ny=parseFloat(el.style.top)||50;
+      // сохраняем на сервере
+      fetch('/api/house/place',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,item_row_id:it.id,x:nx,y:ny,rot:0})}).then(function(){toast('💾 '+cat[it.item_id],'warn');}).catch(function(){});
+    });
+    el.addEventListener('pointercancel',function(){isD=false;});
+    
     box.appendChild(el);
   });
 }
