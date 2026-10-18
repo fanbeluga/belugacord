@@ -210,7 +210,6 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS achievement_log(user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,key VARCHAR(32),got_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(user_id,key))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS chat_drafts(user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,chat_type VARCHAR(16),chat_id INTEGER,text TEXT,updated_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(user_id,chat_type,chat_id))""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS group_call_members(call_id VARCHAR(32),user_id INTEGER,joined_at TIMESTAMPTZ DEFAULT NOW(),PRIMARY KEY(call_id,user_id))""")
-        
         # ============ 4.0 ЧАСТЬ 1/4: ТАБЛИЦЫ ============
         await conn.execute("""CREATE TABLE IF NOT EXISTS user_positions(user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,x REAL DEFAULT 50,y REAL DEFAULT 50,location VARCHAR(32) DEFAULT 'street',house_id INTEGER,updated_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS houses(id SERIAL PRIMARY KEY,owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,name VARCHAR(64) DEFAULT 'Мой дом',bg VARCHAR(64) DEFAULT 'room1',has_flashlight BOOLEAN DEFAULT FALSE,created_at TIMESTAMPTZ DEFAULT NOW())""")
@@ -245,7 +244,6 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS blind_zones(id SERIAL PRIMARY KEY,from_user INTEGER REFERENCES users(id) ON DELETE CASCADE,text TEXT,answers TEXT DEFAULT '[]',created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS fate_buttons(id SERIAL PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,effect VARCHAR(32),claimed BOOLEAN DEFAULT FALSE,created_at TIMESTAMPTZ DEFAULT NOW())""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS klondike(id SERIAL PRIMARY KEY,x REAL,y REAL,coins INTEGER DEFAULT 500,claimed BOOLEAN DEFAULT FALSE,claimed_by INTEGER,created_at TIMESTAMPTZ DEFAULT NOW())""")
-        
         migrations=[
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS hide_typing BOOLEAN DEFAULT FALSE",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS nick_gradient VARCHAR(64)",
@@ -547,7 +545,6 @@ async def register(data:dict):
                     await conn.execute("UPDATE referrals SET registrations=registrations+1 WHERE code=$1",ref_code)
                     await manager.send_to(ref["owner_id"],{"type":"referral_bonus","amount":20000,"new_username":raw_u})
                 except Exception as e: print(f"[referral] {e}")
-        # 4.0: создать позицию на улице
         try: await conn.execute("INSERT INTO user_positions(user_id,x,y,location) VALUES($1,50,50,'street') ON CONFLICT DO NOTHING",row["id"])
         except: pass
     return {"token":make_token(row["id"],row["username"]),"user":user_public(row,row["id"])}
@@ -584,6 +581,7 @@ async def owner_verify(data:dict):
     pw=data.get("password") or ""
     if pw!=OWNER_PASSWORD: raise HTTPException(403,"Неверный пароль")
     return {"ok":True}
+
 @app.post("/api/update_profile")
 async def update_profile(data:dict):
     user=await get_current_user(data.get("token"))
@@ -1477,6 +1475,7 @@ async def message_reaction(data:dict):
             await conn.execute("UPDATE group_messages SET reactions=$1 WHERE id=$2",json.dumps(rx),mid)
     await manager.broadcast({"type":"reaction_update","id":mid,"reactions":rx,"chat_type":chat_type})
     return {"ok":True,"reactions":rx}
+
 # ============ ЧАТЫ: PIN/ARCHIVE/MUTE ============
 @app.post("/api/chats/pin")
 async def chat_pin(data:dict):
@@ -2013,6 +2012,7 @@ async def ranks_godmode_assign(data:dict):
     await log_admin(user["id"],"GODMODE_rank",uid,f"{target['username']} → {r['name']}")
     await manager.send_to(uid,{"type":"rank_changed","rank":{"id":rid,"name":r["name"],"emoji":r["emoji"],"color":r["color"]}})
     return {"ok":True,"rank_id":rid}
+
 # ============ МАССОВЫЕ ============
 @app.post("/api/owner/mass/give")
 async def owner_mass_give(data:dict):
@@ -2516,7 +2516,7 @@ async def check_channel_username(u:str,token:str):
         u3=await conn.fetchval("SELECT 1 FROM groups WHERE username=$1",u)
         if u3: return {"available":False,"reason":"Занято группой"}
     return {"available":True}
-# ============ 4.0 ЧАСТЬ 1/4: УЛИЦА ============
+# ============ 4.0: УЛИЦА ============
 @app.get("/api/street/state")
 async def street_state_get(token:str):
     user=await get_current_user(token)
@@ -2652,10 +2652,13 @@ async def house_buy(data:dict):
     async with p.acquire() as conn:
         it=await conn.fetchrow("SELECT * FROM furniture_catalog WHERE item_id=$1",item_id)
         if not it: raise HTTPException(404,"Нет такого")
-        if (user.get("coins") or 0)<it["price"]: raise HTTPException(400,"Мало коинов")
         h=await conn.fetchrow("SELECT id FROM houses WHERE owner_id=$1",user["id"])
         if not h:
             h=await conn.fetchrow("INSERT INTO houses(owner_id,name,bg) VALUES($1,'Мой дом','room1') RETURNING id",user["id"])
+        if item_id!="flashlight":
+            existing=await conn.fetchval("SELECT 1 FROM house_items WHERE house_id=$1 AND item_id=$2",h["id"],item_id)
+            if existing: raise HTTPException(400,"Уже есть")
+        if (user.get("coins") or 0)<it["price"]: raise HTTPException(400,"Мало коинов")
         await conn.execute("UPDATE users SET coins=coins-$1 WHERE id=$2",it["price"],user["id"])
         await conn.execute("INSERT INTO house_items(house_id,item_id) VALUES($1,$2)",h["id"],item_id)
         if item_id=="flashlight":
@@ -2772,8 +2775,6 @@ async def lootboxes_list(token:str):
         if not boxes:
             for k,v in LOOTBOX_DEFAULT.items():
                 b=await conn.fetchrow("INSERT INTO lootboxes(name,price,emoji) VALUES($1,$2,$3) RETURNING *",v["name"],v["price"],v["emoji"])
-                for it in [("title","legend","Легендарка","💠","legend",1.0),("frame","gold","Золотая рамка","👑","gold",5.0),("coins","500","500 коинов","🏅",500,30.0)]:
-                    pass
             boxes=await conn.fetch("SELECT * FROM lootboxes WHERE is_active=TRUE")
     return [{"id":b["id"],"name":b["name"],"price":b["price"],"emoji":b["emoji"]} for b in boxes]
 
@@ -2855,25 +2856,6 @@ async def family_deposit(data:dict):
         await conn.execute("UPDATE users SET coins=coins-$1 WHERE id=$2",amount,user["id"])
         await conn.execute("UPDATE families SET wallet=wallet+$1 WHERE id=$2",amount,fm["family_id"])
     return {"ok":True}
-
-@app.get("/api/family/tree")
-async def family_tree(token:str):
-    user=await get_current_user(token)
-    if not user: raise HTTPException(401,"Не авторизован")
-    p=await get_pool()
-    async with p.acquire() as conn:
-        fm=await conn.fetchrow("SELECT family_id FROM family_members WHERE user_id=$1",user["id"])
-        if not fm: return {"nodes":[],"edges":[]}
-        members=await conn.fetch("""SELECT fm.role,u.id,u.username,u.display_name FROM family_members fm JOIN users u ON u.id=fm.user_id WHERE fm.family_id=$1""",fm["family_id"])
-    nodes=[{"id":m["id"],"name":m["display_name"] or m["username"],"role":m["role"]} for m in members]
-    edges=[]
-    f=await get_current_pool_family(fm["family_id"])
-    return {"nodes":nodes,"edges":edges}
-
-async def get_current_pool_family(fid):
-    p=await get_pool()
-    async with p.acquire() as conn:
-        return await conn.fetchrow("SELECT owner_id FROM families WHERE id=$1",fid)
 
 # ============ 4.0: ПИТОМЦЫ ============
 @app.get("/api/pets/my")
@@ -3121,6 +3103,7 @@ async def confessions_my(token:str):
     async with p.acquire() as conn:
         rows=await conn.fetch("SELECT * FROM confessions WHERE to_user=$1 ORDER BY id DESC LIMIT 100",user["id"])
     return [{"id":r["id"],"text":r["text"],"read_at":_iso(r["read_at"]),"created_at":_iso(r["created_at"])} for r in rows]
+
 # ============ 4.0: ТАЙНЫЙ САНТА ============
 @app.post("/api/santa/create")
 async def santa_create(data:dict):
@@ -3428,7 +3411,6 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 await manager.send_to(uid,{"type":"error","detail":"✈️ Авиарежим"})
                 continue
 
-            # ЗВОНКИ
             if t=="call_invite":
                 to_id=int(data.get("to_user",0))
                 call_type=data.get("call_type","audio")
@@ -3478,8 +3460,6 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 elif t=="webrtc_answer": payload["sdp"]=data.get("sdp")
                 else: payload["candidate"]=data.get("candidate")
                 await manager.send_to(to_id,payload)
-
-            # DM
             elif t=="dm":
                 to_id=int(data.get("to_user",0));text=(data.get("text") or "")[:MAX_TEXT]
                 furl=data.get("file_url");tid=data.get("temp_id");msg_kind=data.get("msg_kind","text")
@@ -3499,8 +3479,6 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 payload={"type":"dm","id":msg["id"],"from_user":uid,"to_user":to_id,"username":user["username"],"display_name":dn,"avatar":user.get("avatar"),"gif_avatar":user.get("gif_avatar"),"text":text,"file_url":furl,"file_size":fsize,"msg_kind":msg_kind,"voice_duration":voice_dur,"reply_to_id":reply_to,"created_at":_iso(msg["created_at"]),"temp_id":tid}
                 if not blocked: await manager.send_to(to_id,payload)
                 await manager.send_to(uid,payload)
-
-            # ГРУППА
             elif t=="group_msg":
                 gid=int(data.get("group_id",0));text=(data.get("text") or "")[:MAX_TEXT]
                 furl=data.get("file_url");tid=data.get("temp_id");msg_kind=data.get("msg_kind","text")
@@ -3516,7 +3494,6 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                 dn=user.get("display_name") or user["username"]
                 payload={"type":"group_msg","id":msg["id"],"group_id":gid,"user_id":uid,"username":user["username"],"display_name":dn,"avatar":user.get("avatar"),"gif_avatar":user.get("gif_avatar"),"text":text,"file_url":furl,"file_size":fsize,"msg_kind":msg_kind,"voice_duration":voice_dur,"reply_to_id":reply_to,"created_at":_iso(msg["created_at"]),"temp_id":tid}
                 for m in members: await manager.send_to(m["user_id"],payload)
-
             elif t=="typing":
                 to_id=int(data.get("to_user",0))
                 gid=int(data.get("group_id",0))
@@ -3529,15 +3506,11 @@ async def websocket_endpoint(ws:WebSocket,token:str):
                         members=await conn.fetch("SELECT user_id FROM group_members WHERE group_id=$1",gid)
                     for m in members:
                         if m["user_id"]!=uid: await manager.send_to(m["user_id"],payload)
-
-            # 4.0: ШЕПОТ
             elif t=="whisper_ice":
                 to_id=int(data.get("to_user",0))
                 wid=data.get("whisper_id")
                 cand=data.get("candidate")
                 if to_id: await manager.send_to(to_id,{"type":"whisper_ice","from_user":uid,"whisper_id":wid,"candidate":cand})
-
-            # 4.0: БОМБА (таймер)
             elif t=="bomb_tick":
                 bid=int(data.get("bomb_id",0))
                 if bid in active_bombs:
