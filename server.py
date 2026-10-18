@@ -638,7 +638,7 @@ async def changelog():
 
 @app.get("/api/version")
 async def version():
-    return {"version":CURRENT_VERSION,"name"НЕ ВОШЕДШЕЕ?","emoji":"🔥😈"}
+    return {"version":CURRENT_VERSION,"name":"НЕ ВОШЕДШЕЕ?","emoji":"🔥😈"}
 # ============ ЮЗЕРЫ ============
 @app.post("/api/register")
 async def register(data:dict):
