@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a12">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>BelugaCord 3.6 🐱</title>
+<title>BelugaCord 4.0 🔥😈</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon-192x192.png">
 <style>
@@ -30,7 +30,7 @@ input,textarea,select{font-family:inherit}
 .lg-in{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;padding:40px 24px;overflow-y:auto;justify-content:center;max-width:440px;margin:0 auto;width:100%}
 .lg-logo{text-align:center;font-size:64px;margin-bottom:6px;animation:lgF 3s ease-in-out infinite}
 @keyframes lgF{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.lg-title{text-align:center;font-size:22px;font-weight:900;letter-spacing:4px;margin-bottom:26px;background:linear-gradient(135deg,#d946ef,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lg-title{text-align:center;font-size:22px;font-weight:900;letter-spacing:4px;margin-bottom:26px;background:linear-gradient(135deg,#ff6b1a,#dc2626,#d946ef);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .lg-tabs{display:flex;gap:4px;margin-bottom:16px;padding:4px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .lg-tab{flex:1;padding:12px;border-radius:10px;color:#9d8fc4;font-weight:800;font-size:13px}
 .lg-tab.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
@@ -45,7 +45,7 @@ input,textarea,select{font-family:inherit}
 #topBar{height:var(--hd);background:linear-gradient(180deg,var(--bg3),rgba(30,21,48,.95));border-bottom:1px solid var(--br);display:flex;align-items:center;padding:0 6px;flex-shrink:0;backdrop-filter:blur(10px);z-index:20;padding-top:env(safe-area-inset-top)}
 .tb-logo{font-size:22px;padding:8px;user-select:none;cursor:pointer}
 .tb-tabs{flex:1;display:flex;gap:2px;justify-content:center;align-items:center}
-.tb-tab{flex:1;max-width:96px;padding:6px 2px;border-radius:12px;color:var(--td);font-weight:800;font-size:10px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.tb-tab{flex:1;max-width:88px;padding:6px 2px;border-radius:12px;color:var(--td);font-weight:800;font-size:10px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
 .tb-tab .ic{font-size:20px;line-height:1}
 .tb-tab.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
 .tb-tab .badge{position:absolute;top:0;right:6px;background:#f43f5e;color:#fff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:8px;min-width:14px;text-align:center;line-height:1.4}
@@ -362,6 +362,103 @@ input,textarea,select{font-family:inherit}
 .img-editor img{width:100%;height:100%;object-fit:cover;user-select:none;pointer-events:none}
 .img-editor.round{aspect-ratio:1;border-radius:50%;max-width:200px;margin:0 auto}
 
+/* ========== 4.0 ЧАСТЬ 1/4: УЛИЦА, ДОМ, ЭКОНОМИКА, СОЦИАЛКА ========== */
+#streetScreen{position:fixed;inset:0;display:none;z-index:100;overflow:hidden;touch-action:none}
+#streetScreen.open{display:block}
+.street-bg{position:absolute;inset:0;background:linear-gradient(180deg,#1a0a2e 0%,#2a1a3e 40%,#0a0a12 100%);transition:filter .5s}
+.street-bg.night{filter:brightness(0.35) hue-rotate(200deg)}
+.street-bg::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 30%,rgba(217,70,239,.15) 0,transparent 40%),radial-gradient(circle at 80% 70%,rgba(34,211,238,.1) 0,transparent 40%);pointer-events:none}
+.street-user{position:absolute;width:56px;height:56px;transform:translate(-50%,-50%);transition:left .15s,top .15s;z-index:5;cursor:pointer}
+.street-user .su-av{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;overflow:hidden;border:2px solid var(--ac);box-shadow:0 0 12px rgba(217,70,239,.5);pointer-events:none}
+.street-user .su-av img{width:100%;height:100%;object-fit:cover}
+.street-user .su-name{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-size:9px;font-weight:800;color:#fff;text-shadow:0 2px 6px #000;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.street-user.me .su-av{border-color:#22d3ee;box-shadow:0 0 20px rgba(34,211,238,.7)}
+.street-user .su-tag{position:absolute;top:-4px;right:-4px;font-size:12px;background:var(--ac);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.street-rain{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .5s}
+.street-rain.on{opacity:1}
+.street-rain .drop{position:absolute;width:2px;height:15px;background:linear-gradient(180deg,transparent,#22d3ee);animation:rainFall .6s linear infinite}
+@keyframes rainFall{from{transform:translateY(-20px)}to{transform:translateY(110vh)}}
+.street-top{position:absolute;top:0;left:0;right:0;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(10,10,18,.9),transparent);z-index:10}
+.street-top .st-close{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.street-top .st-title{flex:1;color:#fff;font-weight:900;font-size:15px;text-shadow:0 2px 6px #000}
+.street-top .st-act{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.street-top .st-act.on{background:linear-gradient(135deg,var(--ac),var(--ac2))}
+.street-vote{position:absolute;bottom:140px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);padding:14px 22px;border-radius:20px;color:#fff;font-weight:800;z-index:11;display:none;border:2px solid var(--ac)}
+.street-vote.on{display:block}
+.street-vote .sv-opts{display:flex;gap:8px;margin-top:8px}
+.street-vote .sv-opt{padding:8px 14px;border-radius:12px;background:var(--glass);border:1px solid var(--gb);font-size:12px;cursor:pointer;color:#fff}
+.street-vote .sv-opt.mine{background:linear-gradient(135deg,var(--ac),var(--ac2));border-color:transparent}
+.street-joy{position:absolute;bottom:20px;left:20px;width:120px;height:120px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.2);display:none;z-index:9;touch-action:none}
+.street-joy.on{display:block}
+.street-joy .joy-knob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(217,70,239,.8),rgba(139,92,246,.6));border:2px solid #fff;pointer-events:none}
+.house-wrap{position:fixed;inset:0;display:none;z-index:100;overflow:hidden;background:linear-gradient(180deg,#2a1a3e,#1a0a2e)}
+.house-wrap.open{display:block}
+.house-bg{position:absolute;inset:0;background:linear-gradient(180deg,#4a3a5e,#2a1a3e);overflow:hidden}
+.house-bg.dark{filter:brightness(0.3)}
+.house-bg::before{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.3))}
+.house-item{position:absolute;font-size:40px;transform:translate(-50%,-50%);cursor:pointer;user-select:none;touch-action:none;z-index:5;transition:transform .2s;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+.house-item:active{transform:translate(-50%,-50%) scale(1.1)}
+.house-top{position:absolute;top:0;left:0;right:0;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(10,10,18,.9),transparent);z-index:10}
+.house-top .ht-act{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.house-top .ht-title{flex:1;color:#fff;font-weight:900;font-size:15px;text-shadow:0 2px 6px #000}
+.mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.mkt-item{background:var(--glass);border:1px solid var(--gb);border-radius:16px;padding:14px;text-align:center;cursor:pointer}
+.mkt-item .mi-ic{font-size:36px;margin-bottom:6px}
+.mkt-item .mi-nm{font-size:12px;font-weight:800;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mkt-item .mi-pr{font-size:13px;color:var(--gold);font-weight:900}
+.mkt-item .mi-seller{font-size:10px;color:var(--tm);margin-top:4px}
+.loot-box{background:linear-gradient(135deg,rgba(217,70,239,.2),rgba(139,92,246,.1));border:2px solid var(--ac);border-radius:20px;padding:24px;text-align:center;margin-bottom:12px;cursor:pointer;transition:transform .2s}
+.loot-box:active{transform:scale(.98)}
+.loot-box .lb-emoji{font-size:64px;margin-bottom:8px;animation:lbPulse 2s ease-in-out infinite}
+@keyframes lbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.loot-box .lb-name{font-size:16px;font-weight:900;margin-bottom:4px}
+.loot-box .lb-price{font-size:20px;color:var(--gold);font-weight:900}
+.loot-reward{text-align:center;padding:24px;background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(217,70,239,.15));border-radius:20px;border:3px solid var(--gold);margin-top:14px}
+.loot-reward .lr-emoji{font-size:80px;animation:lbPulse .8s ease-in-out infinite}
+.loot-reward .lr-name{font-size:20px;font-weight:900;color:var(--gold);margin-top:8px}
+.family-card{background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(217,70,239,.1));border:1px solid var(--br);border-radius:16px;padding:16px;margin-bottom:10px}
+.family-card .fc-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.family-card .fc-h .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:22px}
+.family-card .fc-wallet{font-size:22px;color:var(--gold);font-weight:900}
+.family-member{display:flex;align-items:center;gap:8px;padding:8px;background:var(--glass);border-radius:10px;margin-bottom:4px}
+.pet-card{background:linear-gradient(135deg,rgba(34,211,238,.1),rgba(139,92,246,.1));border:1px solid var(--br);border-radius:16px;padding:14px;margin-bottom:10px}
+.pet-card .pc-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pet-card .pc-emoji{font-size:36px}
+.pet-card .pc-info{flex:1}
+.pet-card .pc-name{font-weight:900;font-size:15px}
+.pet-card .pc-lvl{font-size:11px;color:var(--tm)}
+.pet-hunger{height:8px;background:var(--gb);border-radius:4px;overflow:hidden;margin-top:6px}
+.pet-hunger .ph-fill{height:100%;background:linear-gradient(90deg,#f43f5e,#22c55e);transition:width .3s}
+.stock-row{display:flex;align-items:center;gap:10px;padding:12px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;margin-bottom:8px}
+.stock-row .sr-chart{width:50px;height:30px;position:relative;flex-shrink:0}
+.stock-row .sr-info{flex:1;min-width:0}
+.stock-row .sr-name{font-weight:800;font-size:13px}
+.stock-row .sr-price{font-size:11px;color:var(--gold);font-weight:800}
+.capsule-card{background:linear-gradient(135deg,rgba(217,70,239,.15),rgba(34,211,238,.1));border:2px solid var(--ac);border-radius:16px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.capsule-card.locked{opacity:.7;border-color:var(--gb)}
+.capsule-card .cc-timer{font-size:11px;color:var(--ac3);font-weight:800;font-family:monospace}
+.duel-anim{text-align:center;font-size:80px;margin:20px 0;animation:duelShake .5s ease-in-out infinite}
+@keyframes duelShake{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.anon-card{background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:12px;margin-bottom:8px;position:relative}
+.anon-card .ac-q{font-size:13px;line-height:1.5;margin-bottom:8px}
+.anon-card .ac-a{font-size:12px;color:var(--ac3);padding:8px;background:rgba(34,211,238,.1);border-left:3px solid var(--ac3);border-radius:6px}
+.anon-card .ac-meta{font-size:10px;color:var(--tm);margin-top:6px}
+.santa-card{background:linear-gradient(135deg,rgba(220,38,38,.15),rgba(255,215,0,.1));border:2px solid #dc2626;border-radius:16px;padding:16px;text-align:center;margin-bottom:12px}
+.santa-card .sc-emoji{font-size:48px;margin-bottom:8px}
+.truth-q{background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(217,70,239,.1));border:2px solid var(--ac);border-radius:16px;padding:16px;margin-bottom:12px}
+.truth-q .tq-text{font-size:14px;font-weight:700;margin-bottom:10px}
+.truth-q .tq-btns{display:flex;gap:8px}
+.bomb-big{text-align:center;padding:30px;background:radial-gradient(circle,rgba(220,38,38,.4),rgba(0,0,0,.9));border-radius:50%;width:200px;height:200px;margin:20px auto;display:flex;align-items:center;justify-content:center;flex-direction:column;animation:bombPulse .5s ease-in-out infinite}
+@keyframes bombPulse{0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(220,38,38,.6)}50%{transform:scale(1.05);box-shadow:0 0 40px rgba(220,38,38,1)}}
+.bomb-big .bb-ic{font-size:60px}
+.bomb-big .bb-timer{font-family:monospace;font-size:32px;font-weight:900;color:#fff;margin-top:8px}
+.bet-card{background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(217,70,239,.1));border:2px solid var(--gold);border-radius:16px;padding:14px;margin-bottom:10px}
+.draw-canvas{width:100%;aspect-ratio:1;background:#fff;border-radius:14px;touch-action:none;cursor:crosshair;border:2px solid var(--ac);margin-bottom:10px}
+.blind-card{background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(34,211,238,.1));border:1px solid var(--ac);border-radius:14px;padding:14px;margin-bottom:10px}
+.blind-card .bc-q{font-size:14px;font-weight:700;margin-bottom:10px}
+.fate-btn{position:fixed;bottom:100px;right:20px;width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#dc2626);color:#fff;font-size:30px;display:none;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(255,215,0,.8);z-index:99;animation:lbPulse 1s ease-in-out infinite;cursor:pointer}
+.fate-btn.on{display:flex}
+
 @media (max-width:900px){
   .panel{width:100%;border-right:none;position:absolute;inset:0;z-index:10}
   .panel.hide{display:none}
@@ -378,14 +475,14 @@ input,textarea,select{font-family:inherit}
 </head>
 <body>
 
-<div id="loadingScreen"><div class="sp"></div><div class="lt">🐱 BelugaCord 3.6</div></div>
+<div id="loadingScreen"><div class="sp"></div><div class="lt">🔥 BelugaCord 4.0</div></div>
 
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="lg-bg"></div>
   <div class="lg-in">
-    <div class="lg-logo">🐱</div>
-    <div class="lg-title">BELUGACORD 3.6</div>
+    <div class="lg-logo">🔥</div>
+    <div class="lg-title">BELUGACORD 4.0</div>
     <div class="lg-tabs">
       <button class="lg-tab on" id="tabLogin" onclick="switchAuthTab('login')">Вход</button>
       <button class="lg-tab" id="tabRegister" onclick="switchAuthTab('register')">Регистрация</button>
@@ -406,6 +503,7 @@ input,textarea,select{font-family:inherit}
       <button class="tb-tab on" data-screen="chats" onclick="goScreen('chats')"><span class="ic">💬</span><span>Чаты</span><span class="badge hidden" id="badgeChats"></span></button>
       <button class="tb-tab" data-screen="friends" onclick="goScreen('friends')"><span class="ic">👥</span><span>Друзья</span><span class="badge hidden" id="badgeFriends"></span></button>
       <button class="tb-tab" data-screen="channels" onclick="goScreen('channels')"><span class="ic">📢</span><span>Каналы</span></button>
+      <button class="tb-tab" data-screen="street" onclick="openStreet()"><span class="ic">🌆</span><span>Улица</span></button>
       <button class="tb-tab" data-screen="desk" onclick="goScreen('desk')"><span class="ic">🖥️</span><span>Стол</span></button>
       <button class="tb-tab" data-screen="me" onclick="goScreen('me')"><span class="ic">👤</span><span>Я</span></button>
     </div>
@@ -416,7 +514,6 @@ input,textarea,select{font-family:inherit}
   </div>
 
   <div id="screenArea">
-    <!-- ЧАТЫ -->
     <div class="screen on" id="screenChats">
       <div class="panel" id="panelCol">
         <div class="pl-search"><input id="chatSearch" placeholder="🔍 Поиск чатов..." oninput="filterChats(this.value)"></div>
@@ -443,7 +540,7 @@ input,textarea,select{font-family:inherit}
         <div class="cw-body" id="msgsBody">
           <div id="msgsInner">
             <div style="text-align:center;color:var(--tm);padding:60px 20px;font-size:14px">
-              <div style="font-size:64px;margin-bottom:16px">🐱</div>
+              <div style="font-size:64px;margin-bottom:16px">🔥</div>
               <div>Выбери чат</div>
             </div>
           </div>
@@ -466,8 +563,6 @@ input,textarea,select{font-family:inherit}
         </div>
       </div>
     </div>
-
-    <!-- ДРУЗЬЯ -->
     <div class="screen" id="screenFriends">
       <div class="friends-tabs">
         <button class="friend-tab on" data-ftab="all" onclick="switchFriendsTab('all')">👥 Все</button>
@@ -477,20 +572,16 @@ input,textarea,select{font-family:inherit}
       <div class="friends-wrap" id="friendsWrap"><div style="padding:20px;text-align:center;color:var(--tm)">Загрузка...</div></div>
       <button class="add-fab" onclick="openSearch()">＋</button>
     </div>
-
-    <!-- КАНАЛЫ -->
     <div class="screen" id="screenChannels">
       <div class="chan-wrap" id="channelsWrap">
         <div style="padding:16px;text-align:center;color:var(--tm)">Загрузка каналов...</div>
       </div>
     </div>
-
-    <!-- СТОЛ -->
     <div class="screen" id="screenDesk">
       <div class="desk-wrap">
         <div class="desk-greet">
           <h2 id="deskHello">Привет 👋</h2>
-          <p id="deskSub">BelugaCord 3.6 — Титан</p>
+          <p id="deskSub">BelugaCord 4.0 — Восставший с Ада 🔥😈</p>
         </div>
         <div class="desk-stats">
           <div class="dstat"><div class="v" id="dsCoins">0</div><div class="l">🏅</div></div>
@@ -500,14 +591,14 @@ input,textarea,select{font-family:inherit}
         </div>
         <div class="desk-grid-title">🎯 Быстрые</div>
         <div class="desk-grid" id="deskQuick"></div>
+        <div class="desk-grid-title">🏙️ Город</div>
+        <div class="desk-grid" id="deskCity"></div>
         <div class="desk-grid-title">🎮 Развлечения</div>
         <div class="desk-grid" id="deskFun"></div>
         <div class="desk-grid-title">⚙️ Прочее</div>
         <div class="desk-grid" id="deskOther"></div>
       </div>
     </div>
-
-    <!-- Я -->
     <div class="screen" id="screenMe">
       <div class="me-wrap">
         <div class="me-banner" id="meBanner">
@@ -541,16 +632,15 @@ input,textarea,select{font-family:inherit}
           <div class="me-row" onclick="openSettings()"><div class="ic">⚙️</div><div class="tx"><div class="t1">Настройки</div></div><div class="ar">›</div></div>
           <div class="me-row" onclick="openSupport()"><div class="ic" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🤖</div><div class="tx"><div class="t1">Support</div></div><div class="ar">›</div></div>
           <div class="me-row" onclick="openCallHist()"><div class="ic" style="background:linear-gradient(135deg,#22c55e,#0ea5e9)">📞</div><div class="tx"><div class="t1">История звонков</div></div><div class="ar">›</div></div>
-          <div class="me-row" onclick="openChangelog()"><div class="ic" style="background:linear-gradient(135deg,#8b5cf6,#22d3ee)">📰</div><div class="tx"><div class="t1">Что нового</div><div class="t2">v3.6</div></div><div class="ar">›</div></div>
+          <div class="me-row" onclick="openChangelog()"><div class="ic" style="background:linear-gradient(135deg,#8b5cf6,#22d3ee)">📰</div><div class="tx"><div class="t1">Что нового</div><div class="t2">v4.0</div></div><div class="ar">›</div></div>
           <div class="me-row" onclick="logout()"><div class="ic" style="background:linear-gradient(135deg,#f43f5e,#ec4899)">🚪</div><div class="tx"><div class="t1">Выйти</div></div><div class="ar">›</div></div>
         </div>
       </div>
     </div>
   </div>
 </div>
-<!-- ===== МОДАЛКИ ===== -->
+<!-- ===== МОДАЛКИ 3.6 ===== -->
 
-<!-- Меню старт -->
 <div class="mo" id="mStartMenu">
   <div class="modal" style="max-width:380px">
     <button class="cb" onclick="cm('mStartMenu')">✕</button>
@@ -573,7 +663,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Поиск -->
 <div class="mo" id="mSearch">
   <div class="modal" style="max-width:460px">
     <button class="cb" onclick="cm('mSearch')">✕</button>
@@ -585,7 +674,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Профиль -->
 <div class="mo" id="mProfile">
   <div class="modal" style="max-width:540px">
     <button class="cb" onclick="cm('mProfile')">✕</button>
@@ -600,7 +688,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Чужой профиль -->
 <div class="mo" id="mViewProfile">
   <div class="modal" style="max-width:540px;overflow:hidden">
     <button class="cb" onclick="cm('mViewProfile')">✕</button>
@@ -616,7 +703,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Меню чата -->
 <div class="mo" id="mChatMenu">
   <div class="modal" style="max-width:360px">
     <button class="cb" onclick="cm('mChatMenu')">✕</button>
@@ -629,7 +715,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Настройки -->
 <div class="mo" id="mSettings">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mSettings')">✕</button>
@@ -670,7 +755,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Статус -->
 <div class="mo" id="mStatus">
   <div class="modal" style="max-width:420px">
     <button class="cb" onclick="cm('mStatus')">✕</button>
@@ -687,7 +771,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Рамки -->
 <div class="mo" id="mFrames">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mFrames')">✕</button>
@@ -698,7 +781,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Титулы -->
 <div class="mo" id="mTitles">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mTitles')">✕</button>
@@ -728,7 +810,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Premium -->
 <div class="mo" id="mPremium">
   <div class="modal" style="max-width:480px">
     <button class="cb" onclick="cm('mPremium')">✕</button>
@@ -744,7 +825,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Магазин -->
 <div class="mo" id="mShop">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mShop')">✕</button>
@@ -759,7 +839,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Ачивки -->
 <div class="mo" id="mAchievements">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mAchievements')">✕</button>
@@ -770,7 +849,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Support -->
 <div class="mo" id="mSupport">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mSupport')">✕</button>
@@ -791,7 +869,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- История звонков -->
 <div class="mo" id="mCallHistory">
   <div class="modal" style="max-width:540px">
     <button class="cb" onclick="cm('mCallHistory')">✕</button>
@@ -802,18 +879,16 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Changelog -->
 <div class="mo" id="mChangelog">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mChangelog')">✕</button>
     <div style="padding:24px">
-      <h2 style="text-align:center;font-size:22px">🐱 BelugaCord 3.6</h2>
+      <h2 style="text-align:center;font-size:22px">🔥 BelugaCord 4.0</h2>
       <div id="changelogBody" style="max-height:65vh;overflow-y:auto;margin-top:14px"></div>
     </div>
   </div>
 </div>
 
-<!-- Игры -->
 <div class="mo" id="mGames">
   <div class="modal" style="max-width:600px">
     <button class="cb" onclick="cm('mGames')">✕</button>
@@ -860,12 +935,10 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Просмотр изображения -->
 <div class="mo" id="mImgViewer" onclick="cm('mImgViewer')">
   <img id="imgViewerImg" style="max-width:95vw;max-height:95vh;border-radius:12px">
 </div>
 
-<!-- Админка вход -->
 <div class="mo" id="mAdminLogin">
   <div class="modal" style="max-width:400px">
     <button class="cb" onclick="cm('mAdminLogin')">✕</button>
@@ -889,7 +962,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- БОГ вход -->
 <div class="mo" id="mOwnerLogin">
   <div class="modal" style="max-width:400px">
     <button class="cb" onclick="cm('mOwnerLogin')">✕</button>
@@ -903,7 +975,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- БОГ панель -->
 <div class="mo" id="mOwnerPanel">
   <div class="modal wide">
     <button class="cb" onclick="cm('mOwnerPanel')">✕</button>
@@ -916,7 +987,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Редактор ранга -->
 <div class="mo" id="mRankEdit">
   <div class="modal" style="max-width:520px">
     <button class="cb" onclick="cm('mRankEdit')">✕</button>
@@ -944,7 +1014,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Анонс -->
 <div class="mo" id="mAbuse">
   <div class="modal" style="max-width:540px">
     <button class="cb" onclick="cm('mAbuse')">✕</button>
@@ -957,7 +1026,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- ===== СОЗДАНИЕ КАНАЛА ===== -->
 <div class="mo" id="mCreateChannel">
   <div class="modal" style="max-width:520px">
     <button class="cb" onclick="cm('mCreateChannel')">✕</button>
@@ -989,13 +1057,11 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- ===== РЕДАКТИРОВАНИЕ КАНАЛА ===== -->
 <div class="mo" id="mEditChannel">
   <div class="modal" style="max-width:560px">
     <button class="cb" onclick="cm('mEditChannel')">✕</button>
     <div style="padding:24px">
       <h2 style="text-align:center;margin-bottom:14px">✏️ Редактировать канал</h2>
-      
       <label style="font-size:11px;color:var(--td);font-weight:800">🖼️ Баннер (перетаскивай)</label>
       <div class="img-editor" id="chBannerEditor" style="margin:6px 0 12px">
         <img id="chBannerImg" src="" style="display:none">
@@ -1003,7 +1069,6 @@ input,textarea,select{font-family:inherit}
       </div>
       <input type="file" id="chBannerInput" accept="image/*" style="display:none" onchange="uploadChannelBanner(this)">
       <button class="fbtn" onclick="document.getElementById('chBannerInput').click()" style="width:100%;margin-bottom:12px">📷 Загрузить баннер</button>
-      
       <label style="font-size:11px;color:var(--td);font-weight:800">🖼️ Аватар (перетаскивай)</label>
       <div class="img-editor round" id="chAvatarEditor" style="margin:6px auto 12px">
         <img id="chAvatarImg" src="" style="display:none">
@@ -1011,17 +1076,13 @@ input,textarea,select{font-family:inherit}
       </div>
       <input type="file" id="chAvatarInput" accept="image/*" style="display:none" onchange="uploadChannelAvatar(this)">
       <button class="fbtn" onclick="document.getElementById('chAvatarInput').click()" style="width:100%;margin-bottom:12px">📷 Загрузить аватар</button>
-      
       <label style="font-size:11px;color:var(--td);font-weight:800">📛 @username</label>
       <input type="text" id="editChUsername" maxlength="32" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 6px;text-transform:lowercase">
       <div id="editChUserStatus" style="font-size:11px;color:var(--tm);margin-bottom:12px"></div>
-      
       <label style="font-size:11px;color:var(--td);font-weight:800">📝 Название</label>
       <input type="text" id="editChName" maxlength="64" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
-      
       <label style="font-size:11px;color:var(--td);font-weight:800">📄 Описание</label>
       <textarea id="editChBio" maxlength="256" style="width:100%;min-height:60px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);font-family:inherit;margin:6px 0 12px"></textarea>
-      
       <label style="font-size:11px;color:var(--td);font-weight:800">📂 Категория</label>
       <select id="editChCategory" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
         <option value="">Без категории</option>
@@ -1032,19 +1093,16 @@ input,textarea,select{font-family:inherit}
         <option value="education">📚 Образование</option>
         <option value="other">📌 Другое</option>
       </select>
-      
       <div class="set-row" style="margin:6px 0 12px">
         <div class="tx"><div class="t1">🔒 Приватный</div></div>
         <div class="switch" id="editChPrivate" onclick="this.classList.toggle('on')"></div>
       </div>
-      
       <button class="sb gn" onclick="saveChannelEdit()">💾 Сохранить</button>
       <button class="sb rd" onclick="deleteChannel()" style="margin-top:10px">🗑️ Удалить канал</button>
     </div>
   </div>
 </div>
 
-<!-- ===== ПРОСМОТР КАНАЛА ===== -->
 <div class="mo" id="mChannelView" style="padding:0;align-items:stretch">
   <div class="chan-view" style="width:100%;height:100%;max-width:100%">
     <div style="position:relative">
@@ -1075,17 +1133,13 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- ===== МЕНЮ КАНАЛА ===== -->
 <div class="mo" id="mChannelMenu">
   <div class="modal" style="max-width:380px">
     <button class="cb" onclick="cm('mChannelMenu')">✕</button>
-    <div style="padding:22px" id="channelMenuBody">
-      <!-- Заполняется динамически -->
-    </div>
+    <div style="padding:22px" id="channelMenuBody"></div>
   </div>
 </div>
 
-<!-- ===== ОБСУЖДЕНИЕ / КОММЕНТАРИИ ===== -->
 <div class="mo" id="mPostComments" style="padding:0;align-items:stretch">
   <div class="chan-view" style="width:100%;height:100%">
     <div class="cw-h" style="padding:0 10px">
@@ -1105,7 +1159,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- ===== ЗАПИСЬ ВИДЕО-КРУЖКА ===== -->
 <div id="vnoteRec">
   <button class="cancel-btn" onclick="cancelVnote()">✕</button>
   <button class="cancel-btn" style="right:80px;display:flex;align-items:center;justify-content:center;z-index:10" onclick="flipVnoteCam()">🔄</button>
@@ -1122,7 +1175,6 @@ input,textarea,select{font-family:inherit}
   <video id="vnoteFullVideo" playsinline></video>
 </div>
 
-<!-- ===== ЗВОНОК ===== -->
 <div class="mo" id="mCall" style="padding:0;background:rgba(0,0,0,.97)">
   <div class="call-stage">
     <video id="remoteVideo" class="call-remote" autoplay playsinline></video>
@@ -1153,7 +1205,6 @@ input,textarea,select{font-family:inherit}
   </div>
 </div>
 
-<!-- Групповая группа модалка -->
 <div class="mo" id="mCreateGroup">
   <div class="modal" style="max-width:480px">
     <button class="cb" onclick="cm('mCreateGroup')">✕</button>
@@ -1167,9 +1218,311 @@ input,textarea,select{font-family:inherit}
     </div>
   </div>
 </div>
+
+<!-- ===== 4.0 ЧАСТЬ 1/4: МОДАЛКИ ===== -->
+
+<!-- УЛИЦА (полноэкранная) -->
+<div id="streetScreen">
+  <div class="street-bg" id="streetBg"></div>
+  <div class="street-rain" id="streetRain"></div>
+  <div id="streetUsers"></div>
+  <div class="street-top">
+    <button class="st-close" onclick="closeStreet()">←</button>
+    <div class="st-title">🌆 Улица</div>
+    <button class="st-act" id="stRainBtn" onclick="streetToggleRain()" title="Дождь">🌧️</button>
+    <button class="st-act" id="stNightBtn" onclick="streetToggleNight()" title="Ночь">🌙</button>
+    <button class="st-act" onclick="openHouse()" title="Дом">🏠</button>
+  </div>
+  <div class="street-vote" id="streetVote">
+    <div style="font-size:13px;margin-bottom:4px">🗳️ Голосование</div>
+    <div class="sv-opts" id="streetVoteOpts"></div>
+  </div>
+  <div class="street-joy" id="streetJoy"><div class="joy-knob" id="joyKnob"></div></div>
+  <div class="street-hint" id="streetHint">👆 Тапай — двигайся</div>
+</div>
+
+<!-- ДОМ (полноэкранная) -->
+<div class="house-wrap" id="houseScreen">
+  <div class="house-bg" id="houseBg"></div>
+  <div id="houseItems"></div>
+  <div class="house-top">
+    <button class="ht-act" onclick="closeHouse()">←</button>
+    <div class="ht-title" id="houseTitle">🏠 Мой дом</div>
+    <button class="ht-act" onclick="openHouseShop()" title="Магазин">🛒</button>
+    <button class="ht-act" onclick="openHouseSettings()" title="Замок">🔒</button>
+  </div>
+</div>
+
+<!-- МАГАЗИН ДОМА -->
+<div class="mo" id="mHouseShop">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mHouseShop')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🛒 Магазин мебели</h2>
+      <div id="houseShopList" class="mkt-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- НАСТРОЙКИ ДОМА -->
+<div class="mo" id="mHouseSettings">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mHouseSettings')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🔒 Замок дома</h2>
+      <p style="font-size:12px;color:var(--tm);margin-bottom:10px">Пароль чтобы друзья не зашли без разрешения. Пусто = без пароля.</p>
+      <input type="password" id="housePass" placeholder="Пароль" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin-bottom:10px">
+      <button class="sb gn" onclick="saveHouseLock()">💾 Сохранить</button>
+      <button class="sb rd" onclick="removeHouseLock()" style="margin-top:8px">🔓 Убрать замок</button>
+    </div>
+  </div>
+</div>
+
+<!-- БИРЖА -->
+<div class="mo" id="mMarket">
+  <div class="modal" style="max-width:640px">
+    <button class="cb" onclick="cm('mMarket')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">💰 Биржа</h2>
+      <div style="background:var(--glass);border-radius:14px;padding:14px;text-align:center;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--tm)">Курс бекоина</div>
+        <div id="coinRate" style="font-size:28px;font-weight:900;color:var(--gold)">1.000</div>
+        <div id="coinRateInfo" style="font-size:11px;color:var(--tm)">Онлайн: 0</div>
+      </div>
+      <button class="sb gn" onclick="openMarketSell()">➕ Выставить на продажу</button>
+      <div id="marketList" class="mkt-grid" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ЛУТБОКСЫ -->
+<div class="mo" id="mLootboxes">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mLootboxes')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🎁 Лутбоксы</h2>
+      <div style="background:var(--glass);border-radius:14px;padding:14px;text-align:center;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--tm)">Твой баланс</div>
+        <div style="font-size:24px;font-weight:900;color:var(--gold)" id="lbBalance">0</div>
+      </div>
+      <div id="lootboxesList"></div>
+      <div id="lootReward"></div>
+    </div>
+  </div>
+</div>
+
+<!-- СЕМЬЯ -->
+<div class="mo" id="mFamily">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mFamily')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">👨‍👩‍👧 Семья</h2>
+      <div id="familyBody"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ПИТОМЦЫ -->
+<div class="mo" id="mPets">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mPets')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🐱 Питомцы</h2>
+      <div id="petsBody"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- АКЦИИ -->
+<div class="mo" id="mStocks">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mStocks')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">📈 Акции</h2>
+      <button class="sb gn" onclick="createMyStock()">➕ Создать свою акцию</button>
+      <div id="stocksBody" style="margin-top:14px"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- КАПСУЛЫ -->
+<div class="mo" id="mCapsules">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mCapsules')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">⏳ Капсулы времени</h2>
+      <button class="sb gn" onclick="openCreateCapsule()">➕ Создать капсулу</button>
+      <div id="capsulesBody" style="margin-top:14px"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="mo" id="mCreateCapsule">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mCreateCapsule')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">⏳ Новая капсула</h2>
+      <label style="font-size:11px;color:var(--td);font-weight:800">Кому @username</label>
+      <input type="text" id="capTo" placeholder="username" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
+      <label style="font-size:11px;color:var(--td);font-weight:800">Текст</label>
+      <textarea id="capText" placeholder="Что сказать в будущем..." style="width:100%;min-height:100px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);font-family:inherit;margin:6px 0 12px"></textarea>
+      <label style="font-size:11px;color:var(--td);font-weight:800">Открыть через (дней)</label>
+      <input type="number" id="capDays" value="30" min="1" max="3650" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
+      <button class="sb gn" onclick="createCapsule()">⏳ Запечатать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ДУЭЛИ -->
+<div class="mo" id="mDuels">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mDuels')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🎲 Дуэли на тапках</h2>
+      <div id="duelBody"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- АНОНИМКИ -->
+<div class="mo" id="mAnonymous">
+  <div class="modal" style="max-width:560px">
+    <button class="cb" onclick="cm('mAnonymous')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🕵️ Анонимки</h2>
+      <button class="sb gn" onclick="openSendAnonymous()">✉️ Отправить анонимно</button>
+      <div id="anonymousBody" style="margin-top:14px"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="mo" id="mSendAnonymous">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mSendAnonymous')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">✉️ Анонимка</h2>
+      <label style="font-size:11px;color:var(--td);font-weight:800">Кому @username</label>
+      <input type="text" id="anonTo" placeholder="username" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
+      <label style="font-size:11px;color:var(--td);font-weight:800">Текст</label>
+      <textarea id="anonText" placeholder="Сообщение..." style="width:100%;min-height:100px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);font-family:inherit;margin:6px 0 12px"></textarea>
+      <div class="set-row">
+        <div class="tx"><div class="t1">❓ Вопрос</div><div class="t2">Получатель сможет ответить</div></div>
+        <div class="switch" id="anonQuestion" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <button class="sb gn" onclick="sendAnonymous()">✉️ Отправить</button>
+    </div>
+  </div>
+</div>
+
+<!-- САНТА -->
+<div class="mo" id="mSanta">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mSanta')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🎅 Тайный Санта</h2>
+      <div id="santaBody"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ДЕТЕКТОР ЛЖИ -->
+<div class="mo" id="mTruthDetector">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mTruthDetector')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🔮 Детектор лжи</h2>
+      <label style="font-size:11px;color:var(--td);font-weight:800">Кому @username</label>
+      <input type="text" id="truthTo" placeholder="username" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
+      <label style="font-size:11px;color:var(--td);font-weight:800">Вопрос</label>
+      <textarea id="truthQuestion" placeholder="Вопрос..." style="width:100%;min-height:70px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);font-family:inherit;margin:6px 0 12px"></textarea>
+      <button class="sb gn" onclick="startTruth()">🔮 Спросить</button>
+    </div>
+  </div>
+</div>
+
+<!-- БОМБА -->
+<div class="mo" id="mBomb">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mBomb')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">💣 Бомба</h2>
+      <div id="bombBody"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- СПОР -->
+<div class="mo" id="mBet">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mBet')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🤝 Спор</h2>
+      <label style="font-size:11px;color:var(--td);font-weight:800">Против кого @username</label>
+      <input type="text" id="betOpponent" placeholder="username" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
+      <label style="font-size:11px;color:var(--td);font-weight:800">Ставка (🏅)</label>
+      <input type="number" id="betAmount" value="100" min="1" style="width:100%;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);margin:6px 0 12px">
+      <label style="font-size:11px;color:var(--td);font-weight:800">Условие</label>
+      <textarea id="betCondition" placeholder="Например: кто первый напишет" style="width:100%;min-height:70px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);font-family:inherit;margin:6px 0 12px"></textarea>
+      <button class="sb gn" onclick="createBet()">🤝 Предложить</button>
+    </div>
+  </div>
+</div>
+
+<!-- РИСОВАНИЕ -->
+<div class="mo" id="mDraw">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mDraw')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">🎨 Рисование</h2>
+      <div id="drawBody"><div style="text-align:center;padding:20px;color:var(--tm)">⏳</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- СЛЕПАЯ ЗОНА -->
+<div class="mo" id="mBlindZone">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mBlindZone')">✕</button>
+    <div style="padding:24px">
+      <h2 style="text-align:center;margin-bottom:14px">👁️ Слепая зона</h2>
+      <textarea id="blindText" placeholder="Вопрос для 5 случайных..." style="width:100%;min-height:100px;background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;color:var(--tx);font-family:inherit;margin-bottom:10px"></textarea>
+      <button class="sb gn" onclick="sendBlind()">👁️ Отправить 5 случайным</button>
+      <div id="blindBody" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- КНОПКА СУДЬБЫ (плавающая) -->
+<button class="fate-btn" id="fateBtn" onclick="claimFate()">🎲</button>
+
+<!-- КЛОНДАЙК -->
+<div class="mo" id="mKlondike">
+  <div class="modal" style="max-width:400px">
+    <button class="cb" onclick="cm('mKlondike')">✕</button>
+    <div style="padding:40px 24px;text-align:center">
+      <div style="font-size:80px;animation:lbPulse 1s ease-in-out infinite">💰</div>
+      <h2 style="margin:10px 0">Клондайк!</h2>
+      <div id="klondikeCoins" style="font-size:28px;font-weight:900;color:var(--gold)">500 🏅</div>
+      <p style="color:var(--tm);font-size:12px;margin:10px 0">Первый кто заберёт — забирает всё</p>
+      <button class="sb gn" onclick="claimKlondike()" style="margin-top:14px">💎 ЗАБРАТЬ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПОДТВЕРЖДЕНИЕ ОТКРЫТИЯ КАПСУЛЫ -->
+<div class="mo" id="mCapsuleView">
+  <div class="modal" style="max-width:480px">
+    <button class="cb" onclick="cm('mCapsuleView')">✕</button>
+    <div style="padding:24px">
+      <div style="text-align:center;font-size:60px;margin-bottom:14px">📜</div>
+      <div id="capsuleViewBody" style="padding:14px;background:var(--glass);border-radius:12px;font-size:14px;line-height:1.6;white-space:pre-wrap"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 <script>
-/* ========== BELUGACORD 3.6 — JS ЧАСТЬ 3/4 ========== */
+/* ========== BELUGACORD 4.0 — JS ЧАСТЬ 3/5 ========== */
 var token=localStorage.getItem('bc_token')||'';
 var me=null,ws=null;
 var curDM=null,curGroup=null,curType='none',curPeer=null,curChannel=null;
@@ -1242,7 +1595,6 @@ async function submitAuth(){
     me=data.user;enterApp();
   }catch(ex){err.textContent='Ошибка соединения';}
 }
-// Проверка реф-ссылки при загрузке
 (function(){
   var path=location.pathname;
   var m=path.match(/^\/ref\/([A-Za-z0-9_-]+)$/);
@@ -1284,6 +1636,8 @@ async function enterApp(){
   try{await loadCoins();}catch(e){}
   try{await loadChannels();}catch(e){}
   connectWS();
+  try{await loadFriendsCache();}catch(e){}
+  initStreetState();
 }
 function setupSecretLogo(){
   var logo=g('secretLogo');if(!logo)return;
@@ -1378,10 +1732,6 @@ function renderChatsList(){
   });
 }
 function openChatContext(it){
-  var acts=[];
-  acts.push(['📌 Закрепить','chatPin(\''+it.type+'\','+it.id+')']);
-  acts.push(['📦 Архив','chatArchive(\''+it.type+'\','+it.id+')']);
-  acts.push(['🔇 Мьют','chatMute(\''+it.type+'\','+it.id+')']);
   prompt2('Действие над "'+it.name+'"\n1. Закрепить\n2. В архив\n3. Мьют на 1ч',"1",function(v){if(v==='1')chatPin(it.type,it.id);else if(v==='2')chatArchive(it.type,it.id);else if(v==='3')chatMute(it.type,it.id);});
 }
 async function chatPin(ct,cid){try{await fetch('/api/chats/pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,chat_type:ct,chat_id:cid})});toast('📌');loadPanel();}catch(e){}}
@@ -1860,16 +2210,17 @@ function doSearch(q){
 function renderDesk(){
   if(!me)return;
   var h=g('deskHello');if(h)h.textContent='Привет, '+(me.display_name||me.username)+' 👋';
-  var s=g('deskSub');if(s)s.textContent='BelugaCord 3.6 — Титан';
+  var s=g('deskSub');if(s)s.textContent='BelugaCord 4.0 — Восставший с Ада 🔥😈';
   var c=g('dsCoins');if(c)c.textContent=myCoins;
   var l=g('dsLevel');if(l)l.textContent=me.level||1;
   var fr=g('dsFriends');if(fr)fr.textContent=friendsCache.filter(function(x){return x.status==='accepted';}).length;
   var m=g('dsMsgs');if(m)m.textContent=me.messages_count||0;
   var quick=[{i:'💬',l:'Чаты',a:"goScreen('chats')"},{i:'👥',l:'Группа',a:"om('mCreateGroup')"},{i:'📢',l:'Канал',a:"om('mCreateChannel')"},{i:'🔍',l:'Поиск',a:"openSearch()"}];
-  var fun=[{i:'🎮',l:'Игры',a:"openGames()"},{i:'🎁',l:'Магазин',a:"openShop()"},{i:'🏆',l:'Ачивки',a:"openAchievements()"},{i:'🔫',l:'Дуэль',a:"openDuel()"}];
+  var city=[{i:'🌆',l:'Улица',a:"openStreet()"},{i:'🏠',l:'Дом',a:"openHouse()"},{i:'💰',l:'Биржа',a:"openMarket()"},{i:'🎁',l:'Лутбоксы',a:"openLootboxes()"},{i:'👨‍👩‍👧',l:'Семья',a:"openFamily()"},{i:'🐱',l:'Питомцы',a:"openPets()"},{i:'📈',l:'Акции',a:"openStocks()"},{i:'⏳',l:'Капсулы',a:"openCapsules()"}];
+  var fun=[{i:'🎮',l:'Игры',a:"openGames()"},{i:'🎁',l:'Магазин',a:"openShop()"},{i:'🏆',l:'Ачивки',a:"openAchievements()"},{i:'🔫',l:'Дуэль',a:"openDuel()"},{i:'🎲',l:'Дуэли',a:"openDuels()"},{i:'🕵️',l:'Анонимки',a:"openAnonymous()"},{i:'🎅',l:'Санта',a:"openSanta()"},{i:'🔮',l:'Детектор',a:"openTruth()"}];
   var other=[{i:'💎',l:'Premium',a:"openPremium()"},{i:'🎨',l:'Рамки',a:"openFrames()"},{i:'👑',l:'Титулы',a:"openTitles()"},{i:'📞',l:'Звонки',a:"openCallHist()"},{i:'📰',l:'Новости',a:"openChangelog()"},{i:'⚙️',l:'Настройки',a:"openSettings()"},{i:'🚪',l:'Выйти',a:"logout()"}];
   function renderRow(list,id){var el=g(id);if(!el)return;el.innerHTML=list.map(function(x){return '<div class="d-icon" onclick="'+x.a+'"><div class="i">'+x.i+'</div><div class="l">'+x.l+'</div></div>';}).join('');}
-  renderRow(quick,'deskQuick');renderRow(fun,'deskFun');renderRow(other,'deskOther');
+  renderRow(quick,'deskQuick');renderRow(city,'deskCity');renderRow(fun,'deskFun');renderRow(other,'deskOther');
 }
 
 /* TITLES/FRAMES */
@@ -1937,7 +2288,7 @@ function openSupport(){om('mSupport');g('supForm').style.display='none';supType=
 function supTypePick(t){supType=t;g('supForm').style.display='block';}
 async function supSubmit(){var d=g('supDesc').value.trim();if(!d){toast('⚠️','warn');return;}try{var r=await fetch('/api/support/ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,ticket_type:supType,title:g('supTitle').value.trim(),description:d})});var dd=await r.json();if(r.ok){toast('✅ #'+dd.ticket_id);cm('mSupport');}}catch(e){}}
 function openCallHist(){om('mCallHistory');var c=g('callHistList');c.innerHTML='Загрузка...';fetch('/api/calls/history?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(list){if(!Array.isArray(list)||!list.length){c.innerHTML='<div style="text-align:center;padding:30px;color:var(--tm)">Нет звонков</div>';return;}c.innerHTML=list.map(function(ch){var ic=ch.call_type==='video'?'📹':'📞';var dir=ch.caller===me.id?'↗️':'↙️';var dur=ch.duration?Math.floor(ch.duration/60)+':'+String(ch.duration%60).padStart(2,'0'):'—';return '<div style="display:flex;gap:10px;padding:10px;background:var(--glass);border-radius:12px;margin-bottom:6px;align-items:center"><div style="font-size:22px">'+dir+'</div><div style="flex:1"><div style="font-weight:800">'+esc(ch.caller_name||'?')+' → '+esc(ch.callee_name||'?')+'</div><div style="font-size:11px;color:var(--tm)">'+timeAgo(ch.created_at)+' · '+dur+'</div></div><div style="font-size:22px">'+ic+'</div></div>';}).join('');});}
-function openChangelog(){om('mChangelog');var c=g('changelogBody');c.innerHTML='Загрузка...';fetch('/api/changelog').then(function(r){return r.json();}).then(function(d){var h='';if(d.all){Object.keys(d.all).sort().reverse().forEach(function(v){var ch=d.all[v];var isC=v===d.current;h+='<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:900;color:var(--ac);margin-bottom:6px">'+esc(ch.title)+(isC?' <span style="padding:2px 8px;background:#ff6b1a;color:#fff;border-radius:10px;font-size:10px">NEW</span>':'')+'</div><ul style="list-style:none;padding:0">';ch.items.forEach(function(it){h+='<li style="padding:6px 10px;background:var(--glass);border-radius:8px;margin-bottom:3px;font-size:12px">'+esc(it)+'</li>';});h+='</ul></div>';});}c.innerHTML=h;}).catch(function(){c.innerHTML='<div style="text-align:center;padding:20px">v3.6</div>';});}
+function openChangelog(){om('mChangelog');var c=g('changelogBody');c.innerHTML='Загрузка...';fetch('/api/changelog').then(function(r){return r.json();}).then(function(d){var h='';if(d.all){Object.keys(d.all).sort().reverse().forEach(function(v){var ch=d.all[v];var isC=v===d.current;h+='<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:900;color:var(--ac);margin-bottom:6px">'+esc(ch.title)+(isC?' <span style="padding:2px 8px;background:#ff6b1a;color:#fff;border-radius:10px;font-size:10px">NEW</span>':'')+'</div><ul style="list-style:none;padding:0">';ch.items.forEach(function(it){h+='<li style="padding:6px 10px;background:var(--glass);border-radius:8px;margin-bottom:3px;font-size:12px">'+esc(it)+'</li>';});h+='</ul></div>';});}c.innerHTML=h;}).catch(function(){c.innerHTML='<div style="text-align:center;padding:20px">v4.0</div>';});}
 
 function openStartMenu(){om('mStartMenu');}
 
@@ -1988,6 +2339,32 @@ function handleWS(d){
   else if(d.type==='referral_bonus'){toast('🔗 Реферал! +'+d.amount+' 🏅 от @'+d.new_username);loadCoins();}
   else if(d.type==='maintenance'){toast('🛠️ '+(d.text||''),'warn');}
   else if(d.type==='user_updated'){if(d.user_id===me.id)fetch('/api/me?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(u){me=u;updateMeInfo();}).catch(function(){});}
+  else if(d.type==='street_move'){streetOnMove(d);}
+  else if(d.type==='street_rain'){streetOnRain(d.enabled);}
+  else if(d.type==='street_night'){streetOnNight(d.enabled);}
+  else if(d.type==='street_vote_start'){streetOnVoteStart(d.options);}
+  else if(d.type==='street_vote_update'){streetOnVoteUpdate(d.zones);}
+  else if(d.type==='street_vote_end'){streetOnVoteEnd(d.result);}
+  else if(d.type==='whisper_incoming'){onWhisperIncoming(d);}
+  else if(d.type==='whisper_ended'){toast('👂 Шёпот закончен','warn');}
+  else if(d.type==='duel_challenge'){onDuelChallenge(d);}
+  else if(d.type==='duel_started'){toast('⚔️ Дуэль!');}
+  else if(d.type==='duel_progress'){toast('👆 '+d.taps+'/20','warn');}
+  else if(d.type==='duel_end'){toast(d.winner===me.id?'🎉 Ты победил!':'💀 Ты проиграл','warn');loadCoins();}
+  else if(d.type==='bomb_received'){onBombReceived(d);}
+  else if(d.type==='bomb_exploded'){toast('💥 Бомба взорвалась! Мут '+d.muted_minutes+' мин','err');}
+  else if(d.type==='anonymous_message'){toast('🕵️ Анонимка!');if(curScreen==='me')openAnonymous();}
+  else if(d.type==='confession_received'){toast('💌 Признание!');}
+  else if(d.type==='truth_question'){onTruthQuestion(d);}
+  else if(d.type==='truth_result'){toast('🔮 '+d.verdict);}
+  else if(d.type==='bet_offer'){onBetOffer(d);}
+  else if(d.type==='draw_started'){onDrawStarted(d);}
+  else if(d.type==='draw_won'){toast('🎨 Угадал!');}
+  else if(d.type==='blind_question'){onBlindQuestion(d);}
+  else if(d.type==='fate_button'){onFateButton(d);}
+  else if(d.type==='klondike_spawned'){onKlondikeSpawned(d);}
+  else if(d.type==='klondike_claimed'){toast('💰 Клондайк забрал @'+d.by_name,'warn');closeKlondike();}
+  else if(d.type==='market_sold'){toast('💰 Продано: '+d.item_name+' за '+d.price,'warn');loadCoins();}
 }
 
 /* CALLS */
@@ -2147,11 +2524,10 @@ function bindInputOnce(){
 window.addEventListener('DOMContentLoaded',function(){bindInputOnce();boot();});
 if(document.readyState!=='loading'){setTimeout(function(){bindInputOnce();if(!me)boot();},50);}
 
-console.log('🐱 BelugaCord 3.6 part 3/4');
-</script>
-<script>
-/* ========== BELUGACORD 3.6 — JS ЧАСТЬ 4/4 ========== */
-/* Каналы, обсуждения, админка, БОГ, инициализация */
+console.log('🐱 BelugaCord 4.0 part 3/5');
+
+/* ========== BELUGACORD 4.0 — JS ЧАСТЬ 4/5 ========== */
+/* Каналы, обсуждения, админка, БОГ, рефка, инициализация */
 
 /* ===== КАНАЛЫ ===== */
 async function loadChannels(){
@@ -2218,7 +2594,6 @@ async function searchChannels(q){
   }catch(e){}
 }
 
-/* Модалка создания канала */
 var chCheckTimer=null;
 function checkChannelUsername(v){
   var s=g('chUserStatus');if(!s)return;
@@ -2376,7 +2751,6 @@ async function toggleDiscussion(){
   try{var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});if(r.ok){toast('✅');openChannelView(curChannel.id);}}catch(e){}
 }
 
-/* Редактирование канала */
 var chAvatarPos='50% 50%',chBannerPos='50% 50%';
 function openEditChannel(){
   if(!curChannelData)return;
@@ -2744,6 +3118,9 @@ async function createGroup(){
   }catch(e){}
 }
 
+/* LOGOUT */
+function logout(){if(!confirm('Выйти?'))return;localStorage.removeItem('bc_token');location.reload();}
+
 /* ИНИЦИАЛИЗАЦИЯ */
 window.addEventListener('DOMContentLoaded',function(){
   initOwnerTabs();
@@ -2753,7 +3130,621 @@ window.addEventListener('DOMContentLoaded',function(){
 if(document.readyState!=='loading'){
   setTimeout(function(){initOwnerTabs();bindInputOnce();if(!me)boot();},50);
 }
-console.log('🐱 BelugaCord 3.6 fully loaded');
+console.log('🐱 BelugaCord 4.0 part 4/5');
+<script>
+/* ========== BELUGACORD 4.0 — JS ЧАСТЬ 5/5 (ФИНАЛ) ========== */
+/* Улица, Дом, Биржа, Лутбоксы, Семья, Питомцы, Акции, Капсулы, Дуэли, Анонимки, Санта, Детектор, Бомба, Спор, Рисование, Слепая зона, Судьба, Клондайк */
+
+/* ===== 4.0: УЛИЦА ===== */
+var streetState={rain:false,night:false,vote_active:false,vote_options:[],myVote:null};
+var streetUsers={};
+var streetMyPos={x:50,y:50};
+var streetMoveTimer=null;
+
+async function initStreetState(){
+  try{
+    var r=await fetch('/api/street/state?token='+encodeURIComponent(token));
+    var d=await r.json();
+    streetState.rain=!!d.rain;streetState.night=!!d.night;
+    streetState.vote_active=!!d.vote_active;streetState.vote_options=d.vote_options||[];
+  }catch(e){}
+}
+async function openStreet(){
+  document.querySelectorAll('.tb-tab').forEach(function(t){t.classList.remove('on');});
+  var el=g('streetScreen');if(!el)return;
+  el.classList.add('open');
+  g('streetBg').classList.toggle('night',streetState.night);
+  g('streetRain').classList.toggle('on',streetState.rain);
+  if(streetState.rain)fillRain();
+  g('stRainBtn').classList.toggle('on',streetState.rain);
+  g('stNightBtn').classList.toggle('on',streetState.night);
+  g('streetJoy').classList.add('on');
+  g('streetHint').classList.add('on');
+  setTimeout(function(){g('streetHint').classList.remove('on');},3000);
+  bindJoy();
+  await loadStreetUsers();
+  if(streetState.vote_active)showStreetVote();
+}
+function closeStreet(){
+  var el=g('streetScreen');if(el)el.classList.remove('open');
+  document.querySelectorAll('.tb-tab').forEach(function(t){t.classList.toggle('on',t.dataset.screen===curScreen);});
+}
+async function loadStreetUsers(){
+  try{
+    var r=await fetch('/api/street/users?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    var box=g('streetUsers');if(!box)return;
+    box.innerHTML='';
+    (arr||[]).forEach(function(u){
+      streetUsers[u.user_id]={x:u.x,y:u.y};
+      addStreetUser(u);
+    });
+  }catch(e){}
+}
+function addStreetUser(u){
+  var box=g('streetUsers');if(!box)return;
+  var old=g('su-'+u.user_id);if(old)old.remove();
+  var el=document.createElement('div');
+  el.className='street-user'+(u.user_id===me.id?' me':'');
+  el.id='su-'+u.user_id;
+  el.style.left=u.x+'%';el.style.top=u.y+'%';
+  var av=u.avatar?'<img src="'+esc(u.avatar)+'">':esc((u.display_name||u.username||'?').charAt(0).toUpperCase());
+  var tag=u.active_frame?'<div class="su-tag">'+esc(u.active_frame)+'</div>':'';
+  el.innerHTML='<div class="su-av">'+av+tag+'</div><div class="su-name">'+esc(u.display_name||u.username)+'</div>';
+  el.onclick=function(ev){ev.stopPropagation();if(u.user_id!==me.id)viewProf(u.user_id);};
+  box.appendChild(el);
+  if(u.user_id===me.id){streetMyPos={x:u.x,y:u.y};}
+}
+function streetOnMove(d){
+  if(d.user_id===me.id)return;
+  var el=g('su-'+d.user_id);
+  if(!el){
+    fetch('/api/street/users?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(arr){var u=(arr||[]).find(function(x){return x.user_id===d.user_id;});if(u)addStreetUser(u);});
+    return;
+  }
+  el.style.left=d.x+'%';el.style.top=d.y+'%';
+}
+async function streetMoveTo(x,y){
+  x=Math.max(5,Math.min(95,x));y=Math.max(5,Math.min(95,y));
+  streetMyPos={x:x,y:y};
+  var myEl=g('su-'+me.id);
+  if(myEl){myEl.style.left=x+'%';myEl.style.top=y+'%';}
+  clearTimeout(streetMoveTimer);
+  streetMoveTimer=setTimeout(function(){
+    wsSend({type:'street_move',x:x,y:y,location:'street'});
+    fetch('/api/street/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,x:x,y:y,location:'street'})}).catch(function(){});
+  },80);
+}
+function bindJoy(){
+  var joy=g('streetJoy');var knob=g('joyKnob');
+  if(!joy||!knob)return;
+  var active=false,cx=0,cy=0;
+  joy.onpointerdown=function(e){active=true;var r=joy.getBoundingClientRect();cx=r.left+r.width/2;cy=r.top+r.height/2;joy.setPointerCapture(e.pointerId);joy.onpointermove(e);};
+  joy.onpointermove=function(e){
+    if(!active)return;
+    var dx=e.clientX-cx;var dy=e.clientY-cy;
+    var max=40;var d=Math.sqrt(dx*dx+dy*dy);
+    if(d>max){dx=dx/d*max;dy=dy/d*max;}
+    knob.style.transform='translate(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px))';
+    if(Math.abs(dx)>3||Math.abs(dy)>3){
+      var stepX=dx/max*1.5;var stepY=dy/max*1.5;
+      streetMoveTo(streetMyPos.x+stepX,streetMyPos.y+stepY);
+    }
+  };
+  joy.onpointerup=function(){active=false;knob.style.transform='translate(-50%,-50%)';};
+  joy.onpointercancel=function(){active=false;knob.style.transform='translate(-50%,-50%)';};
+  var bg=g('streetBg');
+  bg.onpointerdown=function(e){
+    if(e.target!==bg)return;
+    var r=bg.getBoundingClientRect();
+    var x=((e.clientX-r.left)/r.width)*100;
+    var y=((e.clientY-r.top)/r.height)*100;
+    streetMoveTo(x,y);
+  };
+}
+function fillRain(){
+  var box=g('streetRain');if(!box)return;
+  box.innerHTML='';
+  for(var i=0;i<40;i++){
+    var d=document.createElement('div');d.className='drop';
+    d.style.left=(Math.random()*100)+'%';
+    d.style.animationDelay=(Math.random()*1.5)+'s';
+    d.style.animationDuration=(0.4+Math.random()*0.4)+'s';
+    box.appendChild(d);
+  }
+}
+async function streetToggleRain(){
+  if(!isOwner){toast('⛔ Только БОГ','warn');return;}
+  try{
+    var r=await fetch('/api/street/rain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,enabled:!streetState.rain})});
+    if(r.ok){var d=await r.json();streetState.rain=d.rain;g('streetBg').classList.toggle('night',streetState.night);g('streetRain').classList.toggle('on',streetState.rain);g('stRainBtn').classList.toggle('on',streetState.rain);if(streetState.rain)fillRain();}
+  }catch(e){}
+}
+async function streetToggleNight(){
+  if(!isOwner){toast('⛔ Только БОГ','warn');return;}
+  try{
+    var r=await fetch('/api/street/night',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,enabled:!streetState.night})});
+    if(r.ok){var d=await r.json();streetState.night=d.night;g('streetBg').classList.toggle('night',streetState.night);g('stNightBtn').classList.toggle('on',streetState.night);}
+  }catch(e){}
+}
+function streetOnRain(en){streetState.rain=!!en;g('streetRain').classList.toggle('on',en);if(en)fillRain();g('stRainBtn').classList.toggle('on',en);}
+function streetOnNight(en){streetState.night=!!en;g('streetBg').classList.toggle('night',en);g('stNightBtn').classList.toggle('on',en);}
+function streetOnVoteStart(opts){
+  streetState.vote_active=true;streetState.vote_options=opts||['ЗА','ПРОТИВ'];
+  showStreetVote();
+}
+function showStreetVote(){
+  var box=g('streetVote');if(!box)return;
+  box.classList.add('on');
+  var opts=g('streetVoteOpts');opts.innerHTML='';
+  (streetState.vote_options||[]).forEach(function(o){
+    var b=document.createElement('button');b.className='sv-opt'+(streetState.myVote===o?' mine':'');
+    b.textContent=o;
+    b.onclick=function(){streetCastVote(o);};
+    opts.appendChild(b);
+  });
+}
+async function streetCastVote(opt){
+  try{
+    var r=await fetch('/api/street/vote/cast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,option:opt})});
+    if(r.ok){streetState.myVote=opt;showStreetVote();toast('🗳️ '+opt);}
+  }catch(e){}
+}
+function streetOnVoteUpdate(zones){}
+function streetOnVoteEnd(result){
+  streetState.vote_active=false;streetState.myVote=null;
+  var box=g('streetVote');if(box)box.classList.remove('on');
+  var max=0,winner='';
+  Object.keys(result||{}).forEach(function(k){if(result[k]>max){max=result[k];winner=k;}});
+  if(winner)toast('🗳️ Победило: '+winner+' ('+max+')','warn');
+}
+
+/* ===== 4.0: ДОМ ===== */
+var houseData=null;
+async function openHouse(){
+  var el=g('houseScreen');if(!el)return;
+  el.classList.add('open');
+  g('houseItems').innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">⏳</div>';
+  try{
+    var r=await fetch('/api/house/my?token='+encodeURIComponent(token));
+    var d=await r.json();
+    if(!r.ok){toast('❌','err');return;}
+    houseData=d;
+    g('houseTitle').textContent='🏠 '+(d.name||'Мой дом');
+    g('houseBg').classList.toggle('dark',!d.has_flashlight&&!!d.id);
+    renderHouseItems();
+  }catch(e){toast('❌','err');}
+}
+function closeHouse(){
+  var el=g('houseScreen');if(el)el.classList.remove('open');
+  document.querySelectorAll('.tb-tab').forEach(function(t){t.classList.toggle('on',t.dataset.screen===curScreen);});
+}
+function renderHouseItems(){
+  var box=g('houseItems');if(!box)return;
+  box.innerHTML='';
+  if(!houseData||!houseData.items||!houseData.items.length){
+    box.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;text-align:center;padding:20px">Дом пуст<br><br>Купи мебель в магазине 🛒</div>';
+    return;
+  }
+  var cat={"sofa":"🛋️","table":"🪑","bed":"🛏️","tv":"📺","plant":"🪴","lamp":"💡","carpet":"🟫","fridge":"🧊","flashlight":"🔦"};
+  houseData.items.forEach(function(it){
+    var el=document.createElement('div');
+    el.className='house-item';
+    el.style.left=it.x+'%';el.style.top=it.y+'%';
+    el.textContent=cat[it.item_id]||'📦';
+    el.onclick=function(){toast(cat[it.item_id]||it.item_id,'warn');};
+    box.appendChild(el);
+  });
+}
+async function openHouseShop(){
+  om('mHouseShop');
+  var c=g('houseShopList');c.innerHTML='Загрузка...';
+  try{
+    var r=await fetch('/api/house/catalog');
+    var arr=await r.json();
+    c.innerHTML=(arr||[]).map(function(it){return '<div class="mkt-item" onclick="buyHouseItem(\''+esc(it.item_id)+'\','+it.price+')"><div class="mi-ic">'+it.emoji+'</div><div class="mi-nm">'+esc(it.name)+'</div><div class="mi-pr">'+it.price+' 🏅</div></div>';}).join('');
+  }catch(e){c.innerHTML='Ошибка';}
+}
+async function buyHouseItem(itemId,price){
+  if(myCoins<price){toast('❌ Мало','err');return;}
+  try{
+    var r=await fetch('/api/house/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,item_id:itemId})});
+    var d=await r.json();
+    if(r.ok){toast('✅ Куплено');loadCoins();openHouse();}
+    else toast('❌ '+(d.detail||''),'err');
+  }catch(e){toast('❌','err');}
+}
+function openHouseSettings(){om('mHouseSettings');g('housePass').value='';}
+async function saveHouseLock(){
+  var p=g('housePass').value.trim();
+  try{var r=await fetch('/api/house/lock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,password:p})});if(r.ok){toast(p?'🔒 Замок поставлен':'🔓 Замок убран');cm('mHouseSettings');}}catch(e){toast('❌','err');}
+}
+async function removeHouseLock(){
+  try{var r=await fetch('/api/house/lock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,password:''})});if(r.ok){toast('🔓');cm('mHouseSettings');}}catch(e){}
+}
+
+/* ===== 4.0: БИРЖА ===== */
+async function openMarket(){
+  om('mMarket');
+  refreshCoinRate();
+  var c=g('marketList');c.innerHTML='Загрузка...';
+  try{
+    var r=await fetch('/api/market/list?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    if(!Array.isArray(arr)||!arr.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Пусто</div>';return;}
+    c.innerHTML=arr.map(function(l){return '<div class="mkt-item"><div class="mi-ic">'+(l.item_emoji||'📦')+'</div><div class="mi-nm">'+esc(l.item_name)+'</div><div class="mi-pr">'+l.price+' 🏅</div><div class="mi-seller">@'+esc(l.seller_name)+'</div><button class="sb gn" style="margin-top:6px;font-size:11px;padding:6px" onclick="buyMarketItem('+l.id+','+l.price+')">Купить</button></div>';}).join('');
+  }catch(e){c.innerHTML='Ошибка';}
+}
+async function refreshCoinRate(){
+  try{
+    var r=await fetch('/api/coin/rate');
+    var d=await r.json();
+    g('coinRate').textContent=(d.rate||1).toFixed(3);
+    g('coinRateInfo').textContent='Онлайн: '+(d.online||0);
+  }catch(e){}
+}
+function openMarketSell(){
+  prompt2('Название предмета','',function(n){if(!n)return;prompt2('Цена (🏅)','100',function(p){if(!p)return;prompt2('Эмодзи','📦',function(e){sellOnMarket(n,parseInt(p),e||'📦');});});});
+}
+async function sellOnMarket(name,price,emoji){
+  try{var r=await fetch('/api/market/sell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,item_type:'custom',item_id:name,item_name:name,item_emoji:emoji,price:price})});if(r.ok){toast('✅ На бирже');openMarket();}}catch(e){}
+}
+async function buyMarketItem(id,price){
+  if(myCoins<price){toast('❌ Мало','err');return;}
+  if(!confirm('Купить за '+price+' 🏅?'))return;
+  try{var r=await fetch('/api/market/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,listing_id:id})});var d=await r.json();if(r.ok){toast('✅ Куплено');loadCoins();openMarket();}else toast('❌ '+(d.detail||''),'err');}catch(e){}
+}
+
+/* ===== 4.0: ЛУТБОКСЫ ===== */
+async function openLootboxes(){
+  om('mLootboxes');
+  g('lbBalance').textContent=myCoins;
+  g('lootReward').innerHTML='';
+  var c=g('lootboxesList');c.innerHTML='Загрузка...';
+  try{
+    var r=await fetch('/api/lootboxes/list?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    if(!Array.isArray(arr)||!arr.length){c.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Нет сундуков</div>';return;}
+    c.innerHTML=arr.map(function(b){return '<div class="loot-box" onclick="openLootbox('+b.id+','+b.price+')"><div class="lb-emoji">'+(b.emoji||'🎁')+'</div><div class="lb-name">'+esc(b.name)+'</div><div class="lb-price">'+b.price+' 🏅</div></div>';}).join('');
+  }catch(e){c.innerHTML='Ошибка';}
+}
+async function openLootbox(id,price){
+  if(myCoins<price){toast('❌ Мало','err');return;}
+  if(!confirm('Открыть за '+price+' 🏅?'))return;
+  try{
+    var r=await fetch('/api/lootboxes/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,box_id:id})});
+    var d=await r.json();
+    if(r.ok){
+      g('lootReward').innerHTML='<div class="loot-reward"><div class="lr-emoji">'+(d.prize.emoji||'🎁')+'</div><div class="lr-name">'+esc(d.prize.name)+'</div></div>';
+      loadCoins();confetti();
+    }else toast('❌ '+(d.detail||''),'err');
+  }catch(e){toast('❌','err');}
+}
+
+/* ===== 4.0: СЕМЬЯ ===== */
+async function openFamily(){
+  om('mFamily');
+  var b=g('familyBody');b.innerHTML='⏳';
+  try{
+    var r=await fetch('/api/family/my?token='+encodeURIComponent(token));
+    var d=await r.json();
+    if(!d.family){
+      b.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Ты не в семье</div><button class="sb gn" onclick="createFamily()">➕ Создать семью</button>';
+      return;
+    }
+    var f=d.family;
+    var h='<div class="family-card"><div class="fc-h"><div class="ic">👨‍👩‍👧</div><div style="flex:1"><div style="font-weight:900">'+esc(f.name)+'</div><div style="font-size:11px;color:var(--tm)">Общий кошелёк</div></div><div class="fc-wallet">'+f.wallet+' 🏅</div></div><button class="sb gn" onclick="familyDeposit()">💰 Вложить</button></div>';
+    h+='<h3 style="margin:10px 0">Участники:</h3>';
+    h+=(f.members||[]).map(function(m){return '<div class="family-member"><div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;overflow:hidden">'+(m.avatar?'<img src="'+esc(m.avatar)+'" style="width:100%;height:100%;object-fit:cover">':esc((m.display_name||m.username).charAt(0).toUpperCase()))+'</div><div style="flex:1;font-weight:700">'+esc(m.display_name||m.username)+'</div><div style="font-size:10px;color:var(--tm)">'+(m.role||'member')+'</div></div>';}).join('');
+    b.innerHTML=h;
+  }catch(e){b.innerHTML='Ошибка';}
+}
+function createFamily(){
+  prompt2('Название семьи','',async function(n){if(!n)return;try{var r=await fetch('/api/family/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,name:n})});if(r.ok){toast('✅');openFamily();}}catch(e){}});
+}
+function familyDeposit(){
+  prompt2('Сколько вложить?','100',async function(v){if(!v)return;try{var r=await fetch('/api/family/deposit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,amount:parseInt(v)})});if(r.ok){toast('💰');loadCoins();openFamily();}}catch(e){}});
+}
+
+/* ===== 4.0: ПИТОМЦЫ ===== */
+async function openPets(){
+  om('mPets');
+  var b=g('petsBody');b.innerHTML='⏳';
+  try{
+    var r=await fetch('/api/pets/my?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    var sp={"cat":"🐱","dog":"🐶","dragon":"🐉","fox":"🦊","hamster":"🐹","owl":"🦉"};
+    var h='<button class="sb gn" onclick="adoptPet()">➕ Завести питомца</button>';
+    if(!Array.isArray(arr)||!arr.length){h+='<div style="text-align:center;padding:20px;color:var(--tm)">Пока нет питомцев</div>';}
+    else{h+=(arr||[]).map(function(p){return '<div class="pet-card"><div class="pc-h"><div class="pc-emoji">'+(sp[p.species]||'🐱')+'</div><div class="pc-info"><div class="pc-name">'+esc(p.name)+'</div><div class="pc-lvl">Ур.'+p.level+' · XP '+p.xp+'</div></div><button class="fbtn gn" onclick="feedPet('+p.id+')">🍖</button></div><div style="font-size:11px;color:var(--tm)">Голод: '+p.hunger+'%</div><div class="pet-hunger"><div class="ph-fill" style="width:'+p.hunger+'%"></div></div></div>';}).join('');}
+    b.innerHTML=h;
+  }catch(e){b.innerHTML='Ошибка';}
+}
+function adoptPet(){
+  prompt2('Имя питомца','Мурзик',function(n){if(!n)return;prompt2('Вид (cat/dog/dragon/fox/hamster/owl)','cat',async function(sp){if(!sp)return;try{var r=await fetch('/api/pets/adopt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,name:n,species:sp})});if(r.ok){toast('✅');openPets();}}catch(e){}});});
+}
+async function feedPet(id){
+  try{var r=await fetch('/api/pets/feed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,pet_id:id})});if(r.ok){toast('🍖');loadCoins();openPets();}}catch(e){}
+}
+
+/* ===== 4.0: АКЦИИ ===== */
+async function openStocks(){
+  om('mStocks');
+  var b=g('stocksBody');b.innerHTML='⏳';
+  try{
+    var r=await fetch('/api/stocks/list?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    if(!Array.isArray(arr)||!arr.length){b.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Пока нет акций</div>';return;}
+    b.innerHTML=arr.map(function(s){return '<div class="stock-row"><div class="sr-chart" style="font-size:22px">📈</div><div class="sr-info"><div class="sr-name">@'+esc(s.username)+'</div><div class="sr-price">'+s.price+' 🏅 · '+s.holders+' держателей</div></div><button class="fbtn gn" onclick="buyStock('+s.id+','+s.price+')">Купить</button></div>';}).join('');
+  }catch(e){b.innerHTML='Ошибка';}
+}
+function createMyStock(){prompt2('Цена акции','100',async function(p){if(!p)return;try{var r=await fetch('/api/stocks/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,price:parseInt(p)})});if(r.ok){toast('📈');openStocks();}}catch(e){}});}
+async function buyStock(id,price){
+  if(myCoins<price){toast('❌ Мало','err');return;}
+  try{var r=await fetch('/api/stocks/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,stock_id:id})});if(r.ok){toast('📈 Куплено');loadCoins();openStocks();}}catch(e){}
+}
+
+/* ===== 4.0: КАПСУЛЫ ===== */
+async function openCapsules(){
+  om('mCapsules');
+  var b=g('capsulesBody');b.innerHTML='⏳';
+  try{
+    var r=await fetch('/api/capsules/my?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    if(!Array.isArray(arr)||!arr.length){b.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Пока нет капсул</div>';return;}
+    b.innerHTML=arr.map(function(c){var locked=!c.can_open;return '<div class="capsule-card'+(locked?' locked':'')+'" onclick="viewCapsule('+c.id+','+locked+',\''+esc((c.text||'').replace(/'/g,'\\\''))+'\')"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><div style="font-weight:900">📜 Капсула для @'+esc(c.to_name)+'</div><div class="cc-timer">'+(locked?'🔒 Откроется ':'📬 Открыта ')+new Date(c.open_at).toLocaleDateString('ru-RU')+'</div></div><div style="font-size:24px">'+(locked?'🔒':'📬')+'</div></div></div>';}).join('');
+  }catch(e){b.innerHTML='Ошибка';}
+}
+function openCreateCapsule(){om('mCreateCapsule');g('capTo').value='';g('capText').value='';g('capDays').value='30';}
+async function createCapsule(){
+  var to=g('capTo').value.trim().replace(/^@/,'');var text=g('capText').value.trim();var days=parseInt(g('capDays').value)||30;
+  if(!to||!text){toast('⚠️ Заполни','warn');return;}
+  try{
+    var sr=await fetch('/api/users/search?q='+encodeURIComponent(to)+'&token='+encodeURIComponent(token));
+    var us=await sr.json();
+    if(!us.length){toast('❌ Юзер не найден','err');return;}
+    var r=await fetch('/api/capsules/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,to_user:us[0].id,text:text,days:days})});
+    if(r.ok){toast('⏳ Капсула запечатана');cm('mCreateCapsule');openCapsules();}
+    else{var d=await r.json();toast('❌ '+(d.detail||''),'err');}
+  }catch(e){toast('❌','err');}
+}
+function viewCapsule(id,locked,text){
+  om('mCapsuleView');
+  g('capsuleViewBody').textContent=locked?'🔒 Капсула ещё не открыта. Рано.':(text||'(пусто)');
+}
+
+/* ===== 4.0: ДУЭЛИ ===== */
+async function openDuels(){
+  om('mDuels');
+  g('duelBody').innerHTML='<div style="text-align:center;padding:20px"><button class="sb gn" onclick="challengeDuel()">⚔️ Вызвать друга</button></div>';
+}
+function challengeDuel(){
+  prompt2('Кому @username','',async function(un){if(!un)return;prompt2('Ставка (🏅)','100',async function(bet){if(!bet)return;
+    try{
+      var sr=await fetch('/api/users/search?q='+encodeURIComponent(un.replace(/^@/,''))+'&token='+encodeURIComponent(token));
+      var us=await sr.json();
+      if(!us.length){toast('❌','err');return;}
+      var r=await fetch('/api/duels/challenge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,to_user:us[0].id,bet:parseInt(bet)})});
+      if(r.ok){toast('⚔️ Вызов отправлен');cm('mDuels');}
+      else{var d=await r.json();toast('❌ '+(d.detail||''),'err');}
+    }catch(e){toast('❌','err');}
+  });});
+}
+function onDuelChallenge(d){
+  if(!confirm('⚔️ @'+d.from_name+' вызывает на дуэль!\nСтавка: '+d.bet+' 🏅\nПринять?')){return;}
+  fetch('/api/duels/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,duel_id:d.duel_id})}).then(function(r){if(r.ok)toast('⚔️ Дуэль началась! Тапай быстрее');}).catch(function(){});
+}
+
+/* ===== 4.0: АНОНИМКИ ===== */
+async function openAnonymous(){
+  om('mAnonymous');
+  var b=g('anonymousBody');b.innerHTML='⏳';
+  try{
+    var r=await fetch('/api/anonymous/my?token='+encodeURIComponent(token));
+    var arr=await r.json();
+    if(!Array.isArray(arr)||!arr.length){b.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Пока нет анонимок</div>';return;}
+    b.innerHTML=arr.map(function(a){return '<div class="anon-card"><div class="ac-q">'+(a.question_mode?'❓ ':'')+esc(a.text)+'</div>'+(a.answer?'<div class="ac-a">💬 '+esc(a.answer)+'</div>':(a.question_mode?'<button class="fbtn" onclick="answerAnon('+a.id+')">Ответить</button>':''))+'<div class="ac-meta">'+timeAgo(a.created_at)+'</div></div>';}).join('');
+  }catch(e){b.innerHTML='Ошибка';}
+}
+function openSendAnonymous(){om('mSendAnonymous');g('anonTo').value='';g('anonText').value='';g('anonQuestion').classList.remove('on');}
+async function sendAnonymous(){
+  var to=g('anonTo').value.trim().replace(/^@/,'');var text=g('anonText').value.trim();var q=g('anonQuestion').classList.contains('on');
+  if(!to||!text){toast('⚠️','warn');return;}
+  try{
+    var sr=await fetch('/api/users/search?q='+encodeURIComponent(to)+'&token='+encodeURIComponent(token));
+    var us=await sr.json();
+    if(!us.length){toast('❌','err');return;}
+    var r=await fetch('/api/anonymous/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,to_user:us[0].id,text:text,question_mode:q})});
+    if(r.ok){toast('🕵️ Отправлено');cm('mSendAnonymous');}
+  }catch(e){toast('❌','err');}
+}
+function answerAnon(id){
+  prompt2('Ответ','',async function(a){if(!a)return;try{await fetch('/api/anonymous/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,message_id:id,answer:a})});toast('✅');openAnonymous();}catch(e){}});
+}
+
+/* ===== 4.0: САНТА ===== */
+async function openSanta(){
+  om('mSanta');
+  var b=g('santaBody');b.innerHTML='⏳';
+  try{
+    var r=await fetch('/api/santa/my?token='+encodeURIComponent(token));
+    var d=await r.json();
+    if(!d.santa){b.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm)">Ты ещё не в Тайном Санте</div>';return;}
+    b.innerHTML='<div class="santa-card"><div class="sc-emoji">🎅</div><h3>Твой получатель</h3><div style="font-size:18px;font-weight:900;margin:10px 0">@'+esc(d.santa.receiver_name)+'</div><div style="font-size:11px;color:var(--tm)">Подарок: '+(d.santa.gift_sent?'✅ отправлен':'⏳ не отправлен')+'</div></div>';
+  }catch(e){b.innerHTML='Ошибка';}
+}
+
+/* ===== 4.0: ДЕТЕКТОР ЛЖИ ===== */
+function openTruth(){om('mTruthDetector');g('truthTo').value='';g('truthQuestion').value='';}
+async function startTruth(){
+  var to=g('truthTo').value.trim().replace(/^@/,'');var q=g('truthQuestion').value.trim();
+  if(!to||!q){toast('⚠️','warn');return;}
+  try{
+    var sr=await fetch('/api/users/search?q='+encodeURIComponent(to)+'&token='+encodeURIComponent(token));
+    var us=await sr.json();
+    if(!us.length){toast('❌','err');return;}
+    var r=await fetch('/api/truth/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,target:us[0].id,question:q})});
+    if(r.ok){toast('🔮 Вопрос отправлен');cm('mTruthDetector');}
+  }catch(e){toast('❌','err');}
+}
+function onTruthQuestion(d){
+  var startTs=Date.now();
+  var ans=confirm('🔮 @'+d.from_name+' спрашивает:\n\n'+d.question+'\n\nОтветь честно. Время ответа = правда/ложь.');
+  if(ans){
+    var elapsed=Date.now()-startTs;
+    fetch('/api/truth/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,id:d.id,time_ms:elapsed})}).catch(function(){});
+  }
+}
+
+/* ===== 4.0: БОМБА ===== */
+function openBomb(){
+  om('mBomb');
+  g('bombBody').innerHTML='<div style="text-align:center;padding:20px"><button class="sb rd" onclick="throwBomb()">💣 Кинуть бомбу</button></div>';
+}
+function throwBomb(){
+  prompt2('Кому @username','',async function(un){if(!un)return;
+    try{
+      var sr=await fetch('/api/users/search?q='+encodeURIComponent(un.replace(/^@/,''))+'&token='+encodeURIComponent(token));
+      var us=await sr.json();
+      if(!us.length){toast('❌','err');return;}
+      var r=await fetch('/api/bomb/throw',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,to_user:us[0].id})});
+      if(r.ok){toast('💣 Бомба улетела');cm('mBomb');}
+    }catch(e){toast('❌','err');}
+  });
+}
+function onBombReceived(d){
+  om('mBomb');
+  var rem=d.fuse||10;
+  var box=g('bombBody');
+  function render(){
+    box.innerHTML='<div class="bomb-big"><div class="bb-ic">💣</div><div class="bb-timer">'+rem+'</div></div><div style="text-align:center;font-size:12px;color:var(--tm);margin:10px 0">От @'+esc(d.from_name)+'<br>Перекинь или разминируй!</div><button class="sb rd" onclick="passBomb('+d.bomb_id+')">➡️ Перекинуть</button><button class="sb gn" onclick="defuseBomb('+d.bomb_id+')">✂️ Разминировать</button>';
+  }
+  render();
+  var int=setInterval(function(){rem--;if(rem<0){clearInterval(int);cm('mBomb');return;}render();},1000);
+  setTimeout(function(){clearInterval(int);},(d.fuse+1)*1000);
+}
+function passBomb(id){
+  prompt2('Кому @username','',async function(un){if(!un)return;
+    try{
+      var sr=await fetch('/api/users/search?q='+encodeURIComponent(un.replace(/^@/,''))+'&token='+encodeURIComponent(token));
+      var us=await sr.json();
+      if(!us.length){toast('❌','err');return;}
+      await fetch('/api/bomb/pass',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,bomb_id:id,to_user:us[0].id})});
+      toast('➡️ Перекинул');
+      cm('mBomb');
+    }catch(e){}
+  });
+}
+async function defuseBomb(id){try{await fetch('/api/bomb/defuse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,bomb_id:id})});toast('✂️ Обезврежена');cm('mBomb');}catch(e){}}
+
+/* ===== 4.0: СПОР ===== */
+function openBet(){om('mBet');g('betOpponent').value='';g('betAmount').value='100';g('betCondition').value='';}
+async function createBet(){
+  var to=g('betOpponent').value.trim().replace(/^@/,'');var amt=parseInt(g('betAmount').value)||0;var cond=g('betCondition').value.trim();
+  if(!to||!amt||!cond){toast('⚠️','warn');return;}
+  try{
+    var sr=await fetch('/api/users/search?q='+encodeURIComponent(to)+'&token='+encodeURIComponent(token));
+    var us=await sr.json();
+    if(!us.length){toast('❌','err');return;}
+    var r=await fetch('/api/bets/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,opponent:us[0].id,amount:amt,condition_text:cond})});
+    if(r.ok){toast('🤝 Предложено');cm('mBet');loadCoins();}
+  }catch(e){toast('❌','err');}
+}
+function onBetOffer(d){if(confirm('🤝 @'+d.from_name+' предлагает спор\nСтавка: '+d.amount+' 🏅\nУсловие: '+d.condition+'\n\nПринять?')){fetch('/api/bets/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,id:d.id})}).then(function(r){if(r.ok)toast('✅ Спор активен');});}}
+
+/* ===== 4.0: РИСОВАНИЕ ===== */
+var drawCtx=null,drawDown=false;
+async function openDraw(){
+  om('mDraw');
+  var b=g('drawBody');
+  b.innerHTML='<div style="text-align:center;padding:20px"><button class="sb gn" onclick="startDraw()">🎨 Начать рисование</button></div>';
+}
+function startDraw(){
+  prompt2('Кому угадывать @username','',async function(un){if(!un)return;prompt2('Слово','',async function(word){if(!word)return;
+    try{
+      var sr=await fetch('/api/users/search?q='+encodeURIComponent(un.replace(/^@/,''))+'&token='+encodeURIComponent(token));
+      var us=await sr.json();
+      if(!us.length){toast('❌','err');return;}
+      var r=await fetch('/api/draw/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,guesser:us[0].id,word:word})});
+      if(r.ok){toast('🎨 Рисуй');showDrawCanvas();}
+    }catch(e){toast('❌','err');}
+  });});
+}
+function showDrawCanvas(){
+  var b=g('drawBody');
+  b.innerHTML='<canvas id="drawCanvas" class="draw-canvas" width="400" height="400"></canvas><button class="sb rd" onclick="clearCanvas()">🗑️ Очистить</button>';
+  var c=g('drawCanvas');if(!c)return;
+  drawCtx=c.getContext('2d');
+  drawCtx.fillStyle='#fff';drawCtx.fillRect(0,0,400,400);
+  drawCtx.strokeStyle='#000';drawCtx.lineWidth=3;drawCtx.lineCap='round';
+  c.onpointerdown=function(e){drawDown=true;var r=c.getBoundingClientRect();drawCtx.beginPath();drawCtx.moveTo((e.clientX-r.left)*(400/r.width),(e.clientY-r.top)*(400/r.height));c.setPointerCapture(e.pointerId);};
+  c.onpointermove=function(e){if(!drawDown)return;var r=c.getBoundingClientRect();drawCtx.lineTo((e.clientX-r.left)*(400/r.width),(e.clientY-r.top)*(400/r.height));drawCtx.stroke();};
+  c.onpointerup=function(){drawDown=false;};
+}
+function clearCanvas(){if(drawCtx){drawCtx.fillStyle='#fff';drawCtx.fillRect(0,0,400,400);}}
+function onDrawStarted(d){toast('🎨 @'+d.from_name+' рисует! Смотри в чате','warn');}
+
+/* ===== 4.0: СЛЕПАЯ ЗОНА ===== */
+function openBlindZone(){
+  om('mBlindZone');
+  g('blindText').value='';
+  var b=g('blindBody');b.innerHTML='';
+  fetch('/api/blind/my?token='+encodeURIComponent(token)).then(function(r){return r.json();}).then(function(arr){
+    if(!Array.isArray(arr)||!arr.length)return;
+    b.innerHTML='<h3 style="margin:14px 0">Мои вопросы:</h3>'+arr.map(function(z){return '<div class="blind-card"><div class="bc-q">'+esc(z.text)+'</div>'+(z.answers||[]).map(function(a){return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--gb)">💬 '+esc(a.answer)+'</div>';}).join('')+'</div>';}).join('');
+  });
+}
+async function sendBlind(){
+  var t=g('blindText').value.trim();if(!t){toast('⚠️','warn');return;}
+  try{var r=await fetch('/api/blind/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,text:t})});var d=await r.json();if(r.ok){toast('👁️ Отправлено '+d.sent_to+' юзерам');g('blindText').value='';openBlindZone();}}catch(e){toast('❌','err');}
+}
+function onBlindQuestion(d){if(confirm('👁️ Анонимный вопрос:\n\n'+d.text+'\n\nОтветить?')){prompt2('Ответ','',async function(a){if(!a)return;await fetch('/api/blind/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,id:d.id,answer:a})});toast('✅');});}}
+
+/* ===== 4.0: СУДЬБА ===== */
+function onFateButton(d){
+  g('fateBtn').classList.add('on');
+  g('fateBtn').dataset.effect=d.effect;
+}
+async function claimFate(){
+  try{
+    var r=await fetch('/api/fate/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});
+    var d=await r.json();
+    if(r.ok){
+      g('fateBtn').classList.remove('on');
+      var m={bonus_500:'+500 🏅',bonus_1000:'+1000 🏅',mute_5m:'Мут 5 мин 💀',avatar_random:'🎲 Аватар',free_box:'🎁 Бесплатный сундук'};
+      toast('🎲 '+(m[d.effect]||d.effect),d.effect==='mute_5m'?'err':'warn');
+      if(d.effect.indexOf('bonus')===0)loadCoins();
+      confetti();
+    }
+  }catch(e){}
+}
+
+/* ===== 4.0: КЛОНДАЙК ===== */
+var currentKlondike=null;
+function onKlondikeSpawned(d){
+  currentKlondike=d;
+  om('mKlondike');
+  g('klondikeCoins').textContent=d.coins+' 🏅';
+  toast('💰 Клондайк появился!','warn');
+}
+async function claimKlondike(){
+  if(!currentKlondike)return;
+  try{var r=await fetch('/api/klondike/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,id:currentKlondike.id})});var d=await r.json();if(r.ok){toast('💰 +'+d.coins+' 🏅');confetti();loadCoins();closeKlondike();}else{toast('❌ '+(d.detail||'Уже забрали'),'err');closeKlondike();}}catch(e){}
+}
+function closeKlondike(){cm('mKlondike');currentKlondike=null;}
+
+/* ===== 4.0: ШЁПОТ ===== */
+function onWhisperIncoming(d){
+  if(!confirm('👂 @'+d.from_name+' шепчет тебе.\nПринять?'))return;
+  wsSend({type:'whisper_ice',to_user:d.from_user,whisper_id:d.whisper_id,candidate:null});
+  toast('👂 Шёпот активен','warn');
+}
+
+/* ===== ФИНАЛЬНАЯ ИНИЦИАЛИЗАЦИЯ ===== */
+window.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){initStreetState();},200);
+});
+console.log('🔥 BelugaCord 4.0 fully loaded — Восставший с Ада');
 </script>
 </body>
 </html>
