@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BOG ADMIN — BelugaCord 4.3</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Courier New',monospace}
+body{background:#020005;color:#fff;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(217,70,239,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(217,70,239,.08) 1px,transparent 1px);background-size:40px 40px;opacity:.3;pointer-events:none;z-index:0}
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,transparent 1px,transparent 2px);opacity:.3;animation:scan 8s linear infinite}
+@keyframes scan{from{background-position:0 0}to{background-position:0 100px}}
+
+/* LOGIN */
+#loginView{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:rgba(10,5,20,.95);border:1px solid #d946ef;padding:40px 30px;max-width:400px;width:100%;box-shadow:0 0 60px rgba(217,70,239,.4);position:relative;clip-path:polygon(20px 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%,0 20px)}
+.login-box h1{text-align:center;font-size:24px;color:#d946ef;letter-spacing:6px;margin-bottom:8px;font-weight:900}
+.login-box .sub{text-align:center;font-size:10px;color:#22d3ee;letter-spacing:3px;margin-bottom:30px}
+.login-inp{width:100%;padding:14px 18px;background:rgba(20,16,32,.9);border:1px solid rgba(217,70,239,.4);color:#fff;font-size:14px;margin-bottom:12px;outline:none;font-family:inherit;transition:all .2s}
+.login-inp:focus{border-color:#22d3ee;box-shadow:0 0 15px rgba(34,211,238,.3)}
+.login-btn{width:100%;padding:16px;background:linear-gradient(135deg,#d946ef,#8b5cf6);border:none;color:#fff;font-size:14px;font-weight:900;letter-spacing:3px;cursor:pointer;margin-top:10px;font-family:inherit}
+.login-btn:active{transform:scale(.98)}
+.login-err{color:#f43f5e;font-size:12px;text-align:center;margin-top:12px;min-height:18px;letter-spacing:1px}
+
+/* MAIN */
+#adminView{display:none;position:relative;z-index:2;padding:20px;min-height:100vh}
+#adminView.on{display:block}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(217,70,239,.3);flex-wrap:wrap;gap:10px}
+.top-bar h1{font-size:20px;color:#d946ef;letter-spacing:4px;font-weight:900}
+.top-bar .actions{display:flex;gap:8px;flex-wrap:wrap}
+.top-btn{padding:10px 16px;background:rgba(20,16,32,.9);border:1px solid rgba(217,70,239,.4);color:#fff;font-size:11px;font-weight:900;letter-spacing:1px;cursor:pointer;font-family:inherit;transition:all .2s}
+.top-btn:hover{border-color:#22d3ee;background:rgba(34,211,238,.1)}
+.top-btn.out{border-color:#dc2626;color:#dc2626}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:rgba(10,5,20,.8);border:1px solid rgba(217,70,239,.3);padding:16px;text-align:center;position:relative;clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+.stat-card .v{font-size:24px;font-weight:900;color:#22c55e;text-shadow:0 0 15px #22c55e;letter-spacing:1px}
+.stat-card .l{font-size:10px;color:#22d3ee;letter-spacing:2px;margin-top:4px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.tab{padding:10px 16px;background:rgba(20,16,32,.9);border:1px solid rgba(217,70,239,.2);color:rgba(255,255,255,.5);font-size:11px;font-weight:900;letter-spacing:1px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
+.tab.on{background:rgba(217,70,239,.2);border-color:#d946ef;color:#d946ef;box-shadow:0 0 15px rgba(217,70,239,.3)}
+
+/* Content */
+.tab-content{display:none}
+.tab-content.on{display:block}
+
+/* Cards */
+.action-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:16px}
+.action-card{background:rgba(10,5,20,.8);border:1px solid rgba(217,70,239,.3);padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;position:relative;clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.action-card:hover{border-color:#d946ef;background:rgba(217,70,239,.1);transform:translateY(-2px)}
+.action-card .ic{font-size:24px;margin-bottom:6px}
+.action-card .nm{font-size:10px;font-weight:900;color:#fff;letter-spacing:1px}
+.action-card.rd{border-color:#dc2626}
+.action-card.rd:hover{background:rgba(220,38,38,.1);border-color:#f43f5e}
+
+/* User list */
+.user-row{background:rgba(10,5,20,.8);border:1px solid rgba(217,70,239,.2);padding:12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;transition:all .2s}
+.user-row:hover{border-color:#d946ef;background:rgba(217,70,239,.05)}
+.user-row .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#d946ef,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;overflow:hidden}
+.user-row .av img{width:100%;height:100%;object-fit:cover}
+.user-row .info{flex:1;min-width:0}
+.user-row .nm{font-size:13px;font-weight:900;color:#fff}
+.user-row .meta{font-size:10px;color:#22d3ee;margin-top:2px}
+.user-row .actions{display:flex;gap:4px}
+.mini-btn{padding:6px 10px;background:rgba(20,16,32,.9);border:1px solid rgba(217,70,239,.4);color:#fff;font-size:10px;font-weight:900;cursor:pointer;font-family:inherit;transition:all .2s}
+.mini-btn:hover{border-color:#22d3ee;background:rgba(34,211,238,.1)}
+.mini-btn.rd{border-color:#dc2626;color:#dc2626}
+.mini-btn.gn{border-color:#22c55e;color:#22c55e}
+
+/* Empty */
+.empty{text-align:center;padding:40px;color:#8b5cf6;font-size:12px;letter-spacing:2px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:rgba(10,5,20,.98);border:1px solid #d946ef;padding:24px;max-width:480px;width:100%;box-shadow:0 0 60px rgba(217,70,239,.4);position:relative;max-height:90vh;overflow-y:auto;clip-path:polygon(15px 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%,0 15px)}
+.modal h3{color:#d946ef;font-size:14px;letter-spacing:3px;margin-bottom:16px;text-align:center;font-weight:900}
+.modal-inp,.modal-txt{width:100%;padding:12px 16px;background:rgba(20,16,32,.9);border:1px solid rgba(217,70,239,.4);color:#fff;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit}
+.modal-txt{min-height:90px;resize:vertical}
+.modal-inp:focus,.modal-txt:focus{border-color:#22d3ee}
+.modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;background:rgba(220,38,38,.2);border:1px solid #dc2626;color:#dc2626;font-size:16px;cursor:pointer}
+.modal-btn{width:100%;padding:14px;background:linear-gradient(135deg,#d946ef,#8b5cf6);border:none;color:#fff;font-size:13px;font-weight:900;letter-spacing:2px;cursor:pointer;margin-top:8px;font-family:inherit}
+.modal-btn.rd{background:linear-gradient(135deg,#dc2626,#991b1b)}
+.modal-btn.gn{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.modal-btn.gr{background:rgba(20,16,32,.9);border:1px solid rgba(217,70,239,.4)}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:rgba(10,5,20,.98);border:1px solid #22c55e;color:#22c55e;padding:14px 24px;font-size:12px;font-weight:900;letter-spacing:2px;z-index:3000;transition:transform .3s;box-shadow:0 0 30px rgba(34,197,94,.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:#dc2626;color:#dc2626;box-shadow:0 0 30px rgba(220,38,38,.4)}
+
+@media (max-width:600px){
+  #adminView{padding:12px}
+  .top-bar h1{font-size:16px;letter-spacing:2px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat-card .v{font-size:20px}
+  .action-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<!-- LOGIN VIEW -->
+<div id="loginView">
+  <div class="login-box">
+    <h1>BOG ADMIN</h1>
+    <div class="sub">BELUGACORD 4.3 CONTROL</div>
+    <input type="text" class="login-inp" id="loginUser" placeholder="Логин" value="_fan_beluga_">
+    <input type="password" class="login-inp" id="loginPass" placeholder="Пароль" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">ВОЙТИ</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ADMIN VIEW -->
+<div id="adminView">
+  <div class="top-bar">
+    <h1>👑 BOG CONTROL</h1>
+    <div class="actions">
+      <button class="top-btn" onclick="openSiteEdit()">✏️ САЙТ</button>
+      <button class="top-btn" onclick="location.href='/'">🏠 НА САЙТ</button>
+      <button class="top-btn out" onclick="doLogout()">🚪 ВЫЙТИ</button>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('users',this)">👥 ЮЗЕРЫ</button>
+    <button class="tab" onclick="switchTab('econ',this)">💰 ЭКОНОМИКА</button>
+    <button class="tab" onclick="switchTab('promo',this)">🎟️ ПРОМОКОДЫ</button>
+    <button class="tab" onclick="switchTab('donate',this)">💸 ДОНАТЫ</button>
+    <button class="tab" onclick="switchTab('scam',this)">💀 ЖАЛОБЫ</button>
+    <button class="tab" onclick="switchTab('site',this)">✏️ САЙТ</button>
+    <button class="tab" onclick="switchTab('console',this)">💻 КОНСОЛЬ</button>
+  </div>
+
+  <div class="tab-content on" id="tab-users"></div>
+  <div class="tab-content" id="tab-econ"></div>
+  <div class="tab-content" id="tab-promo"></div>
+  <div class="tab-content" id="tab-donate"></div>
+  <div class="tab-content" id="tab-scam"></div>
+  <div class="tab-content" id="tab-site"></div>
+  <div class="tab-content" id="tab-console"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var API = location.origin;
+var currentTab = 'users';
+
+function toast(msg, type){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type==='err'?' err':'');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+function getToken(){ return localStorage.getItem('bc_token') || ''; }
+
+async function apiCall(path, data){
+  var body = Object.assign({token: getToken()}, data||{});
+  var r = await fetch(API + path, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  var d = await r.json().catch(function(){return {};});
+  if(!r.ok) throw new Error(d.detail || d.error || 'Ошибка ' + r.status);
+  return d;
+}
+
+async function apiGet(path){
+  var sep = path.indexOf('?')>=0?'&':'?';
+  var r = await fetch(API + path + sep + 'token=' + encodeURIComponent(getToken()));
+  var d = await r.json().catch(function(){return {};});
+  if(!r.ok) throw new Error(d.detail || 'Ошибка ' + r.status);
+  return d;
+}
+
+/* ===== LOGIN ===== */
+function doLogin(){
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value;
+  var err = document.getElementById('loginErr');
+  err.textContent = '';
+  
+  if(u !== '_fan_beluga_'){ err.textContent = '⛔ НЕ ТОТ ЛОГИН'; return; }
+  if(!p){ err.textContent = '⛔ ВВЕДИ ПАРОЛЬ'; return; }
+  
+  fetch(API + '/api/owner/verify', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({token: getToken(), password: p})
+  }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+    .then(function(res){
+      if(!res.ok){ err.textContent = '⛔ НЕВЕРНЫЙ ПАРОЛЬ'; return; }
+      sessionStorage.setItem('admin_ok', '1');
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('adminView').classList.add('on');
+      loadAll();
+    })
+    .catch(function(){ err.textContent = '❌ ОШИБКА СЕТИ'; });
+}
+
+function doLogout(){
+  sessionStorage.removeItem('admin_ok');
+  location.href = '/';
+}
+
+/* ===== TABS ===== */
+function switchTab(name, btn){
+  currentTab = name;
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
+  if(btn) btn.classList.add('on');
+  document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('on'); });
+  var el = document.getElementById('tab-' + name);
+  if(el) el.classList.add('on');
+  
+  if(name === 'users') loadUsers();
+  else if(name === 'econ') loadEcon();
+  else if(name === 'promo') loadPromos();
+  else if(name === 'donate') loadDonates();
+  else if(name === 'scam') loadScam();
+  else if(name === 'site') loadSite();
+  else if(name === 'console') loadConsole();
+}
+
+/* ===== STATS ===== */
+async function loadStats(){
+  try{
+    var s = await apiGet('/api/owner/stats');
+    document.getElementById('statsGrid').innerHTML = 
+      '<div class="stat-card"><div class="v">' + (s.users||0) + '</div><div class="l">ЮЗЕРОВ</div></div>' +
+      '<div class="stat-card"><div class="v">' + (s.online||0) + '</div><div class="l">ОНЛАЙН</div></div>' +
+      '<div class="stat-card"><div class="v">' + (s.messages||0) + '</div><div class="l">СООБЩЕНИЙ</div></div>' +
+      '<div class="stat-card"><div class="v">' + (s.coins||0) + '</div><div class="l">БЕКОИНОВ</div></div>' +
+      '<div class="stat-card"><div class="v">' + (s.channels||0) + '</div><div class="l">КАНАЛОВ</div></div>' +
+      '<div class="stat-card"><div class="v">' + (s.groups||0) + '</div><div class="l">ГРУПП</div></div>';
+  }catch(e){ console.warn('Stats:', e); }
+}
+
+/* ===== USERS ===== */
+async function loadUsers(){
+  var el = document.getElementById('tab-users');
+  el.innerHTML = '<div class="empty">ЗАГРУЗКА...</div>';
+  try{
+    var d = await apiGet('/api/admin/users');
+    var us = d.users || [];
+    if(!us.length){ el.innerHTML = '<div class="empty">НЕТ ЮЗЕРОВ</div>'; return; }
+    var h = '<div class="action-grid">' +
+      '<div class="action-card" onclick="massGive()"><div class="ic">🏅</div><div class="nm">ВСЕМ +100</div></div>' +
+      '<div class="action-card rd" onclick="massReset()"><div class="ic">💸</div><div class="nm">ОБНУЛИТЬ</div></div>' +
+      '</div>';
+    h += '<div style="margin-bottom:8px;color:#22d3ee;font-size:11px;letter-spacing:2px">СПИСОК (' + us.length + '):</div>';
+    us.forEach(function(u){
+      var av = u.avatar ? '<img src="' + u.avatar + '">' : (u.username||'?').charAt(0).toUpperCase();
+      h += '<div class="user-row">' +
+        '<div class="av">' + av + '</div>' +
+        '<div class="info">' +
+        '<div class="nm">@' + esc(u.username) + (u.is_scam?' <span style="color:#dc2626">💀</span>':'') + (u.is_admin?' <span style="color:#d946ef">🛡️</span>':'') + '</div>' +
+        '<div class="meta">ID:' + u.id + ' · Ур.' + (u.level||1) + ' · 🏅' + (u.coins||0) + ' · 💬' + (u.messages_count||0) + '</div>' +
+        '</div>' +
+        '<div class="actions">' +
+        '<button class="mini-btn gn" onclick="userGive(' + u.id + ')">🏅</button>' +
+        '<button class="mini-btn" onclick="userMenu(' + u.id + ',\'' + esc(u.username) + '\')">⚙️</button>' +
+        '</div></div>';
+    });
+    el.innerHTML = h;
+  }catch(e){ el.innerHTML = '<div class="empty" style="color:#dc2626">ОШИБКА: ' + esc(e.message) + '</div>'; }
+}
+
+function userMenu(id, username){
+  showModal('<h3>⚙️ @' + esc(username) + '</h3>' +
+    '<button class="modal-btn" onclick="userAction(' + id + ',\'ban\')">🔨 ЗАБАНИТЬ</button>' +
+    '<button class="modal-btn" onclick="userAction(' + id + ',\'unban\')">✅ РАЗБАНИТЬ</button>' +
+    '<button class="modal-btn" onclick="userScam(' + id + ')">💀 SCAM</button>' +
+    '<button class="modal-btn" onclick="userReset(' + id + ')">🔑 СБРОС ПАРОЛЯ</button>' +
+    '<button class="modal-btn rd" onclick="userDelete(' + id + ')">🗑️ УДАЛИТЬ</button>');
+}
+
+function userGive(id){
+  showModal('<h3>🏅 ВЫДАТЬ МОНЕТЫ</h3>' +
+    '<input class="modal-inp" id="mVal" type="number" placeholder="Сколько" value="100">' +
+    '<button class="modal-btn" onclick="doGive(' + id + ')">ВЫДАТЬ</button>');
+}
+async function doGive(id){
+  var v = parseInt(document.getElementById('mVal').value) || 0;
+  if(v <= 0){ toast('⚠️ Больше 0', 'err'); return; }
+  try{
+    await apiCall('/api/owner/give_coins', {user_id: id, amount: v});
+    toast('✅ +' + v + ' 🏅');
+    closeModal();
+    loadUsers();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+async function userAction(id, action){
+  try{
+    await apiCall('/api/admin/action', {target_id: id, action: action});
+    toast('✅ ' + action);
+    closeModal();
+    loadUsers();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+async function userScam(id){
+  try{
+    await apiCall('/api/admin/toggle_scam', {target_id: id});
+    toast('💀 SCAM переключен');
+    closeModal();
+    loadUsers();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+async function userReset(id){
+  try{
+    await apiCall('/api/owner/reset_pass', {user_id: id});
+    toast('🔑 Пароль сброшен');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+async function userDelete(id){
+  if(!confirm('УДАЛИТЬ ЮЗЕРА НАВСЕГДА?')) return;
+  try{
+    await apiCall('/api/owner/delete_user', {user_id: id});
+    toast('🗑️ Удалён');
+    closeModal();
+    loadUsers();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+
+function massGive(){
+  showModal('<h3>🏅 ВСЕМ МОНЕТЫ</h3>' +
+    '<input class="modal-inp" id="mVal" type="number" value="100">' +
+    '<button class="modal-btn" onclick="doMassGive()">ВЫДАТЬ ВСЕМ</button>');
+}
+async function doMassGive(){
+  var v = parseInt(document.getElementById('mVal').value) || 0;
+  if(v <= 0) return;
+  try{
+    await apiCall('/api/owner/mass/give', {field:'coins', amount: v});
+    toast('✅ Всем +' + v);
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+function massReset(){
+  if(!confirm('ОБНУЛИТЬ ЭКОНОМИКУ ВСЕМ?')) return;
+  apiCall('/api/owner/system/reset_economy', {}).then(function(){
+    toast('💸 Обнулено'); loadUsers();
+  }).catch(function(e){ toast('❌ ' + e.message, 'err'); });
+}
+
+/* ===== ECON ===== */
+function loadEcon(){
+  document.getElementById('tab-econ').innerHTML =
+    '<div class="action-grid">' +
+    '<div class="action-card" onclick="massGive()"><div class="ic">🏅</div><div class="nm">ВСЕМ +</div></div>' +
+    '<div class="action-card" onclick="massCandy()"><div class="ic">🍬</div><div class="nm">КОНФЕТЫ</div></div>' +
+    '<div class="action-card rd" onclick="massReset()"><div class="ic">💸</div><div class="nm">ОБНУЛИТЬ</div></div>' +
+    '</div>';
+}
+function massCandy(){
+  showModal('<h3>🍬 ВСЕМ КОНФЕТЫ</h3>' +
+    '<input class="modal-inp" id="mVal" type="number" value="50">' +
+    '<button class="modal-btn" onclick="doMassCandy()">ВЫДАТЬ</button>');
+}
+async function doMassCandy(){
+  var v = parseInt(document.getElementById('mVal').value) || 0;
+  if(v <= 0) return;
+  try{
+    await apiCall('/api/owner/mass/give', {field:'candy', amount: v});
+    toast('✅ +' + v + ' 🍬');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+
+/* ===== PROMO ===== */
+async function loadPromos(){
+  var el = document.getElementById('tab-promo');
+  el.innerHTML = '<div class="action-grid"><div class="action-card" onclick="createPromo()"><div class="ic">➕</div><div class="nm">СОЗДАТЬ</div></div></div><div id="promoList"><div class="empty">ЗАГРУЗКА...</div></div>';
+  try{
+    var list = await apiGet('/api/promocodes/list');
+    if(!Array.isArray(list) || !list.length){
+      document.getElementById('promoList').innerHTML = '<div class="empty">НЕТ ПРОМОКОДОВ</div>';
+      return;
+    }
+    var h = '';
+    list.forEach(function(p){
+      h += '<div class="user-row">' +
+        '<div class="av" style="background:linear-gradient(135deg,#ffd700,#ff8c00)">🎟️</div>' +
+        '<div class="info">' +
+        '<div class="nm" style="color:#ffd700;font-family:monospace;font-size:14px">' + esc(p.code) + '</div>' +
+        '<div class="meta">🎁' + p.reward + '🏅 · ' + p.activations + '/' + (p.max_activations===0?'∞':p.max_activations) + '</div>' +
+        '</div>' +
+        '<button class="mini-btn rd" onclick="delPromo(' + p.id + ')">🗑️</button>' +
+        '</div>';
+    });
+    document.getElementById('promoList').innerHTML = h;
+  }catch(e){ document.getElementById('promoList').innerHTML = '<div class="empty" style="color:#dc2626">' + esc(e.message) + '</div>'; }
+}
+function createPromo(){
+  showModal('<h3>🎟️ НОВЫЙ ПРОМОКОД</h3>' +
+    '<input class="modal-inp" id="pCode" placeholder="КОД (латиница)" style="text-transform:uppercase">' +
+    '<input class="modal-inp" id="pReward" type="number" placeholder="Награда 🏅" value="500">' +
+    '<input class="modal-inp" id="pMax" type="number" placeholder="Макс активаций (0=∞)" value="10">' +
+    '<button class="modal-btn" onclick="doCreatePromo()">СОЗДАТЬ</button>');
+}
+async function doCreatePromo(){
+  var code = document.getElementById('pCode').value.trim().toUpperCase();
+  var reward = parseInt(document.getElementById('pReward').value) || 0;
+  var max = parseInt(document.getElementById('pMax').value) || 0;
+  if(!code || reward <= 0){ toast('⚠️ Заполни', 'err'); return; }
+  try{
+    await apiCall('/api/promocodes/create', {code: code, reward: reward, max_activations: max});
+    toast('🎟️ Создан');
+    closeModal();
+    loadPromos();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+async function delPromo(id){
+  if(!confirm('Удалить промокод?')) return;
+  try{
+    await apiCall('/api/promocodes/deactivate', {id: id});
+    toast('🗑️ Удалён');
+    loadPromos();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+
+/* ===== DONATE ===== */
+async function loadDonates(){
+  var el = document.getElementById('tab-donate');
+  el.innerHTML = '<div class="empty">ЗАГРУЗКА...</div>';
+  try{
+    var list = await apiGet('/api/donate/requests');
+    if(!Array.isArray(list) || !list.length){ el.innerHTML = '<div class="empty">НЕТ ЗАЯВОК</div>'; return; }
+    var h = '';
+    list.forEach(function(d){
+      var status = d.status==='pending' ? '⏳' : (d.status==='approved'?'✅':'❌');
+      h += '<div class="user-row" style="flex-direction:column;align-items:stretch">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+        '<div class="av" style="background:linear-gradient(135deg,#d946ef,#8b5cf6)">💰</div>' +
+        '<div style="flex:1"><div class="nm">@' + esc(d.username) + ' — ' + d.amount + ' 🏅 ' + status + '</div>' +
+        '<div class="meta">' + esc((d.message||'').substring(0,80)) + '</div></div></div>' +
+        (d.status==='pending' ? 
+          '<div style="display:flex;gap:6px">' +
+          '<button class="mini-btn gn" style="flex:1" onclick="donApprove(' + d.id + ')">✅ ОДОБРИТЬ</button>' +
+          '<button class="mini-btn rd" style="flex:1" onclick="donReject(' + d.id + ')">❌ ОТКЛОНИТЬ</button>' +
+          '</div>' : '') +
+        '</div>';
+    });
+    el.innerHTML = h;
+  }catch(e){ el.innerHTML = '<div class="empty" style="color:#dc2626">' + esc(e.message) + '</div>'; }
+}
+async function donApprove(id){
+  try{
+    await apiCall('/api/donate/' + id + '/approve', {});
+    toast('✅ Одобрено');
+    loadDonates();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+async function donReject(id){
+  try{
+    await apiCall('/api/donate/' + id + '/reject', {});
+    toast('❌ Отклонено');
+    loadDonates();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+
+/* ===== SCAM ===== */
+async function loadScam(){
+  var el = document.getElementById('tab-scam');
+  el.innerHTML = '<div class="empty">ЗАГРУЗКА...</div>';
+  try{
+    var list = await apiGet('/api/scam/reports');
+    if(!Array.isArray(list) || !list.length){ el.innerHTML = '<div class="empty">НЕТ ЖАЛОБ</div>'; return; }
+    var h = '';
+    list.forEach(function(r){
+      var status = r.status==='pending' ? '⏳' : (r.status==='approved'?'✅':'❌');
+      h += '<div class="user-row" style="flex-direction:column;align-items:stretch">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+        '<div class="av" style="background:linear-gradient(135deg,#dc2626,#7f1d1d)">💀</div>' +
+        '<div style="flex:1">' +
+        '<div class="nm">@' + esc(r.from_username) + ' → @' + esc(r.target_username) + ' ' + status + '</div>' +
+        '<div class="meta">' + r.created_at + '</div>' +
+        '</div></div>' +
+        '<div style="background:rgba(217,70,239,.1);padding:8px;font-size:11px;color:#22d3ee;margin-bottom:6px">' + esc(r.reason) + '</div>' +
+        (r.proof ? '<div style="background:rgba(34,211,238,.1);padding:8px;font-size:10px;color:#8b5cf6;margin-bottom:6px">📎 ' + esc(r.proof) + '</div>' : '') +
+        (r.status==='pending' ? 
+          '<div style="display:flex;gap:6px">' +
+          '<button class="mini-btn gn" style="flex:1" onclick="scamResolve(' + r.id + ',\'approve\')">✅ ПОДТВЕРДИТЬ</button>' +
+          '<button class="mini-btn rd" style="flex:1" onclick="scamResolve(' + r.id + ',\'reject\')">❌ ОТКЛОНИТЬ</button>' +
+          '</div>' : '') +
+        '</div>';
+    });
+    el.innerHTML = h;
+  }catch(e){ el.innerHTML = '<div class="empty" style="color:#dc2626">' + esc(e.message) + '</div>'; }
+}
+async function scamResolve(id, action){
+  try{
+    await apiCall('/api/scam/resolve', {report_id: id, action: action});
+    toast(action==='approve'?'💀 SCAM выдан':'❌ Отклонено');
+    loadScam();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+
+/* ===== SITE EDIT ===== */
+function loadSite(){
+  document.getElementById('tab-site').innerHTML =
+    '<div class="action-grid">' +
+    '<div class="action-card" onclick="editSiteTitle()"><div class="ic">📝</div><div class="nm">НАЗВАНИЕ</div></div>' +
+    '<div class="action-card" onclick="editSiteLogo()"><div class="ic">🖼️</div><div class="nm">ЛОГОТИП</div></div>' +
+    '<div class="action-card" onclick="editSiteColor()"><div class="ic">🎨</div><div class="nm">ЦВЕТ</div></div>' +
+    '<div class="action-card" onclick="broadcast()"><div class="ic">📢</div><div class="nm">РАССЫЛКА</div></div>' +
+    '<div class="action-card" onclick="maintenanceMode()"><div class="ic">🔧</div><div class="nm">ТО</div></div>' +
+    '</div>';
+}
+function openSiteEdit(){
+  switchTab('site', null);
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
+  var tabs = document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++){ if(tabs[i].textContent.indexOf('САЙТ')>=0) tabs[i].classList.add('on'); }
+}
+function editSiteTitle(){
+  showModal('<h3>📝 НАЗВАНИЕ САЙТА</h3>' +
+    '<input class="modal-inp" id="sTitle" placeholder="BelugaCord 4.3" value="BelugaCord 4.3">' +
+    '<button class="modal-btn" onclick="doEditTitle()">СОХРАНИТЬ</button>');
+}
+async function doEditTitle(){
+  var t = document.getElementById('sTitle').value.trim();
+  if(!t) return;
+  try{
+    await apiCall('/api/owner/site/title', {title: t});
+    toast('✅ Сохранено');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+function editSiteLogo(){
+  showModal('<h3>🖼️ ЛОГОТИП (URL)</h3>' +
+    '<input class="modal-inp" id="sLogo" placeholder="https://...">' +
+    '<button class="modal-btn" onclick="doEditLogo()">СОХРАНИТЬ</button>');
+}
+async function doEditLogo(){
+  var u = document.getElementById('sLogo').value.trim();
+  try{
+    await apiCall('/api/owner/site/logo', {url: u});
+    toast('✅ Сохранено');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+function editSiteColor(){
+  showModal('<h3>🎨 ГЛАВНЫЙ ЦВЕТ</h3>' +
+    '<input class="modal-inp" id="sColor" type="color" value="#d946ef">' +
+    '<button class="modal-btn" onclick="doEditColor()">СОХРАНИТЬ</button>');
+}
+async function doEditColor(){
+  var c = document.getElementById('sColor').value;
+  try{
+    await apiCall('/api/owner/site/color', {color: c});
+    toast('✅ Сохранено');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+function broadcast(){
+  showModal('<h3>📢 РАССЫЛКА ВСЕМ</h3>' +
+    '<textarea class="modal-txt" id="bcText" placeholder="Текст..."></textarea>' +
+    '<button class="modal-btn" onclick="doBroadcast()">ОТПРАВИТЬ ВСЕМ</button>');
+}
+async function doBroadcast(){
+  var t = document.getElementById('bcText').value.trim();
+  if(!t) return;
+  try{
+    await apiCall('/api/owner/broadcast/all', {text: t, from_name: '📢 Система'});
+    toast('📢 Отправлено');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+function maintenanceMode(){
+  showModal('<h3>🔧 РЕЖИМ ТО</h3>' +
+    '<input class="modal-inp" id="mtText" placeholder="Текст для юзеров" value="🛠️ Техработы">' +
+    '<button class="modal-btn" onclick="doMaintenance(1)">ВКЛЮЧИТЬ</button>' +
+    '<button class="modal-btn gn" onclick="doMaintenance(0)">ВЫКЛЮЧИТЬ</button>');
+}
+async function doMaintenance(on){
+  var t = document.getElementById('mtText').value || '🛠️ Техработы';
+  try{
+    await apiCall('/api/owner/system/maintenance', {enabled: !!on, text: t});
+    toast(on?'🔧 Включен':'✅ Выключен');
+    closeModal();
+  }catch(e){ toast('❌ ' + e.message, 'err'); }
+}
+
+/* ===== CONSOLE ===== */
+function loadConsole(){
+  document.getElementById('tab-console').innerHTML =
+    '<div style="background:rgba(10,5,20,.8);border:1px solid #22d3ee;padding:14px;margin-bottom:12px;font-size:11px;color:#22d3ee;line-height:1.6">' +
+    '<div style="color:#d946ef;font-weight:900;margin-bottom:6px">💻 КОМАНДЫ:</div>' +
+    'give @user 100 coins<br>' +
+    'take @user 50<br>' +
+    'ban @user / unban @user<br>' +
+    'announce текст<br>' +
+    'help' +
+    '</div>' +
+    '<input class="modal-inp" id="cmdInp" placeholder="give @vasya 100" onkeydown="if(event.key===\'Enter\')runCmd()">' +
+    '<button class="modal-btn" onclick="runCmd()">▶ ВЫПОЛНИТЬ</button>' +
+    '<div id="cmdRes" style="margin-top:12px"></div>';
+}
+async function runCmd(){
+  var c = document.getElementById('cmdInp').value.trim();
+  if(!c) return;
+  document.getElementById('cmdRes').innerHTML = '<div style="padding:10px;background:rgba(34,211,238,.1);color:#22d3ee;font-size:11px">⏳ ' + esc(c) + '</div>';
+  try{
+    var d = await apiCall('/api/owner/console', {command: c});
+    document.getElementById('cmdRes').innerHTML = '<div style="padding:10px;background:rgba(34,197,94,.15);border:1px solid #22c55e;color:#22c55e;font-size:12px">✅ ' + esc(d.result || 'OK') + '</div>';
+  }catch(e){
+    document.getElementById('cmdRes').innerHTML = '<div style="padding:10px;background:rgba(220,38,38,.15);border:1px solid #dc2626;color:#dc2626;font-size:12px">❌ ' + esc(e.message) + '</div>';
+  }
+}
+
+/* ===== MODAL HELPERS ===== */
+function showModal(html){
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function esc(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+/* ===== LOAD ALL ===== */
+function loadAll(){
+  loadStats();
+  loadUsers();
+}
+
+/* Auto-login if already authorized */
+if(sessionStorage.getItem('admin_ok') === '1'){
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('adminView').classList.add('on');
+  loadAll();
+}
+</script>
+</body>
+</html>
