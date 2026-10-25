@@ -3,50 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>BelugaCord — Регистрация</title>
+<title>Регистрация — BelugaCord</title>
 <style>
+:root {
+  --bg: #050a05; --ac: #22c55e; --ac2: #f97316; --tx: #e8f5e9; --td: #81c784; --glass: rgba(34,197,94,0.05); --gb: rgba(34,197,94,0.15);
+}
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Courier New',monospace; -webkit-tap-highlight-color:transparent; }
-:root { --bg:#020005; --ac:#d946ef; --ac2:#8b5cf6; --ac3:#22d3ee; --tx:#e8e0ff; --td:#9d8fc4; --glass:rgba(255,255,255,.05); --gb:rgba(255,255,255,.1); }
-body { background:var(--bg); color:var(--tx); height:100vh; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
-body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(217,70,239,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(217,70,239,.06) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
-body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,transparent 1px,transparent 2px); opacity:.15; pointer-events:none; z-index:100; animation:scan 8s linear infinite; }
-@keyframes scan { from{background-position:0 0} to{background-position:0 100px} }
-.cp-corner { position:fixed; width:30px; height:30px; z-index:5; pointer-events:none; }
-.cp-corner.tl { top:10px; left:10px; border-top:2px solid var(--ac3); border-left:2px solid var(--ac3); }
-.cp-corner.tr { top:10px; right:10px; border-top:2px solid var(--ac3); border-right:2px solid var(--ac3); }
-.cp-corner.bl { bottom:10px; left:10px; border-bottom:2px solid var(--ac3); border-left:2px solid var(--ac3); }
-.cp-corner.br { bottom:10px; right:10px; border-bottom:2px solid var(--ac3); border-right:2px solid var(--ac3); }
-.auth-box { position:relative; z-index:10; width:100%; max-width:420px; padding:32px 24px; border:1px solid rgba(217,70,239,.3); background:rgba(10,5,20,.9); box-shadow:0 0 30px rgba(217,70,239,.3); clip-path:polygon(0 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%); margin:20px; max-height:90vh; overflow-y:auto; }
-.logo { text-align:center; font-size:56px; margin-bottom:10px; }
-.title { text-align:center; font-size:24px; font-weight:900; color:var(--ac); text-shadow:0 0 20px rgba(217,70,239,.6); margin-bottom:24px; letter-spacing:3px; }
-.input { width:100%; padding:14px 18px; background:rgba(20,16,32,.9); border:1px solid rgba(217,70,239,.4); color:#fff; font-size:14px; margin-bottom:12px; outline:none; font-family:inherit; }
-.input:focus { border-color:var(--ac3); box-shadow:0 0 15px rgba(34,211,238,.3); }
-.btn { width:100%; padding:16px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#fff; font-size:14px; font-weight:900; letter-spacing:3px; cursor:pointer; font-family:inherit; margin-top:10px; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.btn:active { transform:scale(.98); }
-.link { text-align:center; margin-top:18px; font-size:12px; color:var(--td); }
-.link a { color:var(--ac3); text-decoration:none; font-weight:800; }
+body { background:var(--bg); color:var(--tx); height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background-image:radial-gradient(circle at 20% 20%, rgba(34,197,94,0.1), transparent 50%), radial-gradient(circle at 80% 80%, rgba(249,115,22,0.08), transparent 50%); }
+.box { width:100%; max-width:400px; padding:24px; border:1px solid var(--gb); background:rgba(10,18,10,0.9); border-radius:20px; box-shadow:0 0 30px rgba(34,197,94,0.3); }
+h1 { text-align:center; font-size:28px; font-weight:900; color:var(--ac2); margin-bottom:24px; letter-spacing:3px; }
+input { width:100%; padding:14px 18px; background:rgba(20,16,32,0.9); border:1px solid var(--gb); color:#fff; font-size:14px; margin-bottom:12px; outline:none; border-radius:12px; }
+input:focus { border-color:var(--ac); }
+button { width:100%; padding:16px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#000; font-size:15px; font-weight:900; letter-spacing:2px; cursor:pointer; border-radius:12px; margin-top:10px; }
 .err { color:#dc2626; font-size:12px; text-align:center; margin-top:12px; min-height:18px; font-weight:900; }
+.link { text-align:center; margin-top:18px; font-size:12px; color:var(--td); }
+.link a { color:var(--ac2); text-decoration:none; font-weight:800; }
 </style>
 </head>
 <body>
-<div class="cp-corner tl"></div><div class="cp-corner tr"></div><div class="cp-corner bl"></div><div class="cp-corner br"></div>
-
-<div class="auth-box">
-  <div class="logo">🐱</div>
-  <div class="title">РЕГИСТРАЦИЯ</div>
-  <input type="text" id="regUser" class="input" placeholder="Username (латиница)">
-  <input type="text" id="regDisplay" class="input" placeholder="Ник (отображается)">
-  <input type="password" id="regPass" class="input" placeholder="Пароль (мин 4)">
-  <input type="text" id="regPromo" class="input" placeholder="Промокод (необязательно)">
-  <button class="btn" onclick="doRegister()">СОЗДАТЬ АККАУНТ</button>
+<div class="box">
+  <h1>🐱 РЕГИСТРАЦИЯ</h1>
+  <input type="text" id="regUser" placeholder="Username (латиница)">
+  <input type="text" id="regDisplay" placeholder="Ник (отображается)">
+  <input type="password" id="regPass" placeholder="Пароль (мин 4)">
+  <input type="text" id="regPromo" placeholder="Промокод (необязательно)">
+  <button onclick="doRegister()">СОЗДАТЬ АККАУНТ</button>
   <div class="err" id="errMsg"></div>
   <div class="link">Уже есть аккаунт? <a href="/login">Войти</a></div>
   <div class="link"><a href="/">← На главную</a></div>
 </div>
-
 <script>
-if (localStorage.getItem('bc_token')) window.location.href = '/app';
-
 async function doRegister() {
   const u = document.getElementById('regUser').value.trim();
   const d = document.getElementById('regDisplay').value.trim();
@@ -54,10 +40,8 @@ async function doRegister() {
   const promo = document.getElementById('regPromo').value.trim();
   const err = document.getElementById('errMsg');
   err.textContent = '';
-  
   if(!u || !p) { err.textContent = 'Заполни username и пароль'; return; }
   if(p.length < 4) { err.textContent = 'Пароль мин 4 символа'; return; }
-  
   try {
     const r = await fetch('/api/register', {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -66,6 +50,13 @@ async function doRegister() {
     const data = await r.json();
     if(r.ok) {
       localStorage.setItem('bc_token', data.token);
+      
+      // АВТОПОДПИСКА НА КАНАЛЫ
+      try {
+        await fetch('/api/channels/subscribe_by_username', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token: data.token, username: 'belugacord' }) });
+        await fetch('/api/channels/subscribe_by_username', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token: data.token, username: 'gudraworld' }) });
+      } catch(e) {}
+      
       window.location.href = '/app';
     } else {
       err.textContent = data.detail || 'Ошибка регистрации';
