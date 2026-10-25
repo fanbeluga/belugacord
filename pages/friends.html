@@ -1,21 +1,19 @@
-<div style="flex:1; display:flex; flex-direction:column; height:100%; background:var(--bg);">
-  <!-- Заголовок -->
-  <div style="padding:16px; border-bottom:1px solid var(--gb); display:flex; align-items:center; gap:12px; background:var(--bg2);">
-    <button onclick="closeApp()" style="background:none; border:none; color:var(--ac3); font-size:24px; cursor:pointer;">←</button>
-    <div style="font-weight:900; font-size:18px; color:var(--tx);">👥 Друзья</div>
-    <button onclick="openSearch()" style="margin-left:auto; background:var(--glass); border:1px solid var(--gb); color:var(--ac3); padding:8px 16px; border-radius:12px; font-weight:800; font-size:12px; cursor:pointer;">＋ Найти</button>
+<div style="display:flex; flex-direction:column; height:100%; background:var(--bg);">
+  <div style="padding:16px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; gap:12px;">
+    <div style="font-weight:900; font-size:18px; color:var(--ac);">👥 Друзья</div>
+    <button onclick="openSearch()" style="margin-left:auto; background:var(--glass); border:1px solid var(--gb); color:var(--ac3); padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer;">＋ Найти</button>
   </div>
 
   <!-- Табы -->
-  <div style="display:flex; gap:4px; padding:12px; border-bottom:1px solid var(--gb); background:var(--bg2);">
-    <button class="f-tab on" onclick="switchFTab('all')" style="flex:1; padding:10px; border-radius:12px; font-weight:800; font-size:12px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#000; border:none; cursor:pointer;">Все</button>
-    <button class="f-tab" onclick="switchFTab('in')" style="flex:1; padding:10px; border-radius:12px; font-weight:800; font-size:12px; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">📩 Входящие</button>
-    <button class="f-tab" onclick="switchFTab('out')" style="flex:1; padding:10px; border-radius:12px; font-weight:800; font-size:12px; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">⏳ Отправленные</button>
+  <div style="display:flex; gap:4px; padding:12px; border-bottom:1px solid var(--border); background:var(--bg2);">
+    <button class="f-tab on" onclick="switchFTab('all', this)" style="flex:1; padding:10px; border-radius:10px; font-weight:800; font-size:12px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#000; border:none; cursor:pointer;">Все</button>
+    <button class="f-tab" onclick="switchFTab('in', this)" style="flex:1; padding:10px; border-radius:10px; font-weight:800; font-size:12px; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">Входящие</button>
+    <button class="f-tab" onclick="switchFTab('out', this)" style="flex:1; padding:10px; border-radius:10px; font-weight:800; font-size:12px; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">Отправленные</button>
   </div>
 
   <!-- Список -->
   <div id="friendsList" style="flex:1; overflow-y:auto; padding:12px;">
-    <div style="text-align:center; color:var(--tm); padding:40px;">Загрузка...</div>
+    <div style="text-align:center; color:var(--td); padding:40px;">Загрузка...</div>
   </div>
 </div>
 
@@ -25,7 +23,7 @@ let curFTab = 'all';
 
 async function loadFriends() {
   const box = document.getElementById('friendsList');
-  box.innerHTML = '<div style="text-align:center; color:var(--tm); padding:40px;">⏳</div>';
+  box.innerHTML = '<div style="text-align:center; color:var(--td); padding:40px;">⏳</div>';
   try {
     const r = await fetch('/api/friends/list?token=' + token);
     const list = await r.json();
@@ -34,13 +32,16 @@ async function loadFriends() {
   } catch(e) { box.innerHTML = '<div style="text-align:center; color:#dc2626; padding:20px;">Ошибка</div>'; }
 }
 
-function switchFTab(t) {
+function switchFTab(t, btn) {
   curFTab = t;
   document.querySelectorAll('.f-tab').forEach(b => {
-    const isOn = b.textContent.includes(t === 'all' ? 'Все' : (t === 'in' ? 'Входящие' : 'Отправленные'));
-    b.style.background = isOn ? 'linear-gradient(135deg,var(--ac),var(--ac2))' : 'var(--glass)';
-    b.style.color = isOn ? '#000' : 'var(--td)';
+    b.style.background = 'var(--glass)';
+    b.style.color = 'var(--td)';
+    b.style.border = '1px solid var(--gb)';
   });
+  btn.style.background = 'linear-gradient(135deg,var(--ac),var(--ac2))';
+  btn.style.color = '#000';
+  btn.style.border = 'none';
   renderFriends();
 }
 
@@ -52,12 +53,12 @@ function renderFriends() {
   
   let list = curFTab === 'in' ? inc : (curFTab === 'out' ? out : acc);
   
-  if(!list.length) { box.innerHTML = '<div style="text-align:center; color:var(--tm); padding:40px;">Пусто</div>'; return; }
+  if(!list.length) { box.innerHTML = '<div style="text-align:center; color:var(--td); padding:40px;">Пусто</div>'; return; }
   
   box.innerHTML = '';
   list.forEach(f => {
     const card = document.createElement('div');
-    card.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:16px; margin-bottom:8px;';
+    card.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px;';
     const av = f.avatar ? `<img src="${esc(f.avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc((f.display_name||f.username).charAt(0).toUpperCase());
     card.innerHTML = `
       <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;overflow:hidden;">${av}</div>
@@ -71,7 +72,7 @@ function renderFriends() {
     if(f.status === 'incoming') {
       act.innerHTML = `<button onclick="acceptF(${f.request_id})" style="padding:8px 12px;border-radius:10px;background:var(--ac);color:#000;border:none;font-weight:900;cursor:pointer;">✓</button><button onclick="declineF(${f.request_id})" style="padding:8px 12px;border-radius:10px;background:rgba(220,38,38,0.2);color:#dc2626;border:1px solid #dc2626;font-weight:900;cursor:pointer;">✕</button>`;
     } else if(f.status === 'accepted') {
-      act.innerHTML = `<button onclick="openDMWithFriend(${f.id},'${esc(f.display_name||f.username)}')" style="padding:8px 12px;border-radius:10px;background:var(--glass);border:1px solid var(--gb);color:var(--ac3);font-weight:900;cursor:pointer;">💬</button>`;
+      act.innerHTML = `<button onclick="startChat(${f.id}, '${esc(f.display_name||f.username)}')" style="padding:8px 12px;border-radius:10px;background:var(--glass);border:1px solid var(--gb);color:var(--ac3);font-weight:900;cursor:pointer;">💬</button>`;
     }
     card.appendChild(act);
     box.appendChild(card);
@@ -86,7 +87,11 @@ async function declineF(id) {
   await fetch('/api/friends/decline', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,request_id:id})});
   loadFriends();
 }
-function openSearch() { alert('Поиск друзей (в разработке)'); }
-function openDMWithFriend(id, name) { alert('Открыть чат с ' + name); }
+function startChat(id, name) {
+  // Переходим на страницу чатов и открываем диалог (упрощенно)
+  navigate('dm');
+  setTimeout(() => { if(typeof openDM === 'function') openDM({id: id, username: name}); }, 300);
+}
+function openSearch() { alert('Поиск друзей (скоро)'); }
 function init_friends() { loadFriends(); }
 </script>
