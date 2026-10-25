@@ -1,9 +1,10 @@
 import os, json, time, secrets, hashlib, random, datetime, asyncio, re, traceback
 import asyncpg, httpx
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form, Request, Depends
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://belugacord_user:1VSALM1cow@127.0.0.1/belugacord_zjgh")
 UPLOAD_DIR = "uploads"
@@ -149,14 +150,20 @@ async def startup():
         try: await init_db()
         except Exception as e: print(f"❌ DB INIT: {e}")
 
-async def get_current_user(token: str):
+# ================== БЕЗОПАСНОСТЬ ==================
+security = HTTPBearer()
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
     parsed = parse_token(token)
-    if not parsed: return None
+    if not parsed: raise HTTPException(status_code=401, detail="Неверный токен")
+    
     uid, _ = parsed
     p = await get_pool()
     async with p.acquire() as conn:
         row = await conn.fetchrow("SELECT * FROM users WHERE id=$1", uid)
-        return dict(row) if row else None
+        if not row: raise HTTPException(status_code=401, detail="Пользователь не найден")
+        return dict(row)
 
 def user_public(row, viewer_id=None):
     if row is None: return {}
@@ -207,7 +214,7 @@ async def register(request: Request):
                 username, username, hashed
             )
             
-            # Автоподписка на каналы при регистрации
+            # Автоподписка
             try:
                 await conn.execute("INSERT INTO channel_admins(channel_id, user_id) SELECT id, $1 FROM channels WHERE username IN ('belugacord', 'gudraworld') ON CONFLICT DO NOTHING", user_id)
             except: pass
@@ -217,7 +224,7 @@ async def register(request: Request):
     except HTTPException: raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Ошибка сервера")
 
 @app.post("/api/login")
 async def login(request: Request):
@@ -240,7 +247,24 @@ async def login(request: Request):
     except HTTPException: raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Ошибка сервера")
+
+# ================== API ДЛЯ APP.HTML ==================
+
+@app.get("/api/me")
+async def get_me(user: dict = Depends(get_current_user)):
+    """Эндпоинт, который app.html дергает при загрузке, чтобы понять, кто вошел"""
+    return user_public(user)
+
+@app.get("/api/chats")
+async def get_chats(user: dict = Depends(get_current_user)):
+    """Заглушка для списка чатов, чтобы app.html не падал с 404"""
+    return {"chats": []} 
+
+@app.get("/api/friends")
+async def get_friends(user: dict = Depends(get_current_user)):
+    """Заглушка для друзей"""
+    return {"friends": []}
 
 # ================== СТАТИЧЕСКИЕ СТРАНИЦЫ ==================
 
@@ -268,7 +292,6 @@ async def sw(): return FileResponse("sw.js", media_type="application/javascript"
 async def manifest(): return FileResponse("manifest.json")
 
 # ================== WEBSOCKET (ЗАГЛУШКА) ==================
-# Сюда потом добавишь логику чата
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
