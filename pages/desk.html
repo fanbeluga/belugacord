@@ -1,0 +1,48 @@
+<div style="padding:16px; flex:1; overflow-y:auto;">
+  <div style="padding:16px; background:linear-gradient(135deg, rgba(217,70,239,.15), rgba(34,211,238,.1)); border:1px solid var(--br); border-radius:16px; margin-bottom:20px;">
+    <h2 style="font-size:20px; font-weight:900; color:var(--ac); margin-bottom:4px;" id="deskHello">Привет 👋</h2>
+    <p style="font-size:12px; color:var(--td);">BelugaCord 4.3 — CYBER PULSE</p>
+  </div>
+
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// БЫСТРЫЕ ДЕЙСТВИЯ</div>
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
+    <div class="d-icon" onclick="navigate('dm')"><div class="ic">💬</div><div class="nm">Чаты</div></div>
+    <div class="d-icon" onclick="navigate('friends')"><div class="ic">👥</div><div class="nm">Друзья</div></div>
+    <div class="d-icon" onclick="navigate('channels')"><div class="ic">📢</div><div class="nm">Каналы</div></div>
+    <div class="d-icon" onclick="navigate('street')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
+  </div>
+
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ЭКОНОМИКА</div>
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
+    <div class="d-icon" onclick="alert('Магазин в разработке')"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
+    <div class="d-icon" onclick="alert('Лутбоксы в разработке')"><div class="ic">🎁</div><div class="nm">Лутбоксы</div></div>
+    <div class="d-icon" onclick="alert('Биржа в разработке')"><div class="ic">💰</div><div class="nm">Биржа</div></div>
+    <div class="d-icon" onclick="alert('Казино в разработке')"><div class="ic">🎰</div><div class="nm">Казино</div></div>
+  </div>
+
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ПРОЧЕЕ</div>
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
+    <div class="d-icon" onclick="navigate('me')"><div class="ic">👤</div><div class="nm">Профиль</div></div>
+    <div class="d-icon" onclick="alert('Настройки в разработке')"><div class="ic">⚙️</div><div class="nm">Настройки</div></div>
+    <div class="d-icon" onclick="navigate('house')"><div class="ic">🏠</div><div class="nm">Дом</div></div>
+    <div class="d-icon" onclick="localStorage.removeItem('bc_token'); location.href='/'"><div class="ic">🚪</div><div class="nm">Выйти</div></div>
+  </div>
+</div>
+
+<style>
+.d-icon { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; cursor:pointer; text-align:center; gap:6px; transition:0.2s; }
+.d-icon:active { background:rgba(217,70,239,.15); border-color:var(--ac); }
+.d-icon .ic { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:22px; background:rgba(217,70,239,.1); border-radius:12px; }
+.d-icon .nm { font-size:10px; color:var(--td); font-weight:700; line-height:1.2; }
+</style>
+
+<script>
+function init_desk() {
+  fetch('/api/me?token=' + token)
+    .then(r => r.json())
+    .then(u => {
+      const h = document.getElementById('deskHello');
+      if(h) h.textContent = 'Привет, ' + (u.display_name || u.username) + ' 👋';
+    }).catch(()=>{});
+}
+</script>
