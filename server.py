@@ -808,6 +808,62 @@ async def channel_delete(cid: int, data: dict):
         await conn.execute("DELETE FROM channels WHERE id=$1", cid)
     return {"ok": True}
 
+# ====== МУЗЫКА ======
+@app.get("/api/music/list")
+async def music_list(token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("SELECT * FROM music WHERE user_id=$1 ORDER BY id DESC LIMIT 20", user["id"])
+    return [{"id": r["id"], "title": r["title"], "artist": r["artist"], "url": r["url"]} for r in rows]
+
+@app.post("/api/music/upload")
+async def music_upload(token: str = Form(...), file: UploadFile = File(...), title: str = Form(...)):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    if not (file.content_type or "").startswith("audio/"):
+        raise HTTPException(400, "Только аудио")
+    content = await file.read()
+    if len(content) > 20*1024*1024: raise HTTPException(400, "Макс 20 МБ")
+    ext = os.path.splitext(file.filename or "")[1].lower() or ".mp3"
+    name = f"music_{secrets.token_hex(8)}{ext}"
+    with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
+    url = f"/uploads/{name}"
+    
+    p = await get_pool()
+    async with p.acquire() as conn:
+        # Проверяем лимит треков
+        cnt = await conn.fetchval("SELECT COUNT(*) FROM music WHERE user_id=$1", user["id"])
+        if cnt >= 20: raise HTTPException(400, "Макс 20 треков")
+        await conn.execute("INSERT INTO music(user_id, title, url) VALUES($1,$2,$3)", user["id"], title, url)
+    return {"url": url, "title": title}
+
+# ====== СТЕНА ======
+@app.get("/api/wall/{uid}")
+async def wall_list(uid: int, token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    target = uid if uid > 0 else user["id"]
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT pw.*, u.username, u.display_name 
+            FROM profile_wall pw JOIN users u ON u.id=pw.author 
+            WHERE pw.profile_user=$1 ORDER BY pw.id DESC LIMIT 100""", target)
+    return [{"id": r["id"], "text": r["text"], "username": r["username"], "display_name": r["display_name"], "created_at": _iso(r["created_at"])} for r in rows]
+
+@app.post("/api/wall/{uid}/post")
+async def wall_post(uid: int, data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    target = uid if uid > 0 else user["id"]
+    text = (data.get("text") or "").strip()[:1000]
+    if not text: raise HTTPException(400, "Текст")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("INSERT INTO profile_wall(profile_user,author,text) VALUES($1,$2,$3)", target, user["id"], text)
+    return {"ok": True}
+
 # ====== ЗАПУСК ======
 if __name__ == "__main__":
     import uvicorn
