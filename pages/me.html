@@ -1,15 +1,15 @@
 <div style="flex:1; display:flex; flex-direction:column; height:100%; overflow-y:auto; padding-bottom:100px;">
   
   <!-- БАННЕР -->
-  <div id="meBanner" style="height:150px; background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee); position:relative; overflow:hidden; flex-shrink:0;">
+  <div id="meBanner" style="height:150px; background:linear-gradient(135deg,#22c55e,#f97316); position:relative; overflow:hidden; flex-shrink:0;">
     <button onclick="document.getElementById('bannerInput').click()" style="position:absolute; right:12px; bottom:12px; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid rgba(255,255,255,0.3); cursor:pointer;">📷</button>
   </div>
   <input type="file" id="bannerInput" accept="image/*" style="display:none" onchange="uploadBanner(this)">
 
   <!-- АВАТАРКА -->
   <div style="position:relative; margin:-55px 0 0 20px; width:110px; height:110px;">
-    <div id="meAv" style="width:110px; height:110px; border-radius:24px; background:linear-gradient(135deg,#d946ef,#8b5cf6); border:5px solid var(--bg2); display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:900; color:#fff; overflow:hidden; position:relative; z-index:2;">?</div>
-    <button onclick="document.getElementById('avatarInput').click()" style="position:absolute; right:-6px; bottom:4px; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; z-index:3; border:none; cursor:pointer;">✏️</button>
+    <div id="meAv" style="width:110px; height:110px; border-radius:24px; background:linear-gradient(135deg,#22c55e,#f97316); border:5px solid var(--bg2); display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:900; color:#fff; overflow:hidden; position:relative; z-index:2;">?</div>
+    <button onclick="document.getElementById('avatarInput').click()" style="position:absolute; right:-6px; bottom:4px; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#000; display:flex; align-items:center; justify-content:center; font-size:16px; z-index:3; border:none; cursor:pointer;">✏️</button>
   </div>
   <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
 
@@ -42,60 +42,49 @@
 
   <!-- КНОПКИ -->
   <div style="padding:0 16px;">
+    <!-- СТЕНА -->
+    <div onclick="openWall()" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <div style="font-size:20px;">💬</div>
+      <div style="flex:1; font-weight:800;">Моя стена</div>
+      <div style="color:var(--tm);">›</div>
+    </div>
+
     <div onclick="navigate('desk')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
       <div style="font-size:20px;">🖥️</div>
       <div style="flex:1; font-weight:800;">Рабочий стол</div>
       <div style="color:var(--tm);">›</div>
     </div>
-    
+
     <div onclick="alert('Настройки скоро')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
       <div style="font-size:20px;">⚙️</div>
       <div style="flex:1; font-weight:800;">Настройки</div>
       <div style="color:var(--tm);">›</div>
     </div>
 
-    <div onclick="logout()" style="padding:14px; background:rgba(244,63,94,0.1); border:1px solid rgba(244,63,94,0.3); border-radius:14px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+    <div onclick="logout()" style="padding:14px; background:rgba(220,38,38,0.1); border:1px solid #dc2626; border-radius:14px; display:flex; align-items:center; gap:12px; cursor:pointer;">
       <div style="font-size:20px;">🚪</div>
-      <div style="flex:1; font-weight:800; color:#f43f5e;">Выйти</div>
-      <div style="color:#f43f5e;">›</div>
+      <div style="flex:1; font-weight:800; color:#dc2626;">Выйти</div>
+      <div style="color:#dc2626;">›</div>
     </div>
   </div>
 </div>
 
-<!-- МОДАЛКА РЕДАКТОРА АВАТАРКИ -->
-<div id="mEditAvatar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
-  <div style="font-size:16px; color:var(--ac); font-weight:900; margin-bottom:16px; letter-spacing:2px;">✏️ ПЕРЕМЕСТИ АВАТАРКУ</div>
-  <div id="avatarCrop" style="width:240px; height:240px; border-radius:50%; overflow:hidden; position:relative; border:3px solid var(--ac); box-shadow:0 0 30px rgba(217,70,239,0.6); background:#111; touch-action:none; cursor:grab;">
-    <img id="avatarCropImg" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; pointer-events:none; user-select:none;">
+<!-- МОДАЛКА СТЕНЫ -->
+<div id="mWall" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; flex-direction:column;">
+  <div style="padding:16px; border-bottom:1px solid var(--br); display:flex; align-items:center; gap:12px; background:var(--bg3);">
+    <button onclick="document.getElementById('mWall').style.display='none'" style="background:none; border:none; color:var(--ac3); font-size:22px; cursor:pointer;">←</button>
+    <div style="font-weight:900; font-size:16px;">💬 Стена</div>
   </div>
-  <div style="display:flex; gap:10px; margin-top:20px;">
-    <button onclick="avatarZoom(-0.1)" style="width:50px; height:50px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:#fff; font-size:20px; cursor:pointer;">➖</button>
-    <button onclick="avatarZoom(0.1)" style="width:50px; height:50px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:#fff; font-size:20px; cursor:pointer;">➕</button>
+  <div id="wallPosts" style="flex:1; overflow-y:auto; padding:12px;">
+    <div style="text-align:center; color:var(--tm); padding:20px;">Загрузка...</div>
   </div>
-  <div style="display:flex; gap:10px; margin-top:20px; width:100%; max-width:300px;">
-    <button onclick="closeAvatarEditor()" style="flex:1; padding:14px; border-radius:12px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); font-weight:900; cursor:pointer; font-family:inherit;">Отмена</button>
-    <button onclick="saveAvatarCrop()" style="flex:1; padding:14px; border-radius:12px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#fff; font-weight:900; cursor:pointer; font-family:inherit;">💾 Сохранить</button>
-  </div>
-</div>
-
-<!-- МОДАЛКА РЕДАКТОРА БАННЕРА -->
-<div id="mEditBanner" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
-  <div style="font-size:16px; color:var(--ac); font-weight:900; margin-bottom:16px; letter-spacing:2px;">✏️ ПЕРЕМЕСТИ БАННЕР</div>
-  <div id="bannerCrop" style="width:300px; height:150px; border-radius:16px; overflow:hidden; position:relative; border:3px solid var(--ac); box-shadow:0 0 30px rgba(217,70,239,0.6); background:#111; touch-action:none; cursor:grab;">
-    <img id="bannerCropImg" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; pointer-events:none; user-select:none;">
-  </div>
-  <div style="display:flex; gap:10px; margin-top:20px;">
-    <button onclick="bannerZoom(-0.1)" style="width:50px; height:50px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:#fff; font-size:20px; cursor:pointer;">➖</button>
-    <button onclick="bannerZoom(0.1)" style="width:50px; height:50px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:#fff; font-size:20px; cursor:pointer;">➕</button>
-  </div>
-  <div style="display:flex; gap:10px; margin-top:20px; width:100%; max-width:300px;">
-    <button onclick="closeBannerEditor()" style="flex:1; padding:14px; border-radius:12px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); font-weight:900; cursor:pointer; font-family:inherit;">Отмена</button>
-    <button onclick="saveBannerCrop()" style="flex:1; padding:14px; border-radius:12px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#fff; font-weight:900; cursor:pointer; font-family:inherit;">💾 Сохранить</button>
+  <div style="padding:12px; border-top:1px solid var(--br); background:var(--bg3); display:flex; gap:8px;">
+    <input type="text" id="wallInput" placeholder="Оставить запись..." style="flex:1; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:20px; color:var(--tx); outline:none; font-size:13px;">
+    <button onclick="postWall()" style="padding:10px 16px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; border-radius:20px; color:#000; font-weight:900; cursor:pointer;">➤</button>
   </div>
 </div>
 
 <script>
-/* ====== ЗАГРУЗКА ПРОФИЛЯ ====== */
 async function loadMe() {
   try {
     const r = await fetch('/api/me?token=' + token);
@@ -103,193 +92,94 @@ async function loadMe() {
     
     const avSrc = u.gif_avatar || u.avatar;
     const av = document.getElementById('meAv');
-    if(avSrc) {
-      av.innerHTML = `<img src="${esc(avSrc)}" style="width:100%;height:100%;object-fit:cover; object-position:${u.avatar_pos || '50% 50%'}">`;
-    } else {
-      av.textContent = (u.display_name || u.username).charAt(0).toUpperCase();
-    }
+    if(avSrc) av.innerHTML = `<img src="${esc(avSrc)}" style="width:100%;height:100%;object-fit:cover">`;
+    else av.textContent = (u.display_name || u.username).charAt(0).toUpperCase();
     
-    if(u.banner) {
-      document.getElementById('meBanner').style.background = `url(${u.banner}) ${u.banner_pos || 'center'}/${u.banner_pos ? 'auto' : 'cover'}`;
-    }
+    if(u.banner) document.getElementById('meBanner').style.background = `url(${u.banner}) center/cover`;
     
     document.getElementById('meName').textContent = u.display_name || u.username;
     document.getElementById('meUser').textContent = '@' + u.username;
     if(u.bio) document.getElementById('meBio').textContent = u.bio;
-    
     document.getElementById('meCoins').textContent = u.coins || 0;
     document.getElementById('meLevel').textContent = u.level || 1;
     document.getElementById('meMsgs').textContent = u.messages_count || 0;
     document.getElementById('meCandy').textContent = u.candy || 0;
-    
   } catch(e) { console.error(e); }
 }
 
-/* ====== РЕДАКТОР АВАТАРКИ ====== */
-let avatarImgState = { x: 50, y: 50, zoom: 1 };
-let avatarImageUrl = null;
-
-function uploadAvatar(input) {
-  const f = input.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    avatarImageUrl = e.target.result;
-    document.getElementById('avatarCropImg').src = avatarImageUrl;
-    document.getElementById('mEditAvatar').style.display = 'flex';
-    avatarImgState = { x: 50, y: 50, zoom: 1 };
-    updateAvatarTransform();
-    bindAvatarDrag();
-  };
-  reader.readAsDataURL(f);
-  input.value = '';
+async function openWall() {
+  const modal = document.getElementById('mWall');
+  modal.style.display = 'flex';
+  const box = document.getElementById('wallPosts');
+  box.innerHTML = '<div style="text-align:center;color:var(--tm);padding:20px;">Загрузка...</div>';
+  
+  try {
+    const r = await fetch('/api/wall/0?token=' + token);
+    const posts = await r.json();
+    
+    if(!Array.isArray(posts) || !posts.length) {
+      box.innerHTML = '<div style="text-align:center;color:var(--tm);padding:20px;">Стена пуста</div>';
+      return;
+    }
+    
+    box.innerHTML = '';
+    posts.forEach(p => {
+      const d = document.createElement('div');
+      d.style.cssText = 'background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;margin-bottom:8px;';
+      d.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:6px;"><div style="width:32px;height:32px;border-radius:8px;background:var(--ac2);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;">${esc((p.display_name||p.username||'?').charAt(0).toUpperCase())}</div><div><div style="font-weight:800;font-size:13px;">${esc(p.display_name||p.username)}</div><div style="font-size:10px;color:var(--tm);">${new Date(p.created_at).toLocaleString('ru-RU')}</div></div></div><div style="font-size:13px;line-height:1.4;">${esc(p.text)}</div>`;
+      box.appendChild(d);
+    });
+  } catch(e) {
+    box.innerHTML = '<div style="text-align:center;color:#dc2626;padding:20px;">Ошибка</div>';
+  }
 }
 
-function updateAvatarTransform() {
-  const img = document.getElementById('avatarCropImg');
-  img.style.transform = `scale(${avatarImgState.zoom})`;
-  img.style.transformOrigin = `${avatarImgState.x}% ${avatarImgState.y}%`;
+async function postWall() {
+  const inp = document.getElementById('wallInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  
+  try {
+    const r = await fetch('/api/wall/0/post', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, text })
+    });
+    if(r.ok) { inp.value = ''; openWall(); }
+    else { alert('Ошибка'); }
+  } catch(e) { alert('Ошибка сети'); }
 }
 
-function bindAvatarDrag() {
-  const crop = document.getElementById('avatarCrop');
-  let isDragging = false, startX = 0, startY = 0, origX = 0, origY = 0;
-  crop.onpointerdown = (e) => {
-    isDragging = true; startX = e.clientX; startY = e.clientY;
-    origX = avatarImgState.x; origY = avatarImgState.y;
-    try { crop.setPointerCapture(e.pointerId); } catch(ex) {}
-    e.preventDefault();
-  };
-  crop.onpointermove = (e) => {
-    if(!isDragging) return;
-    const dx = (e.clientX - startX) / crop.clientWidth * 100;
-    const dy = (e.clientY - startY) / crop.clientHeight * 100;
-    avatarImgState.x = Math.max(0, Math.min(100, origX - dx));
-    avatarImgState.y = Math.max(0, Math.min(100, origY - dy));
-    updateAvatarTransform();
-  };
-  crop.onpointerup = () => { isDragging = false; };
-  crop.onpointercancel = () => { isDragging = false; };
-}
-
-function avatarZoom(delta) {
-  avatarImgState.zoom = Math.max(0.5, Math.min(3, avatarImgState.zoom + delta));
-  updateAvatarTransform();
-}
-
-async function saveAvatarCrop() {
-  const blob = await fetch(avatarImageUrl).then(r => r.blob());
-  const file = new File([blob], 'avatar.png', { type: 'image/png' });
-  const fd = new FormData();
-  fd.append('token', token);
-  fd.append('file', file);
+async function uploadAvatar(input) {
+  const f = input.files[0]; if(!f) return;
+  const fd = new FormData(); fd.append('token', token); fd.append('file', f);
   alert('⏳ Загрузка...');
   try {
     const r = await fetch('/api/upload_avatar', { method: 'POST', body: fd });
     const d = await r.json();
-    if(r.ok) {
-      await fetch('/api/update_profile', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ token, avatar_pos: `${avatarImgState.x}% ${avatarImgState.y}%` })
-      });
-      alert('✅ Аватарка обновлена');
-      closeAvatarEditor();
-      loadMe();
-    } else { alert('❌ ' + (d.detail || 'Ошибка')); }
-  } catch(e) { alert('❌ Ошибка'); }
-}
-
-function closeAvatarEditor() {
-  document.getElementById('mEditAvatar').style.display = 'none';
-}
-
-/* ====== РЕДАКТОР БАННЕРА ====== */
-let bannerImgState = { x: 50, y: 50, zoom: 1 };
-let bannerImageUrl = null;
-
-function uploadBanner(input) {
-  const f = input.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    bannerImageUrl = e.target.result;
-    document.getElementById('bannerCropImg').src = bannerImageUrl;
-    document.getElementById('mEditBanner').style.display = 'flex';
-    bannerImgState = { x: 50, y: 50, zoom: 1 };
-    updateBannerTransform();
-    bindBannerDrag();
-  };
-  reader.readAsDataURL(f);
+    if(r.ok) { alert('✅ Аватарка обновлена'); loadMe(); }
+    else alert('❌ ' + (d.detail || 'Ошибка'));
+  } catch(e) { alert('❌ Ошибка сети'); }
   input.value = '';
 }
 
-function updateBannerTransform() {
-  const img = document.getElementById('bannerCropImg');
-  img.style.transform = `scale(${bannerImgState.zoom})`;
-  img.style.transformOrigin = `${bannerImgState.x}% ${bannerImgState.y}%`;
-}
-
-function bindBannerDrag() {
-  const crop = document.getElementById('bannerCrop');
-  let isDragging = false, startX = 0, startY = 0, origX = 0, origY = 0;
-  crop.onpointerdown = (e) => {
-    isDragging = true; startX = e.clientX; startY = e.clientY;
-    origX = bannerImgState.x; origY = bannerImgState.y;
-    try { crop.setPointerCapture(e.pointerId); } catch(ex) {}
-    e.preventDefault();
-  };
-  crop.onpointermove = (e) => {
-    if(!isDragging) return;
-    const dx = (e.clientX - startX) / crop.clientWidth * 100;
-    const dy = (e.clientY - startY) / crop.clientHeight * 100;
-    bannerImgState.x = Math.max(0, Math.min(100, origX - dx));
-    bannerImgState.y = Math.max(0, Math.min(100, origY - dy));
-    updateBannerTransform();
-  };
-  crop.onpointerup = () => { isDragging = false; };
-  crop.onpointercancel = () => { isDragging = false; };
-}
-
-function bannerZoom(delta) {
-  bannerImgState.zoom = Math.max(0.5, Math.min(3, bannerImgState.zoom + delta));
-  updateBannerTransform();
-}
-
-async function saveBannerCrop() {
-  const blob = await fetch(bannerImageUrl).then(r => r.blob());
-  const file = new File([blob], 'banner.png', { type: 'image/png' });
-  const fd = new FormData();
-  fd.append('token', token);
-  fd.append('file', file);
+async function uploadBanner(input) {
+  const f = input.files[0]; if(!f) return;
+  const fd = new FormData(); fd.append('token', token); fd.append('file', f);
   alert('⏳ Загрузка...');
   try {
     const r = await fetch('/api/upload_banner', { method: 'POST', body: fd });
     const d = await r.json();
-    if(r.ok) {
-      await fetch('/api/update_profile', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ token, banner_pos: `${bannerImgState.x}% ${bannerImgState.y}%` })
-      });
-      alert('✅ Баннер обновлен');
-      closeBannerEditor();
-      loadMe();
-    } else { alert('❌ ' + (d.detail || 'Ошибка')); }
-  } catch(e) { alert('❌ Ошибка'); }
+    if(r.ok) { alert('✅ Баннер обновлен'); loadMe(); }
+    else alert('❌ ' + (d.detail || 'Ошибка'));
+  } catch(e) { alert('❌ Ошибка сети'); }
+  input.value = '';
 }
 
-function closeBannerEditor() {
-  document.getElementById('mEditBanner').style.display = 'none';
-}
-
-/* ====== ВЫХОД ====== */
 function logout() {
   if(!confirm('Выйти из аккаунта?')) return;
   localStorage.removeItem('bc_token');
   window.location.href = '/';
 }
 
-/* ====== ИНИЦИАЛИЗАЦИЯ ====== */
-function init_me() {
-  loadMe();
-}
+function init_me() { loadMe(); }
 </script>
