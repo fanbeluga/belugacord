@@ -1,0 +1,80 @@
+<style>
+.shop-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:15px; }
+.shop-item { background:rgba(10,18,10,0.8); border:1px solid var(--border); padding:15px; text-align:center; transition:0.2s; }
+.shop-item:hover { border-color:var(--ac2); box-shadow:0 0 15px rgba(249,115,22,0.3); }
+.shop-icon { font-size:40px; margin-bottom:10px; }
+.shop-name { font-size:14px; color:var(--tx); margin-bottom:5px; }
+.shop-price { font-size:12px; color:var(--ac); font-weight:bold; margin-bottom:10px; }
+.buy-btn { width:100%; padding:8px; background:rgba(34,197,94,0.2); border:1px solid var(--ac); color:var(--ac); cursor:pointer; font-family:inherit; font-weight:bold; }
+.buy-btn:hover { background:var(--ac); color:#000; }
+</style>
+
+<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+  <h2 style="font-size:18px; color:var(--ac);">// ТЕРМИНАЛ ПОСТАВОК</h2>
+  <div style="font-size:16px; color:var(--ac2);">Баланс: <span id="shopCoins">0</span> 🪙</div>
+</div>
+
+<div class="shop-grid">
+  <!-- Подарки -->
+  <div class="shop-item">
+    <div class="shop-icon">🐱</div>
+    <div class="shop-name">Кот-Белуга</div>
+    <div class="shop-price">500 🪙</div>
+    <button class="buy-btn" onclick="buyItem('cat', 500)">КУПИТЬ</button>
+  </div>
+  <div class="shop-item">
+    <div class="shop-icon">🦾</div>
+    <div class="shop-name">Кибер-рука</div>
+    <div class="shop-price">1200 🪙</div>
+    <button class="buy-btn" onclick="buyItem('cyberarm', 1200)">КУПИТЬ</button>
+  </div>
+  <div class="shop-item">
+    <div class="shop-icon">👑</div>
+    <div class="shop-name">Корона Власти</div>
+    <div class="shop-price">5000 🪙</div>
+    <button class="buy-btn" onclick="buyItem('crown', 5000)">КУПИТЬ</button>
+  </div>
+  <div class="shop-item">
+    <div class="shop-icon">🎁</div>
+    <div class="shop-name">Подарок Другу</div>
+    <div class="shop-price">100 🪙</div>
+    <button class="buy-btn" onclick="buyItem('gift', 100)">КУПИТЬ</button>
+  </div>
+</div>
+
+<script>
+function init_shop() {
+  updateShopCoins();
+}
+
+function updateShopCoins() {
+  if (window.me) {
+    document.getElementById('shopCoins').innerText = window.me.coins;
+  }
+}
+
+function buyItem(itemId, price) {
+  if (!window.me) return;
+  if (window.me.coins < price) {
+    alert("Недостаточно средств! Иди зарабатывай.");
+    return;
+  }
+  
+  // Тут потом будет запрос к API: fetch('/api/shop/buy', ...)
+  window.me.coins -= price;
+  updateShopCoins();
+  
+  // Обновляем виджет в правой панели (если он есть)
+  const widget = document.getElementById('profileWidget');
+  if (widget) {
+    widget.innerHTML = `
+      <h3>Agent Profile</h3>
+      <div style="font-size:14px; color:var(--ac); font-weight:bold;">@${window.me.username}</div>
+      <div style="font-size:12px; margin-top:5px;">Coins: ${window.me.coins} 🪙</div>
+      <div style="font-size:12px;">Level: ${window.me.level} ⭐</div>
+    `;
+  }
+  
+  alert(`Вы купили предмет: ${itemId}!`);
+}
+</script>
