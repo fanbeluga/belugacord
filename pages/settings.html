@@ -1,0 +1,64 @@
+<div style="padding:20px; height:100%; overflow-y:auto; background:var(--bg);">
+  <h2 style="font-size:20px; font-weight:900; color:var(--ac); margin-bottom:20px; text-align:center;">⚙️ Настройки</h2>
+
+  <div style="display:flex; flex-direction:column; gap:8px;">
+    <!-- Тема -->
+    <div style="padding:14px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px;">
+      <div style="font-size:20px;">🎨</div>
+      <div style="flex:1; font-weight:700; color:var(--tx);">Тема</div>
+      <select onchange="changeTheme(this.value)" style="background:var(--bg3); border:1px solid var(--border); color:var(--tx); padding:6px 10px; border-radius:8px; outline:none;">
+        <option value="dark">Тёмная</option>
+        <option value="light">Светлая</option>
+      </select>
+    </div>
+
+    <!-- Уведомления -->
+    <div style="padding:14px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px;">
+      <div style="font-size:20px;">🔔</div>
+      <div style="flex:1; font-weight:700; color:var(--tx);">Уведомления</div>
+      <input type="checkbox" onchange="toggleNotif(this.checked)" style="width:20px; height:20px; cursor:pointer;">
+    </div>
+
+    <!-- Звуки -->
+    <div style="padding:14px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px;">
+      <div style="font-size:20px;">🔊</div>
+      <div style="flex:1; font-weight:700; color:var(--tx);">Звуки</div>
+      <input type="checkbox" onchange="toggleSound(this.checked)" style="width:20px; height:20px; cursor:pointer;">
+    </div>
+
+    <!-- Промокод -->
+    <div onclick="openPromoModal()" style="padding:14px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <div style="font-size:20px;">🎟️</div>
+      <div style="flex:1; font-weight:700; color:var(--tx);">Промокод</div>
+      <div style="color:var(--td);">›</div>
+    </div>
+
+    <!-- Соглашение -->
+    <div onclick="navigate('legal')" style="padding:14px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <div style="font-size:20px;">📜</div>
+      <div style="flex:1; font-weight:700; color:var(--tx);">Соглашение</div>
+      <div style="color:var(--td);">›</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function changeTheme(t) {
+  document.body.setAttribute('data-theme', t);
+  localStorage.setItem('bc_theme', t);
+  alert('Тема изменена: ' + t);
+}
+
+function toggleNotif(v) {
+  localStorage.setItem('bc_notif', v);
+}
+
+function toggleSound(v) {
+  localStorage.setItem('bc_sound', v);
+}
+
+function init_settings() {
+  const savedTheme = localStorage.getItem('bc_theme');
+  if(savedTheme) document.body.setAttribute('data-theme', savedTheme);
+}
+</script>
