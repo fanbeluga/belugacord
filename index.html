@@ -3,755 +3,233 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>BelugaCord x GudraWorld</title>
+<title>BelugaCord x GudraWorld — Официальный Мессенджер</title>
 <style>
-/* ===== СТАРАЯ ТЕМА + НОВЫЕ АКЦЕНТЫ ===== */
 :root {
-  --bg: #020005; --bg2: #0a0514; --bg3: #140a24;
-  --ac: #22c55e; --ac2: #f97316; /* Зеленый и Оранжевый */
-  --ac3: #22d3ee; /* Циан для ссылок */
-  --tx: #e8f5e9; --td: #81c784; --tm: #4caf50;
-  --glass: rgba(34,197,94,0.05); --gb: rgba(34,197,94,0.15);
-  --border: rgba(34,197,94,0.15); --msg-in: rgba(34,197,94,0.08); --msg-out: rgba(249,115,22,0.15);
-  --neon: 0 0 15px rgba(34,197,94,0.6); --neon-orange: 0 0 15px rgba(249,115,22,0.6);
+  --bg: #050a05;
+  --bg2: #0a120a;
+  --ac: #22c55e;
+  --ac2: #f97316;
+  --ac3: #4ade80;
+  --tx: #e8f5e9;
+  --td: #81c784;
+  --tm: #4caf50;
+  --glass: rgba(34, 197, 94, 0.05);
+  --gb: rgba(34, 197, 94, 0.15);
 }
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Courier New',monospace; -webkit-tap-highlight-color:transparent; }
 body { 
-  background: var(--bg); color: var(--tx); height: 100vh; overflow: hidden; display: flex; flex-direction: column;
-  background-image: radial-gradient(circle at 20% 20%, rgba(34,197,94,0.1), transparent 50%), radial-gradient(circle at 80% 80%, rgba(249,115,22,0.08), transparent 50%);
+  background: var(--bg); 
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.1), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.08), transparent 50%);
+  color: var(--tx); 
+  min-height: 100vh; 
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  padding: 20px;
+  overflow-x: hidden;
 }
-.hidden { display: none !important; }
 
-/* ===== ЛЕНДИНГ ===== */
-#landingScreen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
-.landing-content { max-width: 800px; width: 100%; text-align: center; }
-.collab-badge { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #000; font-weight: 900; font-size: 14px; letter-spacing: 2px; border-radius: 8px; margin-bottom: 24px; text-transform: uppercase; box-shadow: var(--neon); }
-.logo { font-size: 72px; margin-bottom: 16px; }
-.title { font-size: 36px; font-weight: 900; background: linear-gradient(135deg, var(--ac), var(--ac2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; letter-spacing: 4px; }
-.subtitle { font-size: 15px; color: var(--td); margin-bottom: 32px; line-height: 1.6; }
+.cp-corner { position:fixed; width:30px; height:30px; z-index:5; pointer-events:none; }
+.cp-corner.tl { top:10px; left:10px; border-top:2px solid var(--ac); border-left:2px solid var(--ac); }
+.cp-corner.tr { top:10px; right:10px; border-top:2px solid var(--ac); border-right:2px solid var(--ac); }
+.cp-corner.bl { bottom:10px; left:10px; border-bottom:2px solid var(--ac2); border-left:2px solid var(--ac2); }
+.cp-corner.br { bottom:10px; right:10px; border-bottom:2px solid var(--ac2); border-right:2px solid var(--ac2); }
+
+.landing { position:relative; z-index:10; text-align:center; max-width:800px; width:100%; }
+
+.collab-badge {
+  display: inline-block;
+  padding: 18px 40px;
+  background: linear-gradient(135deg, var(--ac), var(--ac2));
+  color: #000;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 3px;
+  border-radius: 50px;
+  margin-bottom: 24px;
+  box-shadow: 0 0 40px rgba(34, 197, 94, 0.5), 0 0 20px rgba(249, 115, 22, 0.5);
+  animation: pulse 2s infinite;
+  text-transform: uppercase;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(34, 197, 94, 0.5), 0 0 20px rgba(249, 115, 22, 0.5); }
+  50% { transform: scale(1.03); box-shadow: 0 0 60px rgba(34, 197, 94, 0.8), 0 0 30px rgba(249, 115, 22, 0.8); }
+}
+
+.logo { font-size: 72px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.title { 
+  font-size: 36px; 
+  font-weight: 900; 
+  background: linear-gradient(135deg, var(--ac), var(--ac2)); 
+  -webkit-background-clip: text; 
+  -webkit-text-fill-color: transparent; 
+  margin-bottom: 12px; 
+  letter-spacing: 4px; 
+}
+
+.subtitle { 
+  font-size: 14px; 
+  color: var(--td); 
+  margin-bottom: 32px; 
+  line-height: 1.6; 
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+.feature-card {
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid var(--gb);
+  border-radius: 16px;
+  padding: 16px;
+  transition: 0.2s;
+}
+.feature-card:hover {
+  border-color: var(--ac2);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+  transform: translateY(-2px);
+}
+.feature-card .icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.feature-card .title-text {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--ac);
+  margin-bottom: 4px;
+}
+.feature-card .desc {
+  font-size: 11px;
+  color: var(--td);
+  line-height: 1.4;
+}
+
 .buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
-.btn { padding: 16px; border-radius: 12px; font-weight: 900; font-size: 15px; letter-spacing: 1px; cursor: pointer; border: none; font-family: inherit; transition: 0.2s; }
-.btn-primary { background: linear-gradient(135deg, var(--ac), var(--ac2)); color: #000; box-shadow: var(--neon); }
-.btn-secondary { background: var(--glass); border: 1px solid var(--gb); color: var(--tx); }
+.btn { 
+  padding: 16px 24px; 
+  border-radius: 14px; 
+  font-weight: 900; 
+  font-size: 15px; 
+  letter-spacing: 2px; 
+  cursor: pointer; 
+  border: none; 
+  font-family: inherit; 
+  transition: 0.2s; 
+  text-transform: uppercase; 
+}
+.btn-primary { 
+  background: linear-gradient(135deg, var(--ac), var(--ac2)); 
+  color: #000; 
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); 
+}
+.btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(249, 115, 22, 0.7); }
+.btn-secondary { 
+  background: var(--glass); 
+  border: 1px solid var(--gb); 
+  color: var(--tx); 
+}
+.btn-secondary:hover { background: rgba(34, 197, 94, 0.1); }
 
-/* ===== ПРИЛОЖЕНИЕ ===== */
-#appScreen { display: none; flex-direction: column; height: 100%; width: 100%; background: var(--bg); }
-#appScreen.show { display: flex; }
+.footer { position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--tm); z-index: 10; letter-spacing: 2px; }
 
-/* Шапка */
-#topBar { height: 60px; background: rgba(10,18,10,0.9); border-bottom: 1px solid rgba(34,197,94,0.3); display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; padding-top: env(safe-area-inset-top); backdrop-filter: blur(10px); }
-.tb-logo { font-size: 18px; font-weight: 900; color: var(--ac); text-shadow: var(--neon); letter-spacing: 2px; cursor: pointer; }
-.tb-tabs { display: flex; gap: 6px; margin-left: auto; }
-.tb-tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 12px; border-radius: 8px; background: rgba(20,16,32,0.8); border: 1px solid rgba(34,197,94,0.2); color: var(--td); cursor: pointer; transition: 0.2s; font-size: 10px; font-weight: 800; clip-path: polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.tb-tab .ic { font-size: 20px; }
-.tb-tab.on { background: rgba(34,197,94,0.2); border-color: var(--ac); color: #fff; box-shadow: var(--neon); }
-
-/* Экраны */
-#screenArea { flex: 1; overflow: hidden; position: relative; }
-.screen { position: absolute; inset: 0; display: none; flex-direction: column; overflow-y: auto; }
-.screen.on { display: flex; }
-
-/* Нижняя панель */
-#bottomNav { display: flex; height: 64px; background: rgba(10,18,10,0.95); border-top: 1px solid rgba(34,197,94,0.3); justify-content: space-around; align-items: center; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); }
-.bn-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--td); font-size: 11px; cursor: pointer; transition: 0.2s; }
-.bn-item .ic { font-size: 22px; }
-.bn-item.active { color: var(--ac); text-shadow: var(--neon); }
-
-/* Чаты */
-.chat-panel { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg2); }
-.chat-list { flex: 1; overflow-y: auto; padding: 8px; }
-.dm-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; margin-bottom: 4px; background: rgba(20,16,32,0.7); border: 1px solid rgba(34,197,94,0.15); cursor: pointer; clip-path: polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%); }
-.dm-item:active { background: rgba(34,197,94,0.1); border-color: var(--ac); }
-.dm-av { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg,var(--ac),var(--ac2)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; font-size: 18px; flex-shrink: 0; overflow: hidden; clip-path: polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.dm-av img { width: 100%; height: 100%; object-fit: cover; }
-.dm-info { flex: 1; min-width: 0; }
-.dm-name { font-size: 15px; font-weight: 700; color: var(--tx); margin-bottom: 2px; }
-.dm-last { font-size: 12px; color: var(--tm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Чат-окно */
-.chat-window { position: absolute; inset: 0; z-index: 50; background: var(--bg2); display: none; flex-direction: column; }
-.chat-window.open { display: flex; }
-.chat-header { height: 56px; padding: 0 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--bg3); }
-.back-btn { background: none; border: none; color: var(--td); font-size: 24px; cursor: pointer; padding: 8px; }
-.chat-body { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 4px; background: var(--bg2); }
-.chat-input-area { padding: 10px 12px; border-top: 1px solid var(--border); background: var(--bg3); display: flex; gap: 6px; align-items: center; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-.chat-input { flex: 1; background: var(--glass); border: 1px solid var(--gb); border-radius: 20px; padding: 10px 14px; color: var(--tx); outline: none; font-size: 14px; }
-.chat-send { background: linear-gradient(135deg,var(--ac),var(--ac2)); border: none; width: 40px; height: 40px; border-radius: 50%; color: #000; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-/* Сообщения */
-.msg { display: flex; gap: 10px; padding: 5px 8px; border-radius: 12px; position: relative; max-width: 100%; }
-.msg.out { align-self: flex-end; flex-direction: row-reverse; }
-.msg-av { width: 40px; height: 40px; background: linear-gradient(135deg,var(--ac2),var(--ac3)); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; font-size: 15px; overflow: hidden; clip-path: polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.msg-av img { width: 100%; height: 100%; object-fit: cover; }
-.msg-content { flex: 1; min-width: 0; }
-.msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
-.msg-author { font-weight: 800; font-size: 13px; color: var(--ac); text-shadow: var(--neon); }
-.msg-time { font-size: 10px; color: var(--tm); }
-.msg-text { color: var(--tx); font-size: 13.5px; line-height: 1.5; word-wrap: break-word; background: var(--msg-in); padding: 8px 13px; border-left: 2px solid var(--ac); display: inline-block; max-width: 100%; white-space: pre-wrap; }
-.msg.out .msg-text { border-left: none; border-right: 2px solid var(--ac2); background: var(--msg-out); }
-
-/* Настройки */
-.settings-list { padding: 8px 0; }
-.settings-item { display: flex; align-items: center; gap: 16px; padding: 14px 16px; cursor: pointer; border-bottom: 1px solid var(--border); }
-.settings-item:hover { background: var(--glass); }
-.settings-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg,var(--ac),var(--ac2)); display: flex; align-items: center; justify-content: center; font-size: 20px; color:#000; }
-.settings-text { font-size: 16px; color: var(--tx); font-weight: 700; }
-
-/* Профиль */
-.profile-header { padding: 24px; text-align: center; border-bottom: 1px solid var(--border); background: var(--bg3); }
-.profile-av { width: 100px; height: 100px; border-radius: 24px; background: var(--glass); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; color: var(--td); overflow: hidden; position: relative; cursor: pointer; border: 4px solid var(--bg2); }
-.profile-av img { width:100%; height:100%; object-fit:cover; }
-.profile-name { font-size: 20px; font-weight: 900; color: var(--tx); margin-bottom: 4px; }
-.profile-username { color: var(--ac); font-size: 14px; margin-bottom: 16px; font-weight: 700; }
-.profile-stats { display: flex; justify-content: center; gap: 24px; margin-top: 16px; }
-.profile-stat { text-align: center; }
-.profile-stat-val { font-size: 18px; font-weight: 900; color: var(--tx); }
-.profile-stat-lbl { font-size: 12px; color: var(--td); }
-
-/* Плеер */
-#musicToggle { position: fixed; bottom: 80px; right: 20px; z-index: 99; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg,var(--ac),var(--ac2)); color: #000; font-size: 20px; border: none; cursor: pointer; display: none; box-shadow: var(--neon); }
-#appScreen.show ~ #musicToggle { display: flex; align-items: center; justify-content: center; }
-#musicPlayer { position: fixed; bottom: 140px; right: 20px; z-index: 100; background: rgba(10,18,10,0.98); border: 1px solid var(--ac); border-radius: 12px; padding: 16px; width: 300px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
-#musicPlayer.open { display: block; }
-#nowPlaying { display: none; position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(10,18,10,0.95); border: 1px solid var(--ac); border-radius: 8px; padding: 8px 16px; font-size: 12px; z-index: 50; color: var(--ac); }
-
-/* Админка */
-#adminPanel { position: fixed; inset: 0; z-index: 2000; background: var(--bg); display: none; flex-direction: column; overflow-y: auto; }
-#adminPanel.open { display: flex; }
-.admin-header { height: 56px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; position: sticky; top: 0; z-index: 10; }
-.admin-title { font-size: 18px; font-weight: 700; color: var(--ac); }
-.admin-body { flex: 1; padding: 16px; }
-.admin-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-.admin-section h3 { color: var(--ac); margin-bottom: 12px; font-size: 16px; }
-.admin-input { width: 100%; padding: 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--tx); margin-bottom: 8px; outline: none; font-family: inherit; }
-.admin-btn { padding: 10px 16px; background: var(--ac); border: none; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer; font-family: inherit; }
-.admin-btn.red { background: #dc2626; color: #fff; }
-
-/* Адаптив */
-@media (min-width: 769px) {
-  #bottomNav { display: none; }
-  .chat-panel { width: 340px; border-right: 1px solid var(--border); }
-  .chat-window { position: relative; display: flex; }
-  #screenArea { display: flex; }
-  .screen.on { display: flex; flex-direction: row; }
+@media (max-width: 600px) {
+  .title { font-size: 28px; }
+  .collab-badge { font-size: 13px; padding: 12px 20px; }
+  .logo { font-size: 56px; }
+  .features-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
-<!-- ЛЕНДИНГ -->
-<div id="landingScreen">
-  <div class="landing-content">
-    <div class="collab-badge">КОЛЛАБОРАЦИЯ С GudraWorld</div>
-    <div class="logo">🐱</div>
-    <div class="title">BELUGACORD</div>
-    <div class="subtitle">Мессенджер для друзей и не только.<br>Мы объединились с <b>GudraWorld</b>, чтобы сделать общение ещё круче.</div>
-    <div class="buttons">
-      <button class="btn btn-primary" id="mainBtn" onclick="goToLogin()">ВОЙТИ</button>
-      <button class="btn btn-secondary" onclick="alert('📱 Мобильное приложение в разработке!')">СКАЧАТЬ ПРИЛОЖЕНИЕ</button>
+
+<div class="cp-corner tl"></div><div class="cp-corner tr"></div><div class="cp-corner bl"></div><div class="cp-corner br"></div>
+
+<div class="landing">
+  <div class="collab-badge">🤝 КОЛЛАБОРАЦИЯ С GudraWorld</div>
+
+  <div class="logo">🐱</div>
+  <div class="title">BELUGACORD</div>
+  <div class="subtitle">
+    Мессенджер для друзей и не только.<br>
+    Мы объединились с <b style="color:var(--ac2)">GudraWorld</b>, чтобы сделать общение ещё круче.
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="icon">🌍</div>
+      <div class="title-text">Обновления GudraWorld</div>
+      <div class="desc">Мгновенные уведомления о запуске сервера, тех. работах и новых ивентах.</div>
     </div>
+    <div class="feature-card">
+      <div class="icon">💬</div>
+      <div class="title-text">Общение с друзьями</div>
+      <div class="desc">Личные чаты, группы и каналы. Общайся с друзьями и игроками в реальном времени.</div>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🎮</div>
+      <div class="title-text">Турниры и ивенты</div>
+      <div class="desc">Участвуй в розыгрышах и турнирах. Призы — монеты, титулы и эксклюзивные фоны.</div>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📢</div>
+      <div class="title-text">Официальные каналы</div>
+      <div class="desc">Подпишись на каналы <b>GudraWorld</b> и <b>BelugaCord</b>, чтобы первым узнавать новости.</div>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🛡️</div>
+      <div class="title-text">Своя экономика</div>
+      <div class="desc">Зарабатывай монеты, покупай фоны, рамки и титулы. Всё честно — без казино и лудомании.</div>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📱</div>
+      <div class="title-text">Мобильный интерфейс</div>
+      <div class="desc">Удобный интерфейс для телефона. Все функции под рукой, как в нативном приложении.</div>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔒</div>
+      <div class="title-text">Полная анонимность</div>
+      <div class="desc">Твои данные защищены. Никаких слежек, рекламы и передачи данных третьим лицам.</div>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🚀</div>
+      <div class="title-text">Скорость и стабильность</div>
+      <div class="desc">Сервер работает на мощном VDS. Сообщения доставляются мгновенно, без лагов.</div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button class="btn btn-primary" onclick="goToLogin()">ВОЙТИ</button>
+    <button class="btn btn-secondary" onclick="alert('📱 Мобильное приложение в разработке.\n\nПока что используйте веб-версию!')">СКАЧАТЬ ПРИЛОЖЕНИЕ</button>
   </div>
 </div>
 
-<!-- ПРИЛОЖЕНИЕ -->
-<div id="appScreen">
-  <div id="topBar">
-    <div class="tb-logo" onclick="toggleAdmin()">BELUGA</div>
-    <div class="tb-tabs">
-      <div class="tb-tab on" onclick="switchTab('chats')"><span class="ic">💬</span><span>Чаты</span></div>
-      <div class="tb-tab" onclick="switchTab('settings')"><span class="ic">⚙️</span><span>Настройки</span></div>
-    </div>
-  </div>
+<div class="footer">BELUGACORD x GudraWorld — 2026</div>
 
-  <div id="screenArea">
-    <!-- ЧАТЫ -->
-    <div class="screen on" id="screenChats">
-      <div class="chat-panel" id="chatPanel">
-        <div style="padding:12px; border-bottom:1px solid var(--border);">
-          <input type="text" id="searchInput" placeholder="🔍 Поиск..." style="width:100%; padding:10px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; color:var(--tx); outline:none; font-size:14px;">
-        </div>
-        <div id="dmList" style="flex:1; overflow-y:auto;">
-          <div style="padding:40px; text-align:center; color:var(--td);">Загрузка...</div>
-        </div>
-      </div>
-      <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-          <button class="back-btn" onclick="closeChat()">←</button>
-          <div id="chatTitle" style="font-weight:600; font-size:16px;">Чат</div>
-          <button class="back-btn" onclick="startCall()" style="margin-left:auto;">📞</button>
-        </div>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-input-area">
-          <input type="text" class="chat-input" placeholder="Сообщение..." id="msgInput" onkeydown="if(event.key==='Enter')sendMsg()">
-          <button class="chat-send" onclick="sendMsg()">➤</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- НАСТРОЙКИ -->
-    <div class="screen" id="screenSettings">
-      <div class="settings-list">
-        <div class="settings-item" onclick="switchTab('profile')">
-          <div class="settings-icon">👤</div>
-          <div class="settings-text">Профиль</div>
-        </div>
-        <div class="settings-item" onclick="openPromoModal()">
-          <div class="settings-icon">🎟️</div>
-          <div class="settings-text">Промокод</div>
-        </div>
-        <div class="settings-item" onclick="openPremium()">
-          <div class="settings-icon" style="background:linear-gradient(135deg, #ffd700, #f97316); color:#000; font-weight:bold;">💎</div>
-          <div class="settings-text" style="font-weight:700;">Премиум</div>
-        </div>
-        <div class="settings-item" onclick="toggleAdmin()">
-          <div class="settings-icon" style="background:#dc2626; color:#fff;">👑</div>
-          <div class="settings-text" style="color:#dc2626;">Админка</div>
-        </div>
-        <div class="settings-item" onclick="logout()">
-          <div class="settings-icon" style="color:#dc2626;">🚪</div>
-          <div class="settings-text" style="color:#dc2626;">Выйти</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ПРОФИЛЬ -->
-    <div class="screen" id="screenProfile">
-      <div class="profile-header">
-        <div class="profile-av" id="profAv" onclick="document.getElementById('avatarInput').click()">?</div>
-        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
-        <div class="profile-name" id="profName">Юзер</div>
-        <div class="profile-username" id="profUser">@username</div>
-        <button class="btn btn-secondary" style="width:100%;" onclick="document.getElementById('avatarInput').click()">Сменить аватарку</button>
-        <div class="profile-stats">
-          <div class="profile-stat"><div class="profile-stat-val" id="profCoins">0</div><div class="profile-stat-lbl">Бекоины</div></div>
-          <div class="profile-stat"><div class="profile-stat-val" id="profLevel">1</div><div class="profile-stat-lbl">Уровень</div></div>
-          <div class="profile-stat"><div class="profile-stat-val" id="profMsgs">0</div><div class="profile-stat-lbl">Сообщений</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="bottomNav">
-    <div class="bn-item active" onclick="switchTab('chats')"><div class="ic">💬</div><div>Чаты</div></div>
-    <div class="bn-item" onclick="switchTab('settings')"><div class="ic">⚙️</div><div>Настройки</div></div>
-  </div>
-</div>
-
-<!-- ПЛЕЕР -->
-<button id="musicToggle" onclick="toggleMusicPlayer()">🎵</button>
-<div id="musicPlayer">
-  <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-    <div style="font-size:14px; font-weight:700;">Плеер</div>
-    <button onclick="toggleMusicPlayer()" style="background:none; border:none; color:var(--td); font-size:18px; cursor:pointer;">✕</button>
-  </div>
-  <div id="mpTrack" style="text-align:center; font-size:14px; font-weight:600; margin-bottom:4px;">Выбери трек</div>
-  <div id="mpArtist" style="text-align:center; font-size:12px; color:var(--td); margin-bottom:16px;">—</div>
-  <div style="display:flex; justify-content:center; gap:16px; margin-bottom:16px;">
-    <button onclick="mpPrev()" style="width:40px; height:40px; border-radius:50%; background:var(--bg3); border:1px solid var(--border); color:var(--td); font-size:18px; cursor:pointer;">⏮</button>
-    <button id="mpPlayBtn" onclick="mpTogglePlay()" style="width:56px; height:56px; border-radius:50%; background:var(--ac); border:none; color:#000; font-size:24px; cursor:pointer;">▶</button>
-    <button onclick="mpNext()" style="width:40px; height:40px; border-radius:50%; background:var(--bg3); border:1px solid var(--border); color:var(--td); font-size:18px; cursor:pointer;">⏭</button>
-  </div>
-  <div style="width:100%; height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; margin-bottom:8px;">
-    <div id="mpProgress" style="height:100%; background:var(--ac); width:0%;"></div>
-  </div>
-  <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--td); margin-bottom:16px;">
-    <span id="mpCurrent">0:00</span><span id="mpDuration">0:00</span>
-  </div>
-  <label for="musicUpload" style="padding:10px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; text-align:center; font-size:12px; font-weight:600; color:var(--td); cursor:pointer; display:block;">＋ Загрузить трек</label>
-  <input type="file" id="musicUpload" accept="audio/*" style="display:none" onchange="uploadMusic(this)">
-  <div id="mpPlaylist" style="margin-top:12px; max-height:150px; overflow-y:auto;"></div>
-  <audio id="mpAudio" ontimeupdate="mpUpdateProgress()" onended="mpNext()"></audio>
-</div>
-
-<!-- МОДАЛКА ПРОМОКОДА -->
-<div id="mPromo" style="display:none; position:fixed; inset:0; background:rgba(5,0,15,0.95); z-index:1500; align-items:center; justify-content:center; padding:14px; backdrop-filter:blur(5px);">
-  <div style="background:rgba(10,5,20,0.98); border:1px solid var(--ac); border-radius:20px; width:100%; max-width:400px; padding:24px; position:relative; box-shadow:var(--neon);">
-    <button onclick="closePromoModal()" style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.2); color:#fff; width:34px; height:34px; border-radius:50%; font-size:15px; border:1px solid #dc2626; cursor:pointer;">✕</button>
-    <h2 style="text-align:center; margin-bottom:16px; color:var(--ac);">🎟️ Промокод</h2>
-    <input type="text" id="promoInput" placeholder="Введи код..." style="width:100%; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:14px; color:var(--tx); margin-bottom:12px; font-family:inherit; outline:none; text-transform:uppercase; text-align:center; font-size:16px;">
-    <button onclick="activatePromo()" style="width:100%; padding:14px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#000; border:none; border-radius:12px; font-weight:900; font-size:14px; cursor:pointer; font-family:inherit;">АКТИВИРОВАТЬ</button>
-  </div>
-</div>
-
-<!-- МОДАЛКА ЗВОНКА -->
-<div id="mCall" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:2000; flex-direction:column;">
-  <div style="position:relative; width:100%; height:100%;">
-    <video id="remoteVideo" autoplay playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; display:none;"></video>
-    <video id="localVideo" autoplay playsinline muted style="position:absolute; bottom:30px; right:30px; width:100px; height:130px; object-fit:cover; border:1px solid #22d3ee; z-index:15; display:none;"></video>
-    
-    <div style="position:absolute; top:40px; left:50%; transform:translateX(-50%); z-index:20; display:flex; gap:6px;">
-      <button id="cbMic" onclick="tglMic()" style="width:46px; height:46px; background:rgba(20,16,32,.8); border:1px solid rgba(34,197,94,.2); color:#fff; font-size:20px; cursor:pointer;">🎤</button>
-      <button id="cbCam" onclick="tglCam()" style="width:46px; height:46px; background:rgba(20,16,32,.8); border:1px solid rgba(34,197,94,.2); color:#fff; font-size:20px; cursor:pointer;">📷</button>
-      <button onclick="endCall()" style="width:46px; height:46px; background:rgba(220,38,38,.3); border:1px solid #dc2626; color:#fff; font-size:20px; cursor:pointer;">📞</button>
-    </div>
-
-    <div style="position:absolute; left:30px; top:50%; transform:translateY(-50%); z-index:10;">
-      <div id="callAv" style="width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#22c55e,#f97316); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:900; border:2px solid #22c55e; overflow:hidden;">?</div>
-      <div id="callName" style="font-size:14px; font-weight:900; text-align:center; margin-top:8px; color:#fff;">Юзер</div>
-      <div id="callSt" style="font-size:9px; color:#22d3ee; text-align:center;">ОЖИДАНИЕ...</div>
-    </div>
-
-    <div style="position:absolute; top:80px; right:30px; z-index:10; background:rgba(0,0,0,.6); border:1px solid rgba(34,211,238,.3); padding:10px 16px;">
-      <div style="font-size:9px; color:#22d3ee; font-weight:900;">ВРЕМЯ</div>
-      <div id="callTime" style="font-size:22px; font-weight:900; color:#22c55e;">00:00</div>
-    </div>
-  </div>
-</div>
-
-<!-- АДМИНКА -->
-<div id="adminPanel">
-  <div class="admin-header">
-    <button class="back-btn" onclick="toggleAdmin()">←</button>
-    <div class="admin-title">👑 Админка</div>
-  </div>
-  <div class="admin-body">
-    <div class="admin-section">
-      <h3>👥 Юзеры</h3>
-      <div id="adminUserList">Загрузка...</div>
-    </div>
-    <div class="admin-section">
-      <h3>💰 Экономика</h3>
-      <input type="text" class="admin-input" id="massAmount" placeholder="Сумма" value="100">
-      <button class="admin-btn" onclick="adminMassGive()">Дать всем</button>
-    </div>
-    <div class="admin-section">
-      <h3>🎟️ Создать промокод</h3>
-      <input type="text" class="admin-input" id="promoCode" placeholder="Код (латиница)">
-      <input type="number" class="admin-input" id="promoReward" placeholder="Награда" value="500">
-      <button class="admin-btn" onclick="adminCreatePromo()">Создать</button>
-    </div>
-  </div>
-</div>
 <script>
-const token = localStorage.getItem('bc_token') || '';
-let me = null;
-let ws = null;
-let curDM = null;
-let ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }; // Дефолт, потом заменим на TURN
-
-/* ====== ИНИЦИАЛИЗАЦИЯ ====== */
-window.addEventListener('DOMContentLoaded', async () => {
-  if(!token) { window.location.href = '/login'; return; }
-  
-  try {
-    const r = await fetch('/api/me?token=' + token);
-    if(!r.ok) throw new Error();
-    me = await r.json();
-  } catch(e) {
-    localStorage.removeItem('bc_token');
-    window.location.href = '/login';
-    return;
-  }
-
-  // ЗАГРУЖАЕМ TURN КОНФИГ С СЕРВЕРА
-  try {
-    const iceR = await fetch('/api/webrtc/config');
-    if(iceR.ok) {
-      const iceD = await iceR.json();
-      if(iceD.iceServers) ICE_SERVERS = { iceServers: iceD.iceServers };
-    }
-  } catch(e) { console.warn('TURN не загрузился'); }
-
-  // Автоподписка на каналы
-  autoSubscribe();
-
-  document.getElementById('mainBtn').textContent = 'ОТКРЫТЬ МЕССЕНДЖЕР';
-  document.getElementById('mainBtn').onclick = () => {
-    document.getElementById('landingScreen').style.display = 'none';
-    document.getElementById('appScreen').classList.add('show');
-    connectWS();
-    loadDMList();
-    loadProfile();
-    loadMusic();
-  };
-});
-
-async function autoSubscribe() {
-  try {
-    await fetch('/api/channels/subscribe_by_username', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token, username: 'belugacord' }) });
-    await fetch('/api/channels/subscribe_by_username', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token, username: 'gudraworld' }) });
-  } catch(e) {}
+const token = localStorage.getItem('bc_token');
+if(token) {
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = 'ОТКРЫТЬ МЕССЕНДЖЕР';
+  btn.onclick = () => window.location.href = '/app';
 }
 
-/* ====== НАВИГАЦИЯ ====== */
-function switchTab(tab) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-  document.getElementById('screen' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('on');
-  document.querySelectorAll('.tb-tab').forEach(b => b.classList.toggle('on', b.textContent.includes(tab === 'chats' ? 'Чаты' : 'Настройки')));
-  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
-  if(tab === 'chats') document.querySelectorAll('.bn-item')[0].classList.add('active');
-  if(tab === 'settings') document.querySelectorAll('.bn-item')[1].classList.add('active');
+function goToLogin() {
+  window.location.href = '/login';
 }
-
-/* ====== ЧАТЫ ====== */
-async function loadDMList() {
-  const box = document.getElementById('dmList');
-  box.innerHTML = '<div style="padding:40px; text-align:center; color:var(--td);">Загрузка...</div>';
-  
-  try {
-    const r = await fetch('/api/friends/list?token=' + token);
-    const friends = await r.json();
-    
-    if(!Array.isArray(friends) || !friends.length) {
-      box.innerHTML = '<div style="padding:40px; text-align:center; color:var(--td);">Нет друзей</div>';
-      return;
-    }
-
-    box.innerHTML = '';
-    friends.forEach(f => {
-      if(f.status !== 'accepted') return;
-      const d = document.createElement('div');
-      d.className = 'dm-item';
-      const av = f.avatar ? `<img src="${esc(f.avatar)}">` : esc((f.display_name || f.username).charAt(0).toUpperCase());
-      d.innerHTML = `<div class="dm-av">${av}</div><div class="dm-info"><div class="dm-name">${esc(f.display_name || f.username)}</div><div class="dm-last">@${esc(f.username)}</div></div>`;
-      d.onclick = () => openChat(f);
-      box.appendChild(d);
-    });
-  } catch(e) {
-    box.innerHTML = '<div style="padding:40px; text-align:center; color:#dc2626;">Ошибка загрузки</div>';
-  }
-}
-
-async function openChat(user) {
-  curDM = user;
-  document.getElementById('chatWindow').classList.add('open');
-  document.getElementById('chatPanel').style.display = 'none';
-  document.getElementById('chatTitle').textContent = user.display_name || user.username;
-  
-  const body = document.getElementById('chatBody');
-  body.innerHTML = '<div style="text-align:center; color:var(--td);">Загрузка...</div>';
-  
-  try {
-    const r = await fetch('/api/dm/' + user.id + '/messages?token=' + token);
-    const msgs = await r.json();
-    body.innerHTML = '';
-    if(Array.isArray(msgs)) msgs.forEach(m => addMsg(m));
-  } catch(e) { body.innerHTML = 'Ошибка'; }
-}
-
-function addMsg(m) {
-  const body = document.getElementById('chatBody');
-  const isMe = m.from_user === me.id;
-  const d = document.createElement('div');
-  d.className = 'msg' + (isMe ? ' out' : '');
-  const time = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  const av = (m.display_name || m.username || '?').charAt(0).toUpperCase();
-  
-  d.innerHTML = `
-    <div class="msg-av">${esc(av)}</div>
-    <div class="msg-content">
-      <div class="msg-head"><span class="msg-author">${esc(m.display_name || m.username || '?')}</span><span class="msg-time">${time}</span></div>
-      <div class="msg-text">${esc(m.text || '')}</div>
-    </div>
-  `;
-  body.appendChild(d);
-  body.scrollTop = body.scrollHeight;
-}
-
-function closeChat() {
-  document.getElementById('chatWindow').classList.remove('open');
-  document.getElementById('chatPanel').style.display = 'flex';
-  curDM = null;
-}
-
-function sendMsg() {
-  const inp = document.getElementById('msgInput');
-  const text = inp.value.trim();
-  if(!text || !curDM) return;
-  
-  wsSend({ type: 'dm', to_user: curDM.id, text: text });
-  inp.value = '';
-}
-
-/* ====== ПРОФИЛЬ ====== */
-async function loadProfile() {
-  document.getElementById('profName').textContent = me.display_name || me.username;
-  document.getElementById('profUser').textContent = '@' + me.username;
-  document.getElementById('profCoins').textContent = me.coins || 0;
-  document.getElementById('profLevel').textContent = me.level || 1;
-  document.getElementById('profMsgs').textContent = me.messages_count || 0;
-  
-  const av = document.getElementById('profAv');
-  if(me.avatar) av.innerHTML = `<img src="${esc(me.avatar)}">`;
-  else av.textContent = (me.display_name || me.username).charAt(0).toUpperCase();
-}
-
-async function uploadAvatar(input) {
-  const f = input.files[0];
-  if(!f) return;
-  const fd = new FormData();
-  fd.append('token', token);
-  fd.append('file', f);
-  alert('Загрузка...');
-  try {
-    const r = await fetch('/api/upload_avatar', { method: 'POST', body: fd });
-    const d = await r.json();
-    if(r.ok) {
-      me.avatar = d.url;
-      loadProfile();
-      alert('✅ Аватарка обновлена');
-    } else alert('❌ ' + (d.detail || 'Ошибка'));
-  } catch(e) { alert('❌ Ошибка сети'); }
-  input.value = '';
-}
-
-/* ====== ЗВОНКИ (TURN) ====== */
-let cP = null, cLS = null, curCall = { active: false, peerId: null, type: 'audio' };
-
-async function startCall() {
-  if(!curDM) return;
-  const isVideo = confirm('Видеозвонок?');
-  curCall = { active: true, peerId: curDM.id, type: isVideo ? 'video' : 'audio' };
-  openCallUI(curDM.display_name || curDM.username, curDM.avatar);
-  wsSend({ type: 'call_invite', to_user: curDM.id, call_type: curCall.type });
-}
-
-function openCallUI(name, avatar) {
-  document.getElementById('mCall').style.display = 'flex';
-  document.getElementById('callName').textContent = name;
-  document.getElementById('callAv').innerHTML = avatar ? `<img src="${esc(avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(name.charAt(0).toUpperCase());
-  document.getElementById('callSt').textContent = 'ОЖИДАНИЕ...';
-}
-
-async function getLocalStream() {
-  if(cLS) return cLS;
-  cLS = await navigator.mediaDevices.getUserMedia({ audio: true, video: curCall.type === 'video' });
-  if(curCall.type === 'video') { 
-    document.getElementById('localVideo').srcObject = cLS; 
-    document.getElementById('localVideo').style.display = 'block'; 
-  }
-  return cLS;
-}
-
-function makePC() {
-  cP = new RTCPeerConnection(ICE_SERVERS);
-  cP.onicecandidate = e => { if(e.candidate) wsSend({ type: 'webrtc_ice', to_user: curCall.peerId, candidate: e.candidate }); };
-  cP.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('remoteVideo').style.display = 'block'; };
-  return cP;
-}
-
-function handleCallWS(d) {
-  if(d.type === 'call_incoming') {
-    if(confirm('Звонок от ' + d.from_name + '. Принять?')) {
-      curCall = { active: true, peerId: d.from_user, type: d.call_type };
-      openCallUI(d.from_name, d.from_avatar);
-      wsSend({ type: 'call_accept', call_id: d.call_id });
-      getLocalStream();
-    } else { wsSend({ type: 'call_reject', call_id: d.call_id }); }
-  }
-  if(d.type === 'call_accepted') {
-    document.getElementById('callSt').textContent = 'ПОДКЛЮЧЕНИЕ...';
-    getLocalStream().then(async () => { makePC(); cLS.getTracks().forEach(t => cP.addTrack(t, cLS)); const offer = await cP.createOffer(); await cP.setLocalDescription(offer); wsSend({ type: 'webrtc_offer', to_user: curCall.peerId, sdp: offer }); });
-  }
-  if(d.type === 'webrtc_offer') {
-    getLocalStream().then(async () => { if(!cP) makePC(); cLS.getTracks().forEach(t => cP.addTrack(t, cLS)); await cP.setRemoteDescription(d.sdp); const answer = await cP.createAnswer(); await cP.setLocalDescription(answer); wsSend({ type: 'webrtc_answer', to_user: curCall.peerId, sdp: answer }); });
-  }
-  if(d.type === 'webrtc_answer') cP.setRemoteDescription(d.sdp);
-  if(d.type === 'webrtc_ice') { if(cP) cP.addIceCandidate(d.candidate).catch(()=>{}); }
-  if(d.type === 'call_ended' || d.type === 'call_rejected') endCall();
-}
-
-function tglMic() { if(!cLS) return; const track = cLS.getAudioTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbMic').classList.toggle('mut', !track.enabled); } }
-function tglCam() { if(!cLS) return; const track = cLS.getVideoTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbCam').classList.toggle('on', !track.enabled); } }
-function endCall() { if(cP) cP.close(); if(cLS) cLS.getTracks().forEach(t => t.stop()); cP = null; cLS = null; curCall = { active: false }; document.getElementById('mCall').style.display = 'none'; }
-
-/* ====== WEBSOCKET ====== */
-function connectWS() {
-  const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-  ws = new WebSocket(proto + location.host + '/ws?token=' + token);
-  ws.onmessage = (ev) => { try { handleWS(JSON.parse(ev.data)); } catch(e) {} };
-  ws.onclose = () => setTimeout(connectWS, 3000);
-}
-function wsSend(p) { if(ws && ws.readyState === 1) ws.send(JSON.stringify(p)); }
-function handleWS(d) {
-  if(d.type === 'dm' && curDM && (d.from_user === curDM.id || d.to_user === curDM.id)) {
-    addMsg(d);
-  }
-  if(d.type.startsWith('call_') || d.type.startsWith('webrtc_')) {
-    if(typeof handleCallWS === 'function') handleCallWS(d);
-  }
-}
-
-/* ====== УТИЛИТЫ ====== */
-function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-</script>
-<script>
-/* ====== УЛИЦА ====== */
-let streetUsers = {};
-let streetMyPos = { x: 50, y: 50 };
-let streetMoveTimer = null;
-
-async function openStreet() {
-  // Временно заглушка, так как HTML для улицы мы не вставили в этот монолит
-  alert('Улица в разработке (HTML не вставлен)');
-}
-
-/* ====== ДОМ ====== */
-async function openHouse() {
-  alert('Дом в разработке (HTML не вставлен)');
-}
-
-/* ====== ПЛЕЕР (MUSIC) ====== */
-let mpPlaylist = [];
-let mpCurrentIdx = -1;
-let mpIsPlaying = false;
-
-function toggleMusicPlayer() { document.getElementById('musicPlayer').classList.toggle('open'); }
-
-async function loadMusic() {
-  try {
-    const r = await fetch('/api/music/list?token=' + token);
-    const d = await r.json();
-    mpPlaylist = Array.isArray(d) ? d : [];
-    renderPlaylist();
-  } catch(e) {}
-}
-
-function renderPlaylist() {
-  const box = document.getElementById('mpPlaylist');
-  if(!mpPlaylist.length) { box.innerHTML = '<div style="text-align:center; padding:10px; color:var(--td); font-size:12px;">Нет треков</div>'; return; }
-  box.innerHTML = '';
-  mpPlaylist.forEach((t, i) => {
-    const d = document.createElement('div');
-    d.style.cssText = 'display:flex; gap:8px; padding:10px; border-radius:8px; cursor:pointer; margin-bottom:4px; background:var(--bg3); border:1px solid var(--border); align-items:center;';
-    d.innerHTML = `<div style="color:var(--td); font-size:12px; width:20px;">${i+1}</div><div style="flex:1; min-width:0;"><div style="font-size:13px; font-weight:600;">${esc(t.title)}</div><div style="font-size:11px; color:var(--td);">${esc(t.artist||'—')}</div></div>`;
-    d.onclick = () => mpLoadTrack(i);
-    box.appendChild(d);
-  });
-}
-
-function mpLoadTrack(idx) {
-  if(idx < 0 || idx >= mpPlaylist.length) return;
-  mpCurrentIdx = idx;
-  const track = mpPlaylist[idx];
-  const audio = document.getElementById('mpAudio');
-  audio.src = track.url;
-  document.getElementById('mpTrack').textContent = track.title;
-  document.getElementById('mpArtist').textContent = track.artist || '—';
-  renderPlaylist();
-  if(mpIsPlaying) mpTogglePlay();
-}
-
-function mpTogglePlay() {
-  const audio = document.getElementById('mpAudio');
-  if(mpIsPlaying) { audio.pause(); document.getElementById('mpPlayBtn').textContent = '▶'; mpIsPlaying = false; }
-  else { if(!audio.src && mpPlaylist.length) mpLoadTrack(0); audio.play().catch(()=>{}); document.getElementById('mpPlayBtn').textContent = '⏸'; mpIsPlaying = true; }
-}
-
-function mpNext() { if(mpPlaylist.length) mpLoadTrack((mpCurrentIdx + 1) % mpPlaylist.length); }
-function mpPrev() { if(mpPlaylist.length) mpLoadTrack((mpCurrentIdx - 1 + mpPlaylist.length) % mpPlaylist.length); }
-
-function mpUpdateProgress() {
-  const audio = document.getElementById('mpAudio');
-  if(audio.duration) {
-    document.getElementById('mpProgress').style.width = (audio.currentTime / audio.duration * 100) + '%';
-    document.getElementById('mpCurrent').textContent = fmt(audio.currentTime);
-    document.getElementById('mpDuration').textContent = fmt(audio.duration);
-  }
-}
-
-function fmt(s) { const m = Math.floor(s/60); const sec = Math.floor(s%60); return m + ':' + String(sec).padStart(2,'0'); }
-
-async function uploadMusic(input) {
-  const f = input.files[0];
-  if(!f) return;
-  if(f.size > 20*1024*1024) { alert('❌ > 20 МБ'); input.value = ''; return; }
-  const title = prompt('Как называется трек?', f.name.replace(/\.[^/.]+$/, ''));
-  if(!title) { input.value = ''; return; }
-  alert('Загрузка...');
-  const fd = new FormData();
-  fd.append('token', token);
-  fd.append('file', f);
-  fd.append('title', title);
-  try {
-    const r = await fetch('/api/music/upload', { method: 'POST', body: fd });
-    if(r.ok) { alert('✅ Загружено'); loadMusic(); }
-    else { const d = await r.json(); alert('❌ ' + (d.detail || 'Ошибка')); }
-  } catch(e) { alert('❌ Ошибка сети'); }
-  input.value = '';
-}
-
-/* ====== ПРОМОКОДЫ ====== */
-function openPromoModal() { document.getElementById('mPromo').style.display = 'flex'; }
-function closePromoModal() { document.getElementById('mPromo').style.display = 'none'; }
-
-async function activatePromo() {
-  const code = document.getElementById('promoInput').value.trim();
-  if(!code) return alert('Введи код');
-  
-  try {
-    const r = await fetch('/api/promocodes/activate', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token, code })
-    });
-    const d = await r.json();
-    
-    if(r.ok) {
-      closePromoModal();
-      if(d.type === 'easter_egg') {
-        alert(d.text);
-        if(d.video_url) window.open(d.video_url, '_blank');
-      } else {
-        alert(d.msg || '✅ Активировано');
-        loadProfile();
-      }
-    } else {
-      alert('❌ ' + (d.detail || 'Ошибка'));
-    }
-  } catch(e) { alert('❌ Ошибка сети'); }
-}
-
-/* ====== АДМИНКА ====== */
-function toggleAdmin() {
-  document.getElementById('adminPanel').classList.toggle('open');
-  if(document.getElementById('adminPanel').classList.contains('open')) {
-    loadAdminUsers();
-  }
-}
-
-async function loadAdminUsers() {
-  const box = document.getElementById('adminUserList');
-  box.innerHTML = 'Загрузка...';
-  try {
-    const r = await fetch('/api/admin/users?token=' + token);
-    const d = await r.json();
-    if(!d.users || !d.users.length) { box.innerHTML = 'Нет юзеров'; return; }
-    box.innerHTML = '';
-    d.users.forEach(u => {
-      const item = document.createElement('div');
-      item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);';
-      item.innerHTML = `<span>@${esc(u.username)}</span><span style="color:var(--td);">🏅 ${u.coins}</span>`;
-      box.appendChild(item);
-    });
-  } catch(e) { box.innerHTML = 'Ошибка'; }
-}
-
-async function adminMassGive() {
-  const amount = document.getElementById('massAmount').value;
-  if(!amount) return;
-  alert('Функция в разработке');
-}
-
-async function adminCreatePromo() {
-  const code = document.getElementById('promoCode').value.trim();
-  const reward = document.getElementById('promoReward').value;
-  if(!code) return;
-  alert('Функция в разработке');
-}
-
-/* ====== ПРЕМИУМ ====== */
-function openPremium() {
-  alert('💎 BelugaCord Premium\n\nЧто даёт:\n• Кастомные фоны профиля\n• Эксклюзивные рамки и титулы\n• Увеличенный лимит на музыку (50 треков)\n• Значок PRO рядом с ником\n\nЦена: 1500 🏅 за месяц\n\n(Функция в разработке)');
-}
-
-/* ====== ВЫХОД ====== */
-function logout() {
-  if(!confirm('Выйти?')) return;
-  localStorage.removeItem('bc_token');
-  window.location.href = '/';
-}
-
-/* ====== СТАРТ ====== */
-function goToLogin() { window.location.href = '/login'; }
 </script>
 </body>
 </html>
