@@ -1,292 +1,106 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>BelugaCord x GudraWorld</title>
-<style>
-/* ===== ТЕМА ===== */
-:root {
-  --bg: #050a05;
-  --bg2: #0a120a;
-  --ac: #22c55e;
-  --ac2: #f97316;
-  --ac3: #4ade80;
-  --tx: #e8f5e9;
-  --td: #81c784;
-  --tm: #4caf50;
-  --glass: rgba(34, 197, 94, 0.05);
-  --gb: rgba(34, 197, 94, 0.15);
-  --neon: 0 0 15px rgba(34, 197, 94, 0.6);
-  --neon-orange: 0 0 15px rgba(249, 115, 22, 0.6);
+const token = localStorage.getItem('bc_token') || '';
+let ws = null;
+let mpPlaylist = [];
+let mpCurrentIdx = -1;
+let mpIsPlaying = false;
+
+function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ====== WEBSOCKET ====== */
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+  ws = new WebSocket(proto + location.host + '/ws?token=' + token);
+  ws.onmessage = (ev) => { try { handleWS(JSON.parse(ev.data)); } catch(e) {} };
+  ws.onclose = () => setTimeout(connectWS, 3000);
 }
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Courier New',monospace; -webkit-tap-highlight-color:transparent; }
-body { 
-  background: var(--bg); 
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.1), transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.08), transparent 50%);
-  color: var(--tx); 
-  min-height: 100vh; 
-  display: flex; 
-  flex-direction: column;
-  align-items: center; 
-  justify-content: center; 
-  padding: 20px;
-  overflow-x: hidden;
+function wsSend(p) { if(ws && ws.readyState === 1) ws.send(JSON.stringify(p)); }
+function handleWS(d) {
+  if(d.type === 'now_playing') {
+    document.getElementById('nowPlayingTrack').textContent = d.track + (d.artist ? ' — ' + d.artist : '');
+    document.getElementById('nowPlaying').style.display = 'block';
+    setTimeout(() => { document.getElementById('nowPlaying').style.display = 'none'; }, 10000);
+  }
 }
 
-/* Углы */
-.cp-corner { position:fixed; width:30px; height:30px; z-index:5; pointer-events:none; }
-.cp-corner.tl { top:10px; left:10px; border-top:2px solid var(--ac); border-left:2px solid var(--ac); }
-.cp-corner.tr { top:10px; right:10px; border-top:2px solid var(--ac); border-right:2px solid var(--ac); }
-.cp-corner.bl { bottom:10px; left:10px; border-bottom:2px solid var(--ac2); border-left:2px solid var(--ac2); }
-.cp-corner.br { bottom:10px; right:10px; border-bottom:2px solid var(--ac2); border-right:2px solid var(--ac2); }
+/* ====== ПЛЕЕР ====== */
+function toggleMusicPlayer() { document.getElementById('musicPlayer').classList.toggle('open'); }
 
-/* Лендинг */
-.landing { position:relative; z-index:10; text-align:center; max-width:800px; width:100%; }
-
-/* ПЛАШКА */
-.collab-badge {
-  display: inline-block;
-  padding: 18px 40px;
-  background: linear-gradient(135deg, var(--ac), var(--ac2));
-  color: #000;
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 3px;
-  border-radius: 50px;
-  margin-bottom: 24px;
-  box-shadow: 0 0 40px rgba(34, 197, 94, 0.5), 0 0 20px rgba(249, 115, 22, 0.5);
-  animation: pulse 2s infinite;
-  text-transform: uppercase;
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(34, 197, 94, 0.5), 0 0 20px rgba(249, 115, 22, 0.5); }
-  50% { transform: scale(1.03); box-shadow: 0 0 60px rgba(34, 197, 94, 0.8), 0 0 30px rgba(249, 115, 22, 0.8); }
+async function loadMusic() {
+  try {
+    const r = await fetch('/api/music/list?token=' + token);
+    const d = await r.json();
+    mpPlaylist = Array.isArray(d) ? d : [];
+    renderPlaylist();
+  } catch(e) {}
 }
 
-/* Логотип */
-.logo { font-size: 72px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+function renderPlaylist() {
+  const box = document.getElementById('mpPlaylist');
+  if(!mpPlaylist.length) { box.innerHTML = '<div style="text-align:center;padding:10px;color:var(--td);font-size:11px;">Нет треков</div>'; return; }
+  box.innerHTML = '';
+  mpPlaylist.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'display:flex;gap:8px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:var(--glass);border:1px solid var(--gb);';
+    d.innerHTML = `<div style="color:var(--td);font-size:11px;">${i+1}</div><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;">${esc(t.title)}</div><div style="font-size:10px;color:var(--td);">${esc(t.artist||'—')}</div></div>`;
+    d.onclick = () => mpLoadTrack(i);
+    box.appendChild(d);
+  });
 }
 
-/* Заголовок */
-.title { 
-  font-size: 36px; 
-  font-weight: 900; 
-  background: linear-gradient(135deg, var(--ac), var(--ac2)); 
-  -webkit-background-clip: text; 
-  -webkit-text-fill-color: transparent; 
-  margin-bottom: 12px; 
-  letter-spacing: 4px; 
+function mpLoadTrack(idx) {
+  if(idx < 0 || idx >= mpPlaylist.length) return;
+  mpCurrentIdx = idx;
+  const track = mpPlaylist[idx];
+  const audio = document.getElementById('mpAudio');
+  audio.src = track.url;
+  document.getElementById('mpTrack').textContent = track.title;
+  document.getElementById('mpArtist').textContent = track.artist || '—';
+  renderPlaylist();
+  if(mpIsPlaying) mpTogglePlay();
+  wsSend({ type: 'now_playing', track: track.title, artist: track.artist || '' });
 }
 
-/* Подзаголовок */
-.subtitle { 
-  font-size: 14px; 
-  color: var(--td); 
-  margin-bottom: 32px; 
-  line-height: 1.6; 
+function mpTogglePlay() {
+  const audio = document.getElementById('mpAudio');
+  if(mpIsPlaying) { audio.pause(); document.getElementById('mpPlayBtn').textContent = '▶'; mpIsPlaying = false; }
+  else { if(!audio.src && mpPlaylist.length) mpLoadTrack(0); audio.play().catch(()=>{}); document.getElementById('mpPlayBtn').textContent = '⏸'; mpIsPlaying = true; }
 }
 
-/* БЛОК ПЛЮСОВ */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 32px;
-  text-align: left;
+function mpNext() { if(mpPlaylist.length) mpLoadTrack((mpCurrentIdx + 1) % mpPlaylist.length); }
+function mpPrev() { if(mpPlaylist.length) mpLoadTrack((mpCurrentIdx - 1 + mpPlaylist.length) % mpPlaylist.length); }
+
+function mpUpdateProgress() {
+  const audio = document.getElementById('mpAudio');
+  if(audio.duration) {
+    document.getElementById('mpProgress').style.width = (audio.currentTime / audio.duration * 100) + '%';
+    document.getElementById('mpCurrent').textContent = fmt(audio.currentTime);
+    document.getElementById('mpDuration').textContent = fmt(audio.duration);
+  }
 }
-.feature-card {
-  background: rgba(34, 197, 94, 0.05);
-  border: 1px solid var(--gb);
-  border-radius: 16px;
-  padding: 16px;
-  transition: 0.2s;
-}
-.feature-card:hover {
-  border-color: var(--ac2);
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
-  transform: translateY(-2px);
-}
-.feature-card .icon {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-.feature-card .title-text {
-  font-size: 14px;
-  font-weight: 900;
-  color: var(--ac);
-  margin-bottom: 4px;
-}
-.feature-card .desc {
-  font-size: 11px;
-  color: var(--td);
-  line-height: 1.4;
+function fmt(s) { const m = Math.floor(s/60); const sec = Math.floor(s%60); return m + ':' + String(sec).padStart(2,'0'); }
+
+async function uploadMusic(input) {
+  const f = input.files[0];
+  if(!f) return;
+  if(f.size > 20*1024*1024) { alert('❌ > 20 МБ'); input.value = ''; return; }
+  const title = prompt('🎵 Как называется трек?', f.name.replace(/\.[^/.]+$/, ''));
+  if(!title) { input.value = ''; return; }
+  alert('⏳ Загрузка...');
+  const fd = new FormData();
+  fd.append('token', token);
+  fd.append('file', f);
+  fd.append('title', title);
+  try {
+    const r = await fetch('/api/music/upload', { method: 'POST', body: fd });
+    if(r.ok) { alert('✅ Загружено'); loadMusic(); }
+    else { const d = await r.json(); alert('❌ ' + (d.detail || 'Ошибка')); }
+  } catch(e) { alert('❌ Ошибка сети'); }
+  input.value = '';
 }
 
-/* Кнопки */
-.buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
-.btn { 
-  padding: 16px 24px; 
-  border-radius: 14px; 
-  font-weight: 900; 
-  font-size: 15px; 
-  letter-spacing: 2px; 
-  cursor: pointer; 
-  border: none; 
-  font-family: inherit; 
-  transition: 0.2s; 
-  text-transform: uppercase; 
-}
-.btn-primary { 
-  background: linear-gradient(135deg, var(--ac), var(--ac2)); 
-  color: #000; 
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); 
-}
-.btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(249, 115, 22, 0.7); }
-.btn-secondary { 
-  background: var(--glass); 
-  border: 1px solid var(--gb); 
-  color: var(--tx); 
-}
-.btn-secondary:hover { background: rgba(34, 197, 94, 0.1); }
-
-/* Футер */
-.footer { position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--tm); z-index: 10; letter-spacing: 2px; }
-
-/* Адаптив */
-@media (max-width: 600px) {
-  .title { font-size: 28px; }
-  .collab-badge { font-size: 13px; padding: 12px 20px; }
-  .logo { font-size: 56px; }
-  .features-grid { grid-template-columns: 1fr; }
-}
-</style>
-</head>
-<body>
-
-<div class="cp-corner tl"></div><div class="cp-corner tr"></div><div class="cp-corner bl"></div><div class="cp-corner br"></div>
-
-<div class="landing">
-  <!-- ПЛАШКА -->
-  <div class="collab-badge">🤝 КОЛЛАБОРАЦИЯ С GudraWorld</div>
-
-  <div class="logo">🐱</div>
-  <div class="title">BELUGACORD</div>
-  <div class="subtitle">
-    Мессенджер для друзей и не только.<br>
-    Мы объединились с <b style="color:var(--ac2)">GudraWorld</b>, чтобы сделать общение ещё круче.
-  </div>
-
-  <!-- БЛОК ПЛЮСОВ -->
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="icon">🌍</div>
-      <div class="title-text">Обновления GudraWorld</div>
-      <div class="desc">Мгновенные уведомления о запуске сервера, тех. работах и новых ивентах.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">💬</div>
-      <div class="title-text">Общение с друзьями</div>
-      <div class="desc">Личные чаты, группы и каналы. Общайся с друзьями и игроками в реальном времени.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🎮</div>
-      <div class="title-text">Турниры и ивенты</div>
-      <div class="desc">Участвуй в розыгрышах и турнирах. Призы — монеты, титулы и эксклюзивные фоны.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📢</div>
-      <div class="title-text">Официальные каналы</div>
-      <div class="desc">Подпишись на каналы <b>GudraWorld</b> и <b>BelugaCord</b>, чтобы первым узнавать новости.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🛡️</div>
-      <div class="title-text">Своя экономика</div>
-      <div class="desc">Зарабатывай монеты, покупай фоны, рамки и титулы. Всё честно — без казино и лудомании.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📱</div>
-      <div class="title-text">Мобильный интерфейс</div>
-      <div class="desc">Удобный интерфейс для телефона. Все функции под рукой, как в нативном приложении.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🔒</div>
-      <div class="title-text">Полная анонимность</div>
-      <div class="desc">Твои данные защищены. Никаких слежек, рекламы и передачи данных третьим лицам.</div>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🚀</div>
-      <div class="title-text">Скорость и стабильность</div>
-      <div class="desc">Сервер работает на мощном VDS. Сообщения доставляются мгновенно, без лагов.</div>
-    </div>
-  </div>
-
-  <div class="buttons">
-    <button class="btn btn-primary" onclick="goToLogin()">ВОЙТИ</button>
-    <button class="btn btn-secondary" onclick="alert('📱 Мобильное приложение в разработке.\n\nПока что используйте веб-версию!')">СКАЧАТЬ ПРИЛОЖЕНИЕ</button>
-  </div>
-</div>
-
-<div class="footer">BELUGACORD x GudraWorld — 2026</div>
-
-<script>
-const token = localStorage.getItem('bc_token');
-if(token) {
-  const btn = document.querySelector('.btn-primary');
-  btn.textContent = 'ОТКРЫТЬ МЕССЕНДЖЕР';
-  btn.onclick = () => window.location.href = '/app';
-}
-
-function goToLogin() {
-  window.location.href = '/login';
-}
-  <!-- MP3 ПЛЕЕР -->
-<div id="musicPlayer">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div style="font-size:14px;font-weight:900;color:var(--ac);">🎵 ПЛЕЕР</div>
-    <button onclick="toggleMusicPlayer()" style="background:none;border:none;color:var(--td);font-size:18px;cursor:pointer;">✕</button>
-  </div>
-  
-  <div id="mpCover" style="width:100%;height:120px;border-radius:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px;">💿</div>
-  <div id="mpTrack" style="font-size:13px;font-weight:700;color:var(--tx);text-align:center;margin-bottom:4px;">Выбери трек</div>
-  <div id="mpArtist" style="font-size:11px;color:var(--td);text-align:center;margin-bottom:12px;">—</div>
-  
-  <div style="display:flex;justify-content:center;gap:16px;margin-bottom:12px;">
-    <button onclick="mpPrev()" style="width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--gb);color:var(--tx);font-size:18px;cursor:pointer;">⏮</button>
-    <button id="mpPlayBtn" onclick="mpTogglePlay()" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;color:#000;font-size:24px;cursor:pointer;">▶</button>
-    <button onclick="mpNext()" style="width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--gb);color:var(--tx);font-size:18px;cursor:pointer;">⏭</button>
-  </div>
-  
-  <div style="width:100%;height:6px;background:var(--gb);border-radius:3px;overflow:hidden;margin-bottom:8px;">
-    <div id="mpProgress" style="height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));width:0%;transition:width 0.1s;"></div>
-  </div>
-  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--td);font-family:monospace;">
-    <span id="mpCurrent">0:00</span><span id="mpDuration">0:00</span>
-  </div>
-  
-  <!-- ЗАГРУЗКА МУЗЫКИ -->
-  <label for="musicUpload" style="margin-top:12px;padding:10px;background:var(--glass);border:1px solid var(--gb);border-radius:10px;text-align:center;font-size:12px;font-weight:900;color:var(--ac3);cursor:pointer;display:block;">
-    ＋ ЗАГРУЗИТЬ ТРЕК (макс 20)
-  </label>
-  <input type="file" id="musicUpload" accept="audio/*" style="display:none" onchange="uploadMusic(this)">
-  
-  <div id="mpPlaylist" style="margin-top:12px;max-height:150px;overflow-y:auto;"></div>
-  
-  <audio id="mpAudio" ontimeupdate="mpUpdateProgress()" onended="mpNext()"></audio>
-</div>
-
-<!-- КНОПКА ОТКРЫТИЯ ПЛЕЕРА -->
-<button id="musicToggle" onclick="toggleMusicPlayer()" style="position:fixed;bottom:80px;right:20px;z-index:99;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#000;font-size:24px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(34,197,94,0.4);display:flex;align-items:center;justify-content:center;">🎵</button>
-
-<!-- ИНДИКАТОР "ЧТО ИГРАЕТ" (ВИДЕН ВСЕМ) -->
-<div id="nowPlaying" style="display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(10,18,10,0.95);border:1px solid var(--ac);border-radius:20px;padding:8px 16px;font-size:12px;z-index:50;backdrop-filter:blur(10px);">
-  🎵 Сейчас играет: <span id="nowPlayingTrack" style="color:var(--ac);font-weight:900;"></span>
-</div>
-</script>
-</body>
-</html>
+/* ====== СТАРТ ====== */
+window.addEventListener('DOMContentLoaded', () => {
+  if(!token) { window.location.href = '/login'; return; }
+  connectWS();
+  loadMusic();
+});
