@@ -3,126 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>BelugaCord x GudraWorld</title>
+<title>BELUGA // TERMINAL</title>
 <style>
 :root {
-  --bg: #050a05; --bg2: #0a120a; --bg3: #121a12;
-  --ac: #22c55e; --ac2: #f97316; --ac3: #4ade80;
-  --tx: #e8f5e9; --td: #81c784; --tm: #4caf50;
-  --glass: rgba(34,197,94,0.05); --gb: rgba(34,197,94,0.15);
-  --border: rgba(34,197,94,0.15); --msg-in: rgba(34,197,94,0.08); --msg-out: rgba(249,115,22,0.15);
+  --bg: #030603; --panel: rgba(10,18,10,0.85); --border: rgba(34,197,94,0.2);
+  --ac: #22c55e; --ac2: #f97316; --tx: #e8f5e9; --td: #81c784;
+  --glow: 0 0 10px rgba(34,197,94,0.4); --glow-orange: 0 0 15px rgba(249,115,22,0.4);
 }
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Courier New',monospace; -webkit-tap-highlight-color:transparent; }
-html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--tx); }
-body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(34,197,94,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.06) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
-body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,transparent 1px,transparent 2px); opacity:.15; pointer-events:none; z-index:100; animation:cp-scan 8s linear infinite; }
-@keyframes cp-scan { from{background-position:0 0} to{background-position:0 100px} }
+body { height:100vh; overflow:hidden; background:var(--bg); color:var(--tx); display:flex; flex-direction:column; }
+/* Сетка на фоне */
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px); background-size:20px 20px; opacity:0.3; z-index:0; pointer-events:none; }
+/* Эффект сканирования */
+body::after { content:''; position:fixed; inset:0; background:linear-gradient(transparent 50%, rgba(0,0,0,0.1) 50%); background-size:100% 4px; pointer-events:none; z-index:999; opacity:0.3; }
 
-.cp-corner { position:fixed; width:30px; height:30px; z-index:5; pointer-events:none; }
-.cp-corner.tl { top:10px; left:10px; border-top:2px solid var(--ac); border-left:2px solid var(--ac); }
-.cp-corner.tr { top:10px; right:10px; border-top:2px solid var(--ac); border-right:2px solid var(--ac); }
-.cp-corner.bl { bottom:10px; left:10px; border-bottom:2px solid var(--ac2); border-left:2px solid var(--ac2); }
-.cp-corner.br { bottom:10px; right:10px; border-bottom:2px solid var(--ac2); border-right:2px solid var(--ac2); }
+/* Верхняя панель */
+#topBar { height:60px; background:var(--panel); border-bottom:1px solid var(--ac); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:10; backdrop-filter:blur(5px); }
+.tb-logo { font-size:20px; font-weight:bold; color:var(--ac); text-shadow:var(--glow); letter-spacing:2px; cursor:pointer; display:flex; align-items:center; gap:10px; }
+.tb-status { display:flex; gap:20px; font-size:12px; color:var(--td); }
+.status-indicator { width:8px; height:8px; background:var(--ac); border-radius:50%; box-shadow:var(--glow); display:inline-block; margin-right:5px; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-#topBar { height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; background:rgba(10,18,10,.9); border-bottom:1px solid rgba(34,197,94,.3); z-index:20; backdrop-filter:blur(10px); flex-shrink:0; padding-top:env(safe-area-inset-top); }
-.tb-logo { font-size:18px; font-weight:900; color:var(--ac); text-shadow:0 0 15px rgba(34,197,94,.6); letter-spacing:2px; cursor:pointer; }
-.tb-tabs { display:flex; gap:6px; flex:1; justify-content:center; }
-.tb-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; width:44px; height:44px; background:rgba(20,16,32,.8); border:1px solid rgba(34,197,94,.2); color:var(--td); transition:all .2s; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); cursor:pointer; }
-.tb-tab .ic { font-size:18px; }
-.tb-tab span:not(.ic):not(.badge) { display:none; }
-.tb-tab.on { background:rgba(34,197,94,.2); border-color:var(--ac); color:#fff; box-shadow:0 0 15px rgba(34,197,94,.6); }
-.tb-act { display:flex; gap:6px; }
-.tb-ico { width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:rgba(20,16,32,.8); border:1px solid rgba(34,197,94,.2); color:var(--td); font-size:18px; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); cursor:pointer; }
-#appContent { flex:1; overflow-y:auto; position:relative; z-index:10; display:flex; flex-direction:column; }
-.loading { display:flex; align-items:center; justify-content:center; height:100%; color:var(--td); font-size:14px; }
-.spinner { width:40px; height:40px; border:3px solid rgba(34,197,94,.3); border-top-color:var(--ac); border-radius:50%; animation:spin 1s linear infinite; margin-right:12px; }
-@keyframes spin { to { transform:rotate(360deg); } }
+/* Основной макет */
+#layout { display:flex; flex:1; overflow:hidden; position:relative; z-index:1; }
+/* Левая навигация (Вертикальная) */
+#sideNav { width:80px; background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:20px 0; gap:15px; z-index:10; }
+.nav-btn { width:50px; height:50px; border:1px solid var(--border); background:rgba(0,0,0,0.5); color:var(--td); font-size:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%); transition:all 0.2s; }
+.nav-btn:hover, .nav-btn.on { background:rgba(34,197,94,0.2); border-color:var(--ac); color:var(--ac); box-shadow:var(--glow); }
+/* Центр */
+#mainContent { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; }
+/* Правая панель виджетов */
+#rightPanel { width:300px; background:var(--panel); border-left:1px solid var(--border); padding:20px; overflow-y:auto; }
+.widget { border:1px solid var(--border); padding:15px; margin-bottom:15px; background:rgba(0,0,0,0.4); position:relative; }
+.widget::before { content:''; position:absolute; top:0; left:0; width:10px; height:2px; background:var(--ac2); }
+.widget h3 { font-size:12px; color:var(--ac); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
 
-#bottomNav { display:none; height:64px; background:rgba(10,18,10,.98); border-top:1px solid rgba(34,197,94,.3); justify-content:space-around; align-items:center; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom); z-index:20; }
-.bn-item { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--td); font-size:10px; cursor:pointer; }
-.bn-item .ic { font-size:22px; }
-.bn-item.active { color:var(--ac); text-shadow:0 0 10px rgba(34,197,94,.5); }
-
-@media (max-width: 768px) {
-  #bottomNav { display:flex; }
-  .tb-tabs { display:none; }
+/* Мобильная адаптация */
+@media (max-width: 900px) {
+  #rightPanel { display:none; }
+  #sideNav { position:fixed; bottom:0; left:0; right:0; width:100%; height:70px; flex-direction:row; justify-content:space-around; border-right:none; border-top:1px solid var(--ac); padding:0; gap:0; background:rgba(10,18,10,0.98); }
+  .nav-btn { border:none; clip-path:none; background:transparent; height:100%; width:60px; }
+  #mainContent { padding:10px; padding-bottom:80px; }
 }
 </style>
 </head>
 <body>
-<div class="cp-corner tl"></div><div class="cp-corner tr"></div><div class="cp-corner bl"></div><div class="cp-corner br"></div>
-
 <div id="topBar">
-  <div class="tb-logo" onclick="navigate('desk')">BELUGA</div>
-  <div class="tb-tabs">
-    <div class="tb-tab" data-page="dm" onclick="navigate('dm')"><span class="ic">💬</span></div>
-    <div class="tb-tab" data-page="friends" onclick="navigate('friends')"><span class="ic">👥</span></div>
-    <div class="tb-tab" data-page="channels" onclick="navigate('channels')"><span class="ic">📢</span></div>
-    <div class="tb-tab" data-page="street" onclick="navigate('street')"><span class="ic">🌆</span></div>
-    <div class="tb-tab" data-page="desk" onclick="navigate('desk')"><span class="ic">🖥️</span></div>
-    <div class="tb-tab" data-page="me" onclick="navigate('me')"><span class="ic">👤</span></div>
-  </div>
-  <div class="tb-act">
-    <div class="tb-ico" onclick="navigate('desk')">🔍</div>
-    <div class="tb-ico" onclick="navigate('desk')">☰</div>
+  <div class="tb-logo" onclick="navigate('desk')">BELUGA // TERMINAL</div>
+  <div class="tb-status">
+    <span><span class="status-indicator"></span>ONLINE</span>
+    <span id="sysTime">--:--:--</span>
   </div>
 </div>
 
-<div id="appContent">
-  <div class="loading"><div class="spinner"></div> Загрузка...</div>
-</div>
+<div id="layout">
+  <div id="sideNav">
+    <div class="nav-btn on" data-page="desk" onclick="navigate('desk')">🖥️</div>
+    <div class="nav-btn" data-page="dm" onclick="navigate('dm')">💬</div>
+    <div class="nav-btn" data-page="friends" onclick="navigate('friends')">👥</div>
+    <div class="nav-btn" data-page="channels" onclick="navigate('channels')">📢</div>
+    <div class="nav-btn" data-page="street" onclick="navigate('street')">🌆</div>
+    <div class="nav-btn" data-page="me" onclick="navigate('me')">👤</div>
+  </div>
 
-<div id="bottomNav">
-  <div class="bn-item" onclick="navigate('dm')"><div class="ic">💬</div><div>Чаты</div></div>
-  <div class="bn-item" onclick="navigate('friends')"><div class="ic">👥</div><div>Друзья</div></div>
-  <div class="bn-item" onclick="navigate('channels')"><div class="ic">📢</div><div>Каналы</div></div>
-  <div class="bn-item" onclick="navigate('me')"><div class="ic">👤</div><div>Профиль</div></div>
+  <div id="mainContent">
+    <div style="text-align:center; padding-top:20%; color:var(--td);">
+      <div style="font-size:40px; margin-bottom:20px;">[ INITIALIZING SYSTEM ]</div>
+      <div style="font-size:14px;">Установка защищенного соединения...</div>
+    </div>
+  </div>
+
+  <div id="rightPanel">
+    <div class="widget">
+      <h3>System Status</h3>
+      <div style="font-size:12px; line-height:1.8;">
+        CPU: <span style="color:var(--ac);">12%</span><br>
+        RAM: <span style="color:var(--ac);">4.2 GB</span><br>
+        NET: <span style="color:var(--ac2);">SECURE</span>
+      </div>
+    </div>
+    <div class="widget" id="profileWidget">
+      <h3>Agent Profile</h3>
+      <div style="font-size:12px;">Загрузка данных...</div>
+    </div>
+    <div class="widget">
+      <h3>Quick Log</h3>
+      <div id="sysLog" style="font-size:10px; color:var(--td); height:100px; overflow:hidden; display:flex; flex-direction:column-reverse;">
+        <div>> System ready...</div>
+        <div>> Auth token verified.</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-// 1. Проверка токена (без редиректа, если он есть)
 const token = localStorage.getItem('bc_token');
-if (!token) {
-    window.location.href = '/login';
-}
+if (!token) window.location.href = '/login';
 
-// Глобальные переменные
-let me = null;
-let ws = null;
-let offlineQ = [];
-let curPage = null;
-let ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+let me = null, ws = null, curPage = null;
 
 function g(id) { return document.getElementById(id); }
-function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function wsSend(p) { const j = JSON.stringify(p); if(ws && ws.readyState === 1) ws.send(j); else offlineQ.push(j); }
 
-// 2. WebSocket подключение
+// Часы
+setInterval(() => {
+    const d = new Date();
+    g('sysTime').innerText = d.toLocaleTimeString('ru-RU');
+}, 1000);
+
+// WebSocket заглушка
 function connectWS() {
   const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
   ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token));
-  ws.onopen = function() { while(offlineQ.length) { ws.send(offlineQ.shift()); } };
-  ws.onmessage = function(ev) { 
-    try { 
-      const d = JSON.parse(ev.data); 
-      if (typeof handlePageWS === 'function') handlePageWS(d); 
-    } catch(e) {} 
-  };
-  ws.onclose = function() { setTimeout(connectWS, 3000); };
+  ws.onopen = () => { addLog("WebSocket connected."); };
+  ws.onclose = () => { addLog("WebSocket disconnected. Retrying..."); setTimeout(connectWS, 3000); };
 }
 
-// 3. Навигация по страницам
+function addLog(msg) {
+    const log = g('sysLog');
+    const div = document.createElement('div');
+    div.innerText = `> ${msg}`;
+    log.prepend(div);
+    if (log.children.length > 5) log.lastChild.remove();
+}
+
 async function navigate(page) {
   if (curPage === page) return;
   curPage = page;
+  document.querySelectorAll('.nav-btn').forEach(t => t.classList.toggle('on', t.dataset.page === page));
   
-  // Подсветка активной вкладки
-  document.querySelectorAll('.tb-tab').forEach(t => t.classList.toggle('on', t.dataset.page === page));
-  
-  const container = g('appContent');
-  container.innerHTML = '<div class="loading"><div class="spinner"></div> Загрузка...</div>';
-  
-  // Меняем URL без перезагрузки страницы
+  const container = g('mainContent');
+  container.innerHTML = '<div style="color:var(--ac); font-size:20px;">[ LOADING MODULE: ' + page.toUpperCase() + ' ]</div>';
   history.pushState(null, '', '/app/' + page);
   
   try {
@@ -131,7 +141,6 @@ async function navigate(page) {
     const html = await r.text();
     container.innerHTML = html;
     
-    // Перезапускаем скрипты внутри загруженной страницы
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
@@ -140,62 +149,40 @@ async function navigate(page) {
       oldScript.parentNode.replaceChild(newScript, oldScript);
     });
 
-    // Вызываем функцию инициализации страницы (например, init_desk)
     const initFn = window['init_' + page];
     if (typeof initFn === 'function') initFn();
+    addLog(`Module [${page}] loaded.`);
 
   } catch(e) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:#dc2626;">Ошибка загрузки страницы</div>';
-    console.error(e);
+    container.innerHTML = '<div style="color:#dc2626; font-size:18px;">[ ERROR: MODULE NOT FOUND ]</div>';
+    addLog(`Error loading [${page}].`);
   }
 }
 
-// 4. Старт приложения
 window.addEventListener('DOMContentLoaded', async () => {
-  // Проверяем токен у сервера
   try {
     const r = await fetch('/api/me', {
-        method: 'GET',
-        headers: { 
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': 'Bearer ' + token }
     });
-    
-    if (!r.ok) {
-        throw new Error('Unauthorized');
-    }
-    
+    if (!r.ok) throw new Error('Unauthorized');
     me = await r.json();
-    console.log("Успешный вход! Профиль:", me);
     
+    // Заполняем виджет профиля
+    g('profileWidget').innerHTML = `
+      <h3>Agent Profile</h3>
+      <div style="font-size:14px; color:var(--ac); font-weight:bold;">@${me.username}</div>
+      <div style="font-size:12px; margin-top:5px;">Coins: ${me.coins} 🪙</div>
+      <div style="font-size:12px;">Level: ${me.level} ⭐</div>
+    `;
   } catch(e) {
-    console.error("Ошибка авторизации:", e);
     localStorage.removeItem('bc_token');
     window.location.href = '/login';
     return;
   }
 
-  // Пытаемся получить настройки WebRTC (если есть)
-  try {
-    const iceR = await fetch('/api/webrtc/config');
-    if (iceR.ok) {
-      const iceD = await iceR.json();
-      if (iceD.iceServers) ICE_SERVERS = { iceServers: iceD.iceServers };
-    }
-  } catch(e) {}
-
-  // Подключаем WebSocket и открываем десктоп
   connectWS();
   const urlPage = location.pathname.split('/').pop();
-  const startPage = urlPage && urlPage !== 'app' ? urlPage : 'desk';
-  navigate(startPage);
-});
-
-// 5. Обработка кнопок "Назад/Вперед" в браузере
-window.addEventListener('popstate', () => {
-  const urlPage = location.pathname.split('/').pop();
-  if (urlPage) navigate(urlPage);
+  navigate(urlPage && urlPage !== 'app' ? urlPage : 'desk');
 });
 </script>
 </body>
