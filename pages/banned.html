@@ -1,0 +1,98 @@
+<div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; position:relative; z-index:10;">
+  
+  <div style="font-size:80px; margin-bottom:20px; animation:glitch 2s infinite;">🚫</div>
+  
+  <div style="font-size:28px; font-weight:900; color:#f43f5e; letter-spacing:4px; text-shadow:0 0 20px rgba(244,63,94,0.6); margin-bottom:10px;">
+    ВЫ ЗАБЛОКИРОВАНЫ
+  </div>
+  
+  <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(244,63,94,0.3); border-radius:16px; padding:20px; max-width:500px; width:100%; margin-top:20px; text-align:left;">
+    <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ДЕТАЛИ БЛОКИРОВКИ</div>
+    
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px; color:var(--tm);">Кем выдан бан:</div>
+      <div id="banRole" style="font-size:14px; font-weight:800; color:#fff;">Загрузка...</div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px; color:var(--tm);">Причина:</div>
+      <div id="banReason" style="font-size:14px; font-weight:800; color:#f43f5e;">Загрузка...</div>
+    </div>
+
+    <div style="margin-bottom:0;">
+      <div style="font-size:10px; color:var(--tm);">Дата:</div>
+      <div id="banDate" style="font-size:12px; font-weight:700; color:var(--td);">Загрузка...</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px; max-width:500px; font-size:13px; color:var(--td); line-height:1.6;">
+    Если вы считаете, что блокировка несправедлива, вы можете подать апелляцию. <br><br>
+    <b style="color:var(--ac);">Напишите на почту:</b><br>
+    <a href="mailto:belugacordsupport@gmail.com" style="color:var(--ac3); font-weight:900; font-size:15px; text-decoration:none; border-bottom:1px dashed var(--ac3);">belugacordsupport@gmail.com</a>
+    <br><br>
+    <span style="font-size:11px; color:var(--tm); font-style:italic;">Время ответа: от 10 минут до 2 дней (зависит от загруженности поддержки).</span>
+  </div>
+
+  <button onclick="localStorage.removeItem('bc_token'); window.location.href='/'" style="margin-top:30px; padding:12px 30px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); border-radius:12px; font-weight:900; font-size:12px; letter-spacing:1px; cursor:pointer; font-family:inherit;">
+    ВЫЙТИ НА ГЛАВНУЮ
+  </button>
+</div>
+
+<style>
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+</style>
+
+<script>
+async function init_banned() {
+  try {
+    const r = await fetch('/api/ban_info?token=' + token);
+    const d = await r.json();
+    
+    const roleEl = document.getElementById('banRole');
+    const reasonEl = document.getElementById('banReason');
+    const dateEl = document.getElementById('banDate');
+    
+    // Подставляем роль (Овнер, Админ, Модератор)
+    if(d.role) {
+      if(d.role === 'owner') roleEl.textContent = '👑 Владелец (БОГ)';
+      else if(d.role === 'admin') roleEl.textContent = '🛡️ Администратор';
+      else if(d.role === 'moderator') roleEl.textContent = '🔨 Модератор (по заявке)';
+      else roleEl.textContent = d.role;
+    } else {
+      roleEl.textContent = 'Система';
+    }
+    
+    // Причина
+    if(d.reason) reasonEl.textContent = d.reason;
+    else reasonEl.textContent = 'Нарушение правил сообщества';
+
+    // Дата
+    if(d.date) {
+      const dt = new Date(d.date);
+      dateEl.textContent = dt.toLocaleString('ru-RU');
+    } else {
+      dateEl.textContent = '—';
+    }
+
+    // Если забанил модератор, добавляем приписку
+    if(d.role === 'moderator') {
+      const note = document.createElement('div');
+      note.style.cssText = 'margin-top:12px; font-size:11px; color:var(--gold); font-style:italic;';
+      note.textContent = '⚠️ Заявку на ваш бан подал модератор. Окончательное решение принял Администратор.';
+      document.querySelector('#banReason').parentNode.appendChild(note);
+    }
+
+  } catch(e) {
+    console.error('Ошибка загрузки инфо о бане', e);
+    document.getElementById('banRole').textContent = 'Неизвестно';
+    document.getElementById('banReason').textContent = 'Данные недоступны';
+  }
+}
+</script>
