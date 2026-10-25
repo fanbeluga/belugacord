@@ -1,0 +1,118 @@
+<div style="padding:20px; height:100%; overflow-y:auto; background:var(--bg);">
+  <div style="text-align:center; margin-bottom:20px;">
+    <div style="font-size:24px; font-weight:900; color:var(--ac);">🎵 Музыка</div>
+    <div style="font-size:12px; color:var(--td);">Максимум 20 треков</div>
+  </div>
+
+  <!-- Плеер -->
+  <div style="background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:20px;">
+    <div id="mpTrack" style="text-align:center; font-size:16px; font-weight:700; color:var(--tx); margin-bottom:4px;">Выбери трек</div>
+    <div id="mpArtist" style="text-align:center; font-size:12px; color:var(--td); margin-bottom:16px;">—</div>
+    
+    <div style="display:flex; justify-content:center; gap:20px; margin-bottom:16px;">
+      <button onclick="mpPrev()" style="width:40px; height:40px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); font-size:18px; cursor:pointer;">⏮</button>
+      <button id="mpPlayBtn" onclick="mpTogglePlay()" style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#000; font-size:24px; cursor:pointer;">▶</button>
+      <button onclick="mpNext()" style="width:40px; height:40px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); font-size:18px; cursor:pointer;">⏭</button>
+    </div>
+
+    <div style="width:100%; height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; margin-bottom:8px;">
+      <div id="mpProgress" style="height:100%; background:var(--ac); width:0%;"></div>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--td);">
+      <span id="mpCurrent">0:00</span><span id="mpDuration">0:00</span>
+    </div>
+  </div>
+
+  <!-- Кнопка загрузки -->
+  <label for="musicUpload" style="display:block; padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; text-align:center; font-weight:800; color:var(--ac3); cursor:pointer; margin-bottom:20px;">＋ Загрузить трек</label>
+  <input type="file" id="musicUpload" accept="audio/*" style="display:none" onchange="uploadMusic(this)">
+
+  <!-- Плейлист -->
+  <div id="mpPlaylist" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+  <audio id="mpAudio" ontimeupdate="mpUpdateProgress()" onended="mpNext()"></audio>
+</div>
+
+<script>
+let mpPlaylist = [];
+let mpCurrentIdx = -1;
+let mpIsPlaying = false;
+
+async function loadMusic() {
+  const box = document.getElementById('mpPlaylist');
+  box.innerHTML = '<div style="text-align:center; color:var(--td); padding:20px;">Загрузка...</div>';
+  try {
+    const r = await fetch('/api/music/list?token=' + token);
+    const d = await r.json();
+    mpPlaylist = Array.isArray(d) ? d : [];
+    renderPlaylist();
+  } catch(e) { box.innerHTML = 'Ошибка'; }
+}
+
+function renderPlaylist() {
+  const box = document.getElementById('mpPlaylist');
+  if(!mpPlaylist.length) { box.innerHTML = '<div style="text-align:center; color:var(--td); padding:20px;">Нет треков. Загрузи первый!</div>'; return; }
+  box.innerHTML = '';
+  mpPlaylist.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; cursor:pointer;';
+    d.innerHTML = `<div style="color:var(--td); font-size:12px; width:20px;">${i+1}</div><div style="flex:1;"><div style="font-size:14px; font-weight:700; color:var(--tx);">${esc(t.title)}</div><div style="font-size:11px; color:var(--td);">${esc(t.artist||'—')}</div></div><div style="color:var(--ac);">▶</div>`;
+    d.onclick = () => mpLoadTrack(i);
+    box.appendChild(d);
+  });
+}
+
+function mpLoadTrack(idx) {
+  if(idx < 0 || idx >= mpPlaylist.length) return;
+  mpCurrentIdx = idx;
+  const track = mpPlaylist[idx];
+  const audio = document.getElementById('mpAudio');
+  audio.src = track.url;
+  document.getElementById('mpTrack').textContent = track.title;
+  document.getElementById('mpArtist').textContent = track.artist || '—';
+  renderPlaylist();
+  if(mpIsPlaying) mpTogglePlay();
+  wsSend({ type: 'now_playing', track: track.title, artist: track.artist || '' });
+}
+
+function mpTogglePlay() {
+  const audio = document.getElementById('mpAudio');
+  if(mpIsPlaying) { audio.pause(); document.getElementById('mpPlayBtn').textContent = '▶'; mpIsPlaying = false; }
+  else { if(!audio.src && mpPlaylist.length) mpLoadTrack(0); audio.play().catch(()=>{}); document.getElementById('mpPlayBtn').textContent = '⏸'; mpIsPlaying = true; }
+}
+
+function mpNext() { if(mpPlaylist.length) mpLoadTrack((mpCurrentIdx + 1) % mpPlaylist.length); }
+function mpPrev() { if(mpPlaylist.length) mpLoadTrack((mpCurrentIdx - 1 + mpPlaylist.length) % mpPlaylist.length); }
+
+function mpUpdateProgress() {
+  const audio = document.getElementById('mpAudio');
+  if(audio.duration) {
+    document.getElementById('mpProgress').style.width = (audio.currentTime / audio.duration * 100) + '%';
+    document.getElementById('mpCurrent').textContent = fmt(audio.currentTime);
+    document.getElementById('mpDuration').textContent = fmt(audio.duration);
+  }
+}
+
+function fmt(s) { const m = Math.floor(s/60); const sec = Math.floor(s%60); return m + ':' + String(sec).padStart(2,'0'); }
+
+async function uploadMusic(input) {
+  const f = input.files[0];
+  if(!f) return;
+  if(f.size > 20*1024*1024) { alert('❌ > 20 МБ'); input.value = ''; return; }
+  const title = prompt('Название трека?', f.name.replace(/\.[^/.]+$/, ''));
+  if(!title) { input.value = ''; return; }
+  alert('Загрузка...');
+  const fd = new FormData();
+  fd.append('token', token);
+  fd.append('file', f);
+  fd.append('title', title);
+  try {
+    const r = await fetch('/api/music/upload', { method: 'POST', body: fd });
+    if(r.ok) { alert('✅ Загружено'); loadMusic(); }
+    else { const d = await r.json(); alert('❌ ' + (d.detail || 'Ошибка')); }
+  } catch(e) { alert('❌ Ошибка сети'); }
+  input.value = '';
+}
+
+function init_music() { loadMusic(); }
+</script>
