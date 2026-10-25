@@ -13,7 +13,6 @@
   --ac:#d946ef; --ac2:#8b5cf6; --ac3:#22d3ee; --gold:#ffd700;
   --tx:#e8e0ff; --td:#9d8fc4; --tm:#6b5f8a;
   --glass:rgba(255,255,255,.05); --gb:rgba(255,255,255,.1);
-  --br:rgba(200,80,255,.15);
   --neon:0 0 15px rgba(217,70,239,.6);
 }
 html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--tx); }
@@ -38,7 +37,67 @@ body::after { content:''; position:fixed; inset:0; background:repeating-linear-g
 #appContent { flex:1; overflow-y:auto; position:relative; z-index:10; display:flex; flex-direction:column; }
 .loading { display:flex; align-items:center; justify-content:center; height:100%; color:var(--td); font-size:14px; }
 .spinner { width:40px; height:40px; border:3px solid rgba(217,70,239,.3); border-top-color:var(--ac); border-radius:50%; animation:spin 1s linear infinite; margin-right:12px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ===== ФИКС ЗВОНКА (ВСТРОЕНО) ===== */
+#mCall {
+  display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.97);
+}
+#mCall.open { display: block; }
+
+#mCall .call-stage {
+  position: relative; width: 100%; height: 100%; background: #020005; overflow: hidden;
+}
+#mCall .matrix-bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(217,70,239,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(217,70,239,.08) 1px, transparent 1px);
+  background-size: 40px 40px; opacity: .2; pointer-events: none;
+}
+#mCall .scanlines {
+  position: absolute; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,transparent 1px,transparent 2px);
+  opacity: .2; animation: scan 8s linear infinite;
+}
+@keyframes scan { from{background-position:0 0} to{background-position:0 100px} }
+#mCall .corner { position: absolute; width: 40px; height: 40px; z-index: 5; pointer-events: none; }
+#mCall .corner.tl { top: 20px; left: 20px; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
+#mCall .corner.tr { top: 20px; right: 20px; border-top: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
+#mCall .corner.bl { bottom: 20px; left: 20px; border-bottom: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
+#mCall .corner.br { bottom: 20px; right: 20px; border-bottom: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
+
+#mCall video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; display: none; }
+#mCall #localVideo { position: absolute; bottom: 30px; right: 30px; width: 100px; height: 130px; border: 1px solid #22d3ee; z-index: 15; }
+
+/* Кнопки */
+#mCall .top-strip { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; gap: 6px; padding: 6px; background: rgba(0,0,0,.6); border: 1px solid rgba(217,70,239,.3); backdrop-filter: blur(10px); }
+#mCall .strip-btn { width: 46px; height: 46px; background: rgba(20,16,32,.8); border: 1px solid rgba(217,70,239,.2); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; clip-path: polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
+#mCall .strip-btn:active { transform: scale(.9); }
+#mCall .strip-btn.on { border-color: #d946ef; background: rgba(217,70,239,.2); box-shadow: 0 0 15px rgba(217,70,239,.5); }
+#mCall .strip-btn.mut { border-color: #dc2626; background: rgba(220,38,38,.2); box-shadow: 0 0 15px rgba(220,38,38,.5); }
+#mCall .strip-btn.end { border-color: #dc2626; background: rgba(220,38,38,.3); }
+
+/* Аватарка и таймер */
+#mCall .left-avatar { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#mCall .av-ring { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg,#d946ef,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; border: 2px solid #d946ef; box-shadow: 0 0 30px rgba(217,70,239,.6); overflow: hidden; }
+#mCall .av-name { font-size: 14px; font-weight: 900; text-align: center; }
+#mCall .av-status { font-size: 9px; color: #22d3ee; letter-spacing: 2px; display: flex; align-items: center; gap: 4px; justify-content: center; }
+#mCall .av-status .dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; animation: blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+#mCall .timer-block { position: absolute; top: 80px; right: 30px; z-index: 10; text-align: right; background: rgba(0,0,0,.6); border: 1px solid rgba(34,211,238,.3); padding: 10px 16px; clip-path: polygon(0 0,100% 0,100% 100%,8px 100%,0 calc(100% - 8px)); }
+#mCall .timer-lbl { font-size: 9px; color: #22d3ee; letter-spacing: 2px; font-weight: 900; }
+#mCall .timer-val { font-size: 22px; font-weight: 900; color: #22c55e; text-shadow: 0 0 10px #22c55e; }
+#mCall .local-feed { position: absolute; bottom: 30px; right: 30px; width: 100px; height: 130px; background: #111; border: 1px solid #22d3ee; z-index: 15; display: flex; align-items: center; justify-content: center; }
+#mCall .local-feed .txt { font-size: 11px; color: #22d3ee; font-weight: 900; }
+
+@media (max-width:600px){
+  #mCall .top-strip { top: auto; bottom: 20px; }
+  #mCall .strip-btn { width: 42px; height: 42px; font-size: 18px; }
+  #mCall .left-avatar { top: auto; bottom: 90px; left: 16px; transform: none; flex-direction: row; gap: 10px; }
+  #mCall .av-ring { width: 60px; height: 60px; font-size: 24px; }
+  #mCall .timer-block { top: 20px; right: 16px; padding: 6px 12px; }
+  #mCall .timer-val { font-size: 16px; }
+  #mCall .local-feed { width: 70px; height: 90px; bottom: 90px; right: 16px; }
+}
 </style>
 </head>
 <body>
@@ -64,6 +123,36 @@ body::after { content:''; position:fixed; inset:0; background:repeating-linear-g
   <div class="loading"><div class="spinner"></div> Загрузка...</div>
 </div>
 
+<!-- МОДАЛКА ЗВОНКА (ВСТРОЕНА ИЗ ТВОЕГО КОДА) -->
+<div id="mCall">
+  <div class="call-stage" id="stage">
+    <div class="matrix-bg"></div>
+    <div class="scanlines"></div>
+    <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <video id="remoteVideo" autoplay playsinline style="display:none"></video>
+    <div class="top-strip">
+      <button class="strip-btn on" id="cbMic" onclick="tglMic()">🎤</button>
+      <button class="strip-btn on" id="cbCam" onclick="tglCam()">📷</button>
+      <button class="strip-btn" id="cbScr" onclick="tglScr()">🖥️</button>
+      <button class="strip-btn" id="cbFx" onclick="tglFx()">✨</button>
+      <button class="strip-btn end" onclick="endCall()">📞</button>
+    </div>
+    <div class="left-avatar">
+      <div class="av-ring speaking" id="callAv">?</div>
+      <div>
+        <div class="av-name" id="callName">...</div>
+        <div class="av-status"><span class="dot"></span> <span id="callSt">ПОДКЛЮЧЕНИЕ...</span></div>
+      </div>
+    </div>
+    <div class="timer-block">
+      <div class="timer-lbl">ВРЕМЯ</div>
+      <div class="timer-val" id="callTime">00:00</div>
+    </div>
+    <div class="local-feed" id="localFeed"><div class="txt" id="localTxt">ТЫ</div></div>
+    <video id="localVideo" autoplay playsinline muted style="display:none"></video>
+  </div>
+</div>
+
 <script>
 /* ====== ЯДРО ====== */
 const token = localStorage.getItem('bc_token');
@@ -71,16 +160,11 @@ if (!token) window.location.href = '/login';
 
 let me = null, ws = null, offlineQ = [];
 let ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+let curPage = null;
 
 function g(id) { return document.getElementById(id); }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function toast(msg, type) { alert(`[${type||'info'}] ${msg}`); }
-
-function wsSend(p) {
-  const j = JSON.stringify(p);
-  if(ws && ws.readyState === 1) ws.send(j);
-  else offlineQ.push(j);
-}
+function wsSend(p) { const j = JSON.stringify(p); if(ws && ws.readyState === 1) ws.send(j); else offlineQ.push(j); }
 
 function connectWS() {
   const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -95,25 +179,18 @@ function connectWS() {
   ws.onclose = function() { setTimeout(connectWS, 3000); };
 }
 
-/* ====== РОУТЕР ====== */
-let curPage = null;
-
 async function navigate(page) {
   if (curPage === page) return;
   curPage = page;
-
   document.querySelectorAll('.tb-tab').forEach(t => t.classList.toggle('on', t.dataset.page === page));
   const container = g('appContent');
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Загрузка...</div>';
   history.pushState(null, '', '/app/' + page);
-
   try {
     const r = await fetch('/pages/' + page + '.html');
     if (!r.ok) throw new Error('404');
     const html = await r.text();
     container.innerHTML = html;
-    
-    // Выполняем скрипты из загруженного HTML
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
@@ -121,47 +198,32 @@ async function navigate(page) {
       newScript.appendChild(document.createTextNode(oldScript.innerHTML));
       oldScript.parentNode.replaceChild(newScript, oldScript);
     });
-
     const initFn = window['init_' + page];
     if (typeof initFn === 'function') initFn();
-
   } catch(e) {
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#f43f5e;">Ошибка загрузки страницы</div>';
   }
 }
 
-/* ====== ГЛОБАЛЬНАЯ ПРОВЕРКА БАНА ====== */
-async function checkBan() {
-  try {
-    const r = await fetch('/api/me?token=' + token);
-    if (!r.ok) throw new Error('Unauthorized');
-    const user = await r.json();
-    if (user.is_banned) {
-      // Кидаем на страницу бана
-      window.location.href = '/banned';
-      return false;
-    }
-    return true;
-  } catch(e) {
-    localStorage.removeItem('bc_token');
-    window.location.href = '/login';
-    return false;
-  }
-}
+/* ====== ФУНКЦИИ ЗВОНКА ====== */
+function tglMic(){ var b=g('cbMic'); b.classList.toggle('mut'); }
+function tglCam(){ var b=g('cbCam'); b.classList.toggle('on'); }
+function tglScr(){ var b=g('cbScr'); b.classList.toggle('on'); }
+function tglFx(){ var b=g('cbFx'); b.classList.toggle('on'); }
+function endCall(){ g('mCall').classList.remove('open'); alert('Звонок завершен'); }
 
 /* ====== СТАРТ ====== */
 window.addEventListener('DOMContentLoaded', async () => {
-  // 1. Проверяем, не забанен ли
-  const ok = await checkBan();
-  if (!ok) return; // Если забанен, дальше не идем
-
-  // 2. Загружаем данные юзера
   try {
     const r = await fetch('/api/me?token=' + token);
+    if (!r.ok) throw new Error('Unauthorized');
     me = await r.json();
-  } catch(e) { return; }
+  } catch(e) {
+    localStorage.removeItem('bc_token');
+    window.location.href = '/login';
+    return;
+  }
 
-  // 3. Загрузка TURN
   try {
     const iceR = await fetch('/api/webrtc/config');
     if (iceR.ok) {
@@ -170,7 +232,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch(e) {}
 
-  // 4. Подключаем WS и грузим стартовую страницу
   connectWS();
   const urlPage = location.pathname.split('/').pop();
   const startPage = urlPage && urlPage !== 'app' ? urlPage : 'desk';
