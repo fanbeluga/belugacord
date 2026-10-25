@@ -1,86 +1,40 @@
-<div style="position:relative; width:100%; height:100%; overflow:hidden; background:linear-gradient(180deg,#1a0a2e 0%,#2a1a3e 40%,#0a0a12 100%); touch-action:none;" id="streetStage">
+<div style="position:relative; width:100%; height:100%; overflow:hidden; background:linear-gradient(180deg,#050a05,#0a120a); touch-action:none;" id="streetStage">
+  <div style="position:absolute; inset:0; background-image:linear-gradient(rgba(34,197,94,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.08) 1px,transparent 1px); background-size:40px 40px; opacity:.3; pointer-events:none;"></div>
   
-  <!-- ФОН (МАТРИЦА) -->
-  <div style="position:absolute; inset:0; background-image:linear-gradient(rgba(217,70,239,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(217,70,239,.08) 1px,transparent 1px); background-size:40px 40px; opacity:.3; pointer-events:none;"></div>
-  
-  <!-- КОНТЕЙНЕР ДЛЯ ЮЗЕРОВ -->
   <div id="streetUsers" style="position:absolute; inset:0;"></div>
   
-  <!-- ШАПКА -->
-  <div style="position:absolute; top:0; left:0; right:0; padding:12px 14px; padding-top:calc(12px + env(safe-area-inset-top)); display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(10,10,18,.9), transparent); z-index:10; pointer-events:none;">
+  <div style="position:absolute; top:0; left:0; right:0; padding:12px 14px; padding-top:calc(12px + env(safe-area-inset-top)); display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(5,10,5,.9), transparent); z-index:10;">
+    <button onclick="closeApp()" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">←</button>
     <div style="flex:1; color:#fff; font-weight:900; font-size:15px; text-shadow:0 2px 6px #000;">🌆 Улица</div>
-    <button onclick="navigate('desk')" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; pointer-events:auto;">←</button>
   </div>
   
-  <!-- ДЖОЙСТИК -->
   <div id="streetJoy" style="position:absolute; bottom:30px; left:20px; width:120px; height:120px; border-radius:50%; background:rgba(0,0,0,.4); border:2px solid rgba(255,255,255,.2); z-index:9; touch-action:none;">
-    <div id="joyKnob" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%; background:radial-gradient(circle, rgba(217,70,239,.8), rgba(139,92,246,.6)); border:2px solid #fff; pointer-events:none;"></div>
-  </div>
-
-  <!-- ПОДСКАЗКА -->
-  <div id="streetHint" style="position:absolute; bottom:30px; right:20px; padding:8px 14px; background:rgba(0,0,0,.6); color:#fff; border-radius:12px; font-size:11px; z-index:9;">
-    👆 Тапай — двигайся
+    <div id="joyKnob" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%; background:radial-gradient(circle, rgba(34,197,94,.8), rgba(249,115,22,.6)); border:2px solid #fff; pointer-events:none;"></div>
   </div>
 </div>
 
 <style>
 .street-user {
-  position:absolute;
-  width:56px;
-  height:56px;
-  transform:translate(-50%,-50%);
-  z-index:5;
-  cursor:pointer;
-  /* Убрали transition, чтобы не дергалось */
+  position:absolute; width:56px; height:56px; transform:translate(-50%,-50%); z-index:5;
 }
 .street-user .su-av {
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  background:linear-gradient(135deg, var(--ac), var(--ac2));
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-  font-weight:900;
-  color:#fff;
-  overflow:hidden;
-  border:2px solid var(--ac);
-  box-shadow:0 0 12px rgba(217,70,239,.5);
-  pointer-events:none;
+  width:100%; height:100%; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2));
+  display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#000;
+  overflow:hidden; border:2px solid var(--ac); box-shadow:0 0 12px rgba(34,197,94,.5); pointer-events:none;
 }
-.street-user .su-av img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+.street-user .su-av img { width:100%; height:100%; object-fit:cover; }
 .street-user .su-name {
-  position:absolute;
-  top:100%;
-  left:50%;
-  transform:translateX(-50%);
-  margin-top:4px;
-  font-size:9px;
-  font-weight:800;
-  color:#fff;
-  text-shadow:0 2px 6px #000;
-  white-space:nowrap;
-  max-width:80px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  pointer-events:none;
+  position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:4px;
+  font-size:9px; font-weight:800; color:#fff; text-shadow:0 2px 6px #000;
+  white-space:nowrap; max-width:80px; overflow:hidden; text-overflow:ellipsis; pointer-events:none;
 }
-.street-user.me .su-av {
-  border-color:#22d3ee;
-  box-shadow:0 0 20px rgba(34,211,238,.7);
-}
+.street-user.me .su-av { border-color:#f97316; box-shadow:0 0 20px rgba(249,115,22,.7); }
 </style>
 
 <script>
 let streetUsersData = {};
 let streetMyPos = { x: 50, y: 50 };
-let streetMoveTimer = null;
-let lastSendTime = 0;
+let lastSend = 0;
 
 async function streetLoadUsers() {
   try {
@@ -88,18 +42,7 @@ async function streetLoadUsers() {
     const arr = await r.json();
     const box = document.getElementById('streetUsers');
     box.innerHTML = '';
-    let foundMe = false;
-    
-    (arr || []).forEach(u => {
-      streetUsersData[u.user_id] = { x: u.x, y: u.y };
-      streetAddUser(u);
-      if(u.user_id === me.id) foundMe = true;
-    });
-    
-    // Если меня нет в списке — отправляем свою позицию
-    if(!foundMe) {
-      streetMove(50, 50);
-    }
+    (arr || []).forEach(u => { streetUsersData[u.user_id] = {x:u.x,y:u.y}; streetAddUser(u); });
   } catch(e) {}
 }
 
@@ -113,17 +56,14 @@ function streetAddUser(u) {
   el.id = 'su-' + u.user_id;
   el.style.left = u.x + '%';
   el.style.top = u.y + '%';
-  el.dataset.tx = u.x; // целевая позиция X
-  el.dataset.ty = u.y; // целевая позиция Y
+  el.dataset.tx = u.x;
+  el.dataset.ty = u.y;
   
   const av = u.avatar ? `<img src="${esc(u.avatar)}">` : esc((u.display_name || u.username || '?').charAt(0).toUpperCase());
   el.innerHTML = `<div class="su-av">${av}</div><div class="su-name">${esc(u.display_name || u.username)}</div>`;
-  el.onclick = () => { if(u.user_id !== me.id) alert('Профиль юзера (скоро)'); };
   box.appendChild(el);
   
-  if(u.user_id === me.id) {
-    streetMyPos = { x: u.x, y: u.y };
-  }
+  if(u.user_id === me.id) streetMyPos = {x:u.x, y:u.y};
 }
 
 function streetBindJoy() {
@@ -132,70 +72,51 @@ function streetBindJoy() {
   if(!joy || !knob) return;
   
   let active = false, cx = 0, cy = 0;
-  
   joy.onpointerdown = (e) => {
     active = true;
     const r = joy.getBoundingClientRect();
-    cx = r.left + r.width/2;
-    cy = r.top + r.height/2;
+    cx = r.left + r.width/2; cy = r.top + r.height/2;
     try { joy.setPointerCapture(e.pointerId); } catch(ex) {}
     e.preventDefault();
     joy.onpointermove(e);
   };
-  
   joy.onpointermove = (e) => {
     if(!active) return;
-    let dx = e.clientX - cx;
-    let dy = e.clientY - cy;
-    const max = 40;
-    const d = Math.sqrt(dx*dx + dy*dy);
+    let dx = e.clientX - cx, dy = e.clientY - cy;
+    const max = 40, d = Math.sqrt(dx*dx + dy*dy);
     if(d > max) { dx = dx/d*max; dy = dy/d*max; }
-    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    knob.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
     if(Math.abs(dx) > 3 || Math.abs(dy) > 3) {
       streetMove(streetMyPos.x + dx/max*1.5, streetMyPos.y + dy/max*1.5);
     }
   };
-  
   joy.onpointerup = () => { active = false; knob.style.transform = 'translate(-50%,-50%)'; };
   joy.onpointercancel = () => { active = false; knob.style.transform = 'translate(-50%,-50%)'; };
 }
 
-async function streetMove(x, y) {
+function streetMove(x, y) {
   x = Math.max(5, Math.min(95, x));
   y = Math.max(5, Math.min(95, y));
-  streetMyPos = { x, y };
-  
+  streetMyPos = {x,y};
   const myEl = document.getElementById('su-' + me.id);
-  if(myEl) {
-    myEl.dataset.tx = x;
-    myEl.dataset.ty = y;
-  }
+  if(myEl) { myEl.dataset.tx = x; myEl.dataset.ty = y; }
   
   const now = Date.now();
-  if(now - lastSendTime > 100) {
-    lastSendTime = now;
+  if(now - lastSend > 100) {
+    lastSend = now;
     wsSend({ type: 'street_move', x, y, location: 'street' });
-    fetch('/api/street/move', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token, x, y, location: 'street' })
-    }).catch(()=>{});
+    fetch('/api/street/move', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,x,y,location:'street'})}).catch(()=>{});
   }
 }
 
-/* ====== ПЛАВНАЯ ИНТЕРПОЛЯЦИЯ ====== */
 function smoothMove() {
   document.querySelectorAll('.street-user').forEach(el => {
     const tx = parseFloat(el.dataset.tx || 50);
     const ty = parseFloat(el.dataset.ty || 50);
     const cx = parseFloat(el.style.left) || 50;
     const cy = parseFloat(el.style.top) || 50;
-    
-    const nx = cx + (tx - cx) * 0.15;
-    const ny = cy + (ty - cy) * 0.15;
-    
-    el.style.left = nx + '%';
-    el.style.top = ny + '%';
+    el.style.left = (cx + (tx - cx) * 0.15) + '%';
+    el.style.top = (cy + (ty - cy) * 0.15) + '%';
   });
   requestAnimationFrame(smoothMove);
 }
@@ -204,23 +125,13 @@ function init_street() {
   streetLoadUsers();
   streetBindJoy();
   requestAnimationFrame(smoothMove);
-  
-  setTimeout(() => {
-    const h = document.getElementById('streetHint');
-    if(h) h.style.opacity = '0';
-  }, 3000);
 }
 
-// Обновляем целевые координаты при получении ws
 function handlePageWS(d) {
   if(d.type === 'street_move') {
     const el = document.getElementById('su-' + d.user_id);
-    if(el) {
-      el.dataset.tx = d.x;
-      el.dataset.ty = d.y;
-    } else {
-      streetLoadUsers();
-    }
+    if(el) { el.dataset.tx = d.x; el.dataset.ty = d.y; }
+    else { streetLoadUsers(); }
   }
 }
 </script>
