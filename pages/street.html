@@ -1,13 +1,17 @@
-<div style="position:relative; width:100%; height:100%; overflow:hidden; background:linear-gradient(180deg,#050a05,#0a120a); touch-action:none;" id="streetStage">
+<div style="position:relative; width:100%; height:100%; overflow:hidden; background:linear-gradient(180deg,#0f1115,#171a21); touch-action:none;" id="streetStage">
+  <!-- Сетка на фоне -->
   <div style="position:absolute; inset:0; background-image:linear-gradient(rgba(34,197,94,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.08) 1px,transparent 1px); background-size:40px 40px; opacity:.3; pointer-events:none;"></div>
   
+  <!-- Контейнер для юзеров -->
   <div id="streetUsers" style="position:absolute; inset:0;"></div>
   
-  <div style="position:absolute; top:0; left:0; right:0; padding:12px 14px; padding-top:calc(12px + env(safe-area-inset-top)); display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(5,10,5,.9), transparent); z-index:10;">
-    <button onclick="closeApp()" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">←</button>
+  <!-- Шапка -->
+  <div style="position:absolute; top:0; left:0; right:0; padding:12px 14px; padding-top:calc(12px + env(safe-area-inset-top)); display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(15,17,21,.9), transparent); z-index:10;">
+    <button onclick="closeStreet()" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">←</button>
     <div style="flex:1; color:#fff; font-weight:900; font-size:15px; text-shadow:0 2px 6px #000;">🌆 Улица</div>
   </div>
   
+  <!-- Джойстик -->
   <div id="streetJoy" style="position:absolute; bottom:30px; left:20px; width:120px; height:120px; border-radius:50%; background:rgba(0,0,0,.4); border:2px solid rgba(255,255,255,.2); z-index:9; touch-action:none;">
     <div id="joyKnob" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%; background:radial-gradient(circle, rgba(34,197,94,.8), rgba(249,115,22,.6)); border:2px solid #fff; pointer-events:none;"></div>
   </div>
@@ -28,7 +32,7 @@
   font-size:9px; font-weight:800; color:#fff; text-shadow:0 2px 6px #000;
   white-space:nowrap; max-width:80px; overflow:hidden; text-overflow:ellipsis; pointer-events:none;
 }
-.street-user.me .su-av { border-color:#f97316; box-shadow:0 0 20px rgba(249,115,22,.7); }
+.street-user.me .su-av { border-color:var(--ac2); box-shadow:0 0 20px rgba(249,115,22,.7); }
 </style>
 
 <script>
@@ -120,6 +124,8 @@ function smoothMove() {
   });
   requestAnimationFrame(smoothMove);
 }
+
+function closeStreet() { navigate('desk'); }
 
 function init_street() {
   streetLoadUsers();
