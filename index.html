@@ -1,3 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BelugaCord 4.5</title>
+<style>
+:root {
+  --bg: #050a05; --bg2: #0a120a; --ac: #22c55e; --ac2: #f97316; --ac3: #4ade80;
+  --tx: #e8f5e9; --td: #81c784; --tm: #4caf50; --glass: rgba(34,197,94,0.05); --gb: rgba(34,197,94,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Courier New',monospace; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--tx); height:100vh; overflow:hidden; }
+.hidden { display:none !important; }
+
+/* Главный экран */
+#homeScreen { position:absolute; inset:0; padding:20px; display:flex; flex-direction:column; }
+.app-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-top:20px; }
+.app-icon { display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
+.app-icon .ic { width:60px; height:60px; border-radius:16px; background:rgba(20,10,36,0.8); border:1px solid var(--gb); display:flex; align-items:center; justify-content:center; font-size:28px; }
+.app-icon .nm { font-size:10px; color:var(--tx); font-weight:600; text-align:center; }
+
+/* Док */
+#dock { position:absolute; bottom:20px; left:16px; right:16px; height:68px; background:rgba(10,18,10,0.95); border:1px solid var(--gb); border-radius:22px; display:flex; align-items:center; justify-content:space-around; z-index:20; }
+.dock-icon { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--td); cursor:pointer; }
+.dock-icon .ic { font-size:22px; }
+.dock-icon .nm { font-size:9px; font-weight:700; }
+.dock-icon.active { color:var(--ac); }
+
+/* Плеер */
+#musicPlayer { position:fixed; bottom:150px; right:20px; z-index:100; background:rgba(10,18,10,0.98); border:1px solid var(--ac); border-radius:20px; padding:16px; width:300px; display:none; }
+#musicPlayer.open { display:block; }
+#musicToggle { position:fixed; bottom:80px; right:20px; z-index:99; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#000; font-size:24px; border:none; cursor:pointer; }
+#nowPlaying { display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%); background:rgba(10,18,10,0.95); border:1px solid var(--ac); border-radius:20px; padding:8px 16px; font-size:12px; z-index:50; }
+</style>
+</head>
+<body>
+
+<div id="homeScreen">
+  <div style="font-size:28px; font-weight:900; color:var(--ac); margin-top:10px;">BELUGA 4.5</div>
+  <div style="font-size:11px; color:var(--td);">GudraWorld x BelugaCord</div>
+  
+  <div class="app-grid">
+    <div class="app-icon" onclick="alert('Чаты')"><div class="ic">💬</div><div class="nm">Чаты</div></div>
+    <div class="app-icon" onclick="alert('Друзья')"><div class="ic">👥</div><div class="nm">Друзья</div></div>
+    <div class="app-icon" onclick="alert('Каналы')"><div class="ic">📢</div><div class="nm">Каналы</div></div>
+    <div class="app-icon" onclick="alert('Улица')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
+    <div class="app-icon" onclick="alert('Дом')"><div class="ic">🏠</div><div class="nm">Дом</div></div>
+    <div class="app-icon" onclick="alert('Магазин')"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
+    <div class="app-icon" onclick="alert('Игры')"><div class="ic">🎮</div><div class="nm">Игры</div></div>
+    <div class="app-icon" onclick="alert('Профиль')"><div class="ic">👤</div><div class="nm">Я</div></div>
+  </div>
+
+  <div id="dock">
+    <div class="dock-icon active" onclick="alert('Чаты')"><div class="ic">💬</div><div class="nm">Чаты</div></div>
+    <div class="dock-icon" onclick="alert('Друзья')"><div class="ic">👥</div><div class="nm">Друзья</div></div>
+    <div class="dock-icon" onclick="alert('Каналы')"><div class="ic">📢</div><div class="nm">Каналы</div></div>
+    <div class="dock-icon" onclick="alert('Профиль')"><div class="ic">👤</div><div class="nm">Профиль</div></div>
+  </div>
+</div>
+
+<!-- Плеер -->
+<button id="musicToggle" onclick="toggleMusicPlayer()">🎵</button>
+<div id="musicPlayer">
+  <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:14px;font-weight:900;color:var(--ac);">🎵 ПЛЕЕР</div>
+    <button onclick="toggleMusicPlayer()" style="background:none;border:none;color:var(--td);font-size:18px;cursor:pointer;">✕</button>
+  </div>
+  <div id="mpCover" style="height:120px;border-radius:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px;">💿</div>
+  <div id="mpTrack" style="text-align:center;font-size:13px;font-weight:700;">Выбери трек</div>
+  <div id="mpArtist" style="text-align:center;font-size:11px;color:var(--td);margin-bottom:12px;">—</div>
+  <div style="display:flex;justify-content:center;gap:16px;margin-bottom:12px;">
+    <button onclick="mpPrev()" style="width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--gb);color:var(--tx);font-size:18px;cursor:pointer;">⏮</button>
+    <button id="mpPlayBtn" onclick="mpTogglePlay()" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;color:#000;font-size:24px;cursor:pointer;">▶</button>
+    <button onclick="mpNext()" style="width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--gb);color:var(--tx);font-size:18px;cursor:pointer;">⏭</button>
+  </div>
+  <div style="width:100%;height:6px;background:var(--gb);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+    <div id="mpProgress" style="height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));width:0%;"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--td);">
+    <span id="mpCurrent">0:00</span><span id="mpDuration">0:00</span>
+  </div>
+  <label for="musicUpload" style="margin-top:12px;padding:10px;background:var(--glass);border:1px solid var(--gb);border-radius:10px;text-align:center;font-size:12px;font-weight:900;color:var(--ac3);cursor:pointer;display:block;">＋ ЗАГРУЗИТЬ (макс 20)</label>
+  <input type="file" id="musicUpload" accept="audio/*" style="display:none" onchange="uploadMusic(this)">
+  <div id="mpPlaylist" style="margin-top:12px;max-height:150px;overflow-y:auto;"></div>
+  <audio id="mpAudio" ontimeupdate="mpUpdateProgress()" onended="mpNext()"></audio>
+</div>
+
+<!-- Что играет -->
+<div id="nowPlaying">🎵 Сейчас играет: <span id="nowPlayingTrack" style="color:var(--ac);font-weight:900;"></span></div>
+
+<script>
 const token = localStorage.getItem('bc_token') || '';
 let ws = null;
 let mpPlaylist = [];
@@ -104,3 +196,6 @@ window.addEventListener('DOMContentLoaded', () => {
   connectWS();
   loadMusic();
 });
+</script>
+</body>
+</html>
