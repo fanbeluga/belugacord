@@ -1,8 +1,7 @@
-<div style="padding:16px; flex:1; overflow-y:auto;">
-  <!-- Приветствие -->
-  <div style="padding:16px; background:linear-gradient(135deg, rgba(217,70,239,.15), rgba(34,211,238,.1)); border:1px solid var(--br); border-radius:16px; margin-bottom:20px;">
+<div style="padding:16px; height:100%; overflow-y:auto; box-sizing:border-box;">
+  <div style="padding:16px; background:linear-gradient(135deg, rgba(34,197,94,0.15), rgba(249,115,22,0.1)); border:1px solid var(--br); border-radius:16px; margin-bottom:20px;">
     <h2 style="font-size:20px; font-weight:900; color:var(--ac); margin-bottom:4px;" id="deskHello">Привет 👋</h2>
-    <p style="font-size:12px; color:var(--td);">BelugaCord 4.3 — CYBER PULSE</p>
+    <p style="font-size:12px; color:var(--td);">BelugaCord x GudraWorld</p>
   </div>
 
   <!-- БЫСТРЫЕ -->
@@ -14,55 +13,47 @@
     <div class="d-icon" onclick="navigate('street')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
   </div>
 
-  <!-- ГОРОД (БЕЗ ЛУДОМАНИИ) -->
+  <!-- ГОРОД -->
   <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ГОРОД</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="navigate('street')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
+    <div class="d-icon" onclick="openShop()"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
+    <div class="d-icon" onclick="openMarket()"><div class="ic">💰</div><div class="nm">Биржа</div></div>
+    <div class="d-icon" onclick="openFamily()"><div class="ic">👨‍👩‍👧</div><div class="nm">Семья</div></div>
+    <div class="d-icon" onclick="openPets()"><div class="ic">🐱</div><div class="nm">Питомцы</div></div>
     <div class="d-icon" onclick="navigate('house')"><div class="ic">🏠</div><div class="nm">Дом</div></div>
-    <div class="d-icon" onclick="alert('Биржа в разработке')"><div class="ic">💰</div><div class="nm">Биржа</div></div>
-    <div class="d-icon" onclick="alert('Семьи в разработке')"><div class="ic">👨‍👩‍👧</div><div class="nm">Семья</div></div>
-    <div class="d-icon" onclick="alert('Питомцы в разработке')"><div class="ic">🐱</div><div class="nm">Питомцы</div></div>
-    <div class="d-icon" onclick="alert('Акции в разработке')"><div class="ic">📈</div><div class="nm">Акции</div></div>
-    <div class="d-icon" onclick="alert('Капсулы в разработке')"><div class="ic">⏳</div><div class="nm">Капсулы</div></div>
-    <div class="d-icon" onclick="alert('Магазин в разработке')"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
   </div>
 
-  <!-- РАЗВЛЕЧЕНИЯ (БЕЗ СТАВОК) -->
+  <!-- РАЗВЛЕЧЕНИЯ -->
   <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// РАЗВЛЕЧЕНИЯ</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="alert('Игры в разработке')"><div class="ic">🎮</div><div class="nm">Игры</div></div>
-    <div class="d-icon" onclick="alert('Анонимки в разработке')"><div class="ic">🕵️</div><div class="nm">Анонимки</div></div>
-    <div class="d-icon" onclick="alert('Детектор в разработке')"><div class="ic">🔮</div><div class="nm">Детектор</div></div>
-    <div class="d-icon" onclick="alert('Санта в разработке')"><div class="ic">🎅</div><div class="nm">Санта</div></div>
-    <div class="d-icon" onclick="alert('Бомба в разработке')"><div class="ic">💣</div><div class="nm">Бомба</div></div>
-    <div class="d-icon" onclick="alert('Дуэли в разработке')"><div class="ic">🎲</div><div class="nm">Дуэли</div></div>
-    <div class="d-icon" onclick="alert('Спор в разработке')"><div class="ic">🤝</div><div class="nm">Спор</div></div>
-    <div class="d-icon" onclick="alert('Рисование в разработке')"><div class="ic">🎨</div><div class="nm">Рисование</div></div>
+    <div class="d-icon" onclick="openGames()"><div class="ic">🎮</div><div class="nm">Игры</div></div>
+    <div class="d-icon" onclick="openAnonymous()"><div class="ic">🕵️</div><div class="nm">Анонимки</div></div>
+    <div class="d-icon" onclick="openSanta()"><div class="ic">🎅</div><div class="nm">Санта</div></div>
+    <div class="d-icon" onclick="openTruth()"><div class="ic">🔮</div><div class="nm">Детектор</div></div>
   </div>
 
-  <!-- НОВОЕ В 4.3 -->
+  <!-- НОВОЕ 4.3 -->
   <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// НОВОЕ В 4.3</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="openLegal()"><div class="ic">📜</div><div class="nm">Соглашение</div></div>
-    <div class="d-icon" onclick="alert('Новости в разработке')"><div class="ic">📰</div><div class="nm">Новости</div></div>
-    <div class="d-icon" onclick="alert('Поддержка в разработке')"><div class="ic">🤖</div><div class="nm">Поддержка</div></div>
-    <div class="d-icon" onclick="alert('Истории в разработке')"><div class="ic">📸</div><div class="nm">Истории</div></div>
+    <div class="d-icon" onclick="openPromoModal()"><div class="ic">🎟️</div><div class="nm">Промокоды</div></div>
+    <div class="d-icon" onclick="openMusic()"><div class="ic">🎵</div><div class="nm">Музыка</div></div>
+    <div class="d-icon" onclick="navigate('legal')"><div class="ic">📜</div><div class="nm">Соглашение</div></div>
+    <div class="d-icon" onclick="navigate('me')"><div class="ic">👤</div><div class="nm">Профиль</div></div>
   </div>
 
   <!-- ПРОЧЕЕ -->
   <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ПРОЧЕЕ</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
-    <div class="d-icon" onclick="navigate('me')"><div class="ic">👤</div><div class="nm">Профиль</div></div>
-    <div class="d-icon" onclick="alert('Настройки в разработке')"><div class="ic">⚙️</div><div class="nm">Настройки</div></div>
-    <div class="d-icon" onclick="alert('Звонки в разработке')"><div class="ic">📞</div><div class="nm">Звонки</div></div>
+    <div class="d-icon" onclick="openPremium()"><div class="ic">💎</div><div class="nm">Premium</div></div>
+    <div class="d-icon" onclick="openSettings()"><div class="ic">⚙️</div><div class="nm">Настройки</div></div>
     <div class="d-icon" onclick="logout()"><div class="ic">🚪</div><div class="nm">Выйти</div></div>
   </div>
 </div>
 
 <style>
 .d-icon { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; cursor:pointer; text-align:center; gap:6px; transition:0.2s; }
-.d-icon:active { background:rgba(217,70,239,.15); border-color:var(--ac); }
-.d-icon .ic { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:22px; background:rgba(217,70,239,.1); border-radius:12px; }
+.d-icon:active { background:rgba(34,197,94,.15); border-color:var(--ac); }
+.d-icon .ic { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:22px; background:rgba(34,197,94,.1); border-radius:12px; }
 .d-icon .nm { font-size:10px; color:var(--td); font-weight:700; line-height:1.2; }
 </style>
 
@@ -75,6 +66,4 @@ function init_desk() {
       if(h) h.textContent = 'Привет, ' + (u.display_name || u.username) + ' 👋';
     }).catch(()=>{});
 }
-function openLegal() { navigate('legal'); }
-function logout() { localStorage.removeItem('bc_token'); window.location.href = '/'; }
 </script>
