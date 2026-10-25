@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>👑 КОРОНА ВСЕВЛАСТЬЯ</title>
+<style>
+/* ===== БАЗА ===== */
+:root {
+  --bg: #020005;
+  --bg2: #0a0514;
+  --ac: #d946ef;
+  --ac2: #8b5cf6;
+  --ac3: #22d3ee;
+  --tx: #e8e0ff;
+  --td: #9d8fc4;
+  --glass: rgba(255,255,255,.05);
+  --gb: rgba(255,255,255,.1);
+  --red: #dc2626;
+  --green: #22c55e;
+  --gold: #ffd700;
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Courier New',monospace; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--tx); height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(217,70,239,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(217,70,239,.06) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+
+/* ===== ШАПКА ===== */
+#adminHeader { height:60px; background:rgba(10,5,20,.95); border-bottom:1px solid var(--ac); display:flex; align-items:center; padding:0 16px; z-index:10; flex-shrink:0; }
+#adminHeader h1 { font-size:20px; color:var(--gold); text-shadow:0 0 15px rgba(255,215,0,0.6); letter-spacing:2px; }
+#adminHeader .status { margin-left:auto; font-size:12px; color:var(--green); }
+
+/* ===== КОНТЕЙНЕР ===== */
+#adminContent { flex:1; display:flex; overflow:hidden; position:relative; z-index:1; }
+
+/* ===== САЙДБАР (ВКЛАДКИ) ===== */
+#sidebar { width:240px; background:var(--bg2); border-right:1px solid var(--gb); overflow-y:auto; padding:12px; flex-shrink:0; }
+.tab-btn { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; color:var(--td); font-size:12px; cursor:pointer; margin-bottom:4px; transition:0.2s; border:1px solid transparent; }
+.tab-btn:hover { background:var(--glass); color:var(--tx); }
+.tab-btn.active { background:rgba(217,70,239,.15); border-color:var(--ac); color:#fff; }
+.tab-btn .icon { font-size:16px; }
+.tab-divider { font-size:10px; color:var(--tm); text-transform:uppercase; letter-spacing:2px; margin:16px 0 8px 12px; }
+
+/* ===== ОСНОВНАЯ ПАНЕЛЬ ===== */
+#mainPanel { flex:1; padding:20px; overflow-y:auto; }
+.panel { display:none; }
+.panel.active { display:block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ===== КАРТОЧКИ И КНОПКИ ===== */
+.card { background:rgba(20,10,36,0.6); border:1px solid var(--gb); border-radius:16px; padding:16px; margin-bottom:16px; }
+.card h2 { font-size:16px; color:var(--ac3); margin-bottom:12px; border-bottom:1px solid var(--gb); padding-bottom:8px; }
+.btn { padding:10px 16px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border:none; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; transition:0.2s; font-family:inherit; }
+.btn:hover { opacity:0.9; transform:scale(1.02); }
+.btn.red { background:linear-gradient(135deg,#dc2626,#ef4444); }
+.btn.green { background:linear-gradient(135deg,#22c55e,#16a34a); }
+.btn.orange { background:linear-gradient(135deg,#f97316,#ea580c); }
+.input { width:100%; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:10px; color:var(--tx); font-size:13px; outline:none; margin-bottom:12px; font-family:inherit; }
+.input:focus { border-color:var(--ac3); }
+
+/* ===== СПИСКИ ===== */
+.user-row { display:flex; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:6px; border:1px solid var(--gb); }
+.user-row .av { width:32px; height:32px; border-radius:8px; background:var(--ac2); display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:14px; flex-shrink:0; }
+.user-row .info { flex:1; }
+.user-row .name { font-size:13px; font-weight:700; }
+.user-row .sub { font-size:11px; color:var(--td); }
+
+/* ===== ТРОЛЛЬ-ФИЧИ ===== */
+.troll-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+.troll-card { background:linear-gradient(135deg, rgba(220,38,38,0.1), rgba(139,92,246,0.1)); border:1px solid var(--red); border-radius:14px; padding:16px; text-align:center; cursor:pointer; transition:0.2s; }
+.troll-card:hover { transform:scale(1.03); box-shadow:0 0 20px rgba(220,38,38,0.3); }
+.troll-card .emoji { font-size:36px; margin-bottom:8px; }
+.troll-card .name { font-size:13px; font-weight:900; color:var(--red); }
+</style>
+</head>
+<body>
+
+<div id="adminHeader">
+  <h1>👑 КОРОНА ВСЕВЛАСТЬЯ</h1>
+  <div class="status" id="adminStatus">ONLINE</div>
+</div>
+
+<div id="adminContent">
+  <!-- САЙДБАР -->
+  <div id="sidebar">
+    <div class="tab-btn active" onclick="switchTab('dashboard', this)"><span class="icon">📊</span> Дашборд</div>
+    
+    <div class="tab-divider">Управление</div>
+    <div class="tab-btn" onclick="switchTab('users', this)"><span class="icon">👥</span> Юзеры</div>
+    <div class="tab-btn" onclick="switchTab('economy', this)"><span class="icon">💰</span> Экономика</div>
+    <div class="tab-btn" onclick="switchTab('channels', this)"><span class="icon">📢</span> Каналы</div>
+    <div class="tab-btn" onclick="switchTab('promo', this)"><span class="icon">🎟️</span> Промокоды</div>
+    <div class="tab-btn" onclick="switchTab('bans', this)"><span class="icon">🚫</span> Баны</div>
+    <div class="tab-btn" onclick="switchTab('logs', this)"><span class="icon">📋</span> Логи</div>
+    <div class="tab-btn" onclick="switchTab('broadcast', this)"><span class="icon">📢</span> Рассылка</div>
+    <div class="tab-btn" onclick="switchTab('reports', this)"><span class="icon">📩</span> Жалобы</div>
+    <div class="tab-btn" onclick="switchTab('stats', this)"><span class="icon">📈</span> Статистика</div>
+    
+    <div class="tab-divider">Разработка</div>
+    <div class="tab-btn" onclick="switchTab('console', this)"><span class="icon">💻</span> Консоль</div>
+    <div class="tab-btn" onclick="switchTab('system', this)"><span class="icon">⚙️</span> Система</div>
+    <div class="tab-btn" onclick="switchTab('theme', this)"><span class="icon">🎨</span> Темы ВСЕМ</div>
+    
+    <div class="tab-divider">Тролль-фичи 🔥</div>
+    <div class="tab-btn" onclick="switchTab('troll1', this)"><span class="icon">💀</span> Тролль-бан</div>
+    <div class="tab-btn" onclick="switchTab('troll2', this)"><span class="icon">💸</span> Кража монет</div>
+    <div class="tab-btn" onclick="switchTab('troll3', this)"><span class="icon">🎭</span> Подмена ников</div>
+    <div class="tab-btn" onclick="switchTab('troll4', this)"><span class="icon">🌈</span> Радуга</div>
+    <div class="tab-btn" onclick="switchTab('troll5', this)"><span class="icon">🐌</span> Лаг-режим</div>
+    <div class="tab-btn" onclick="switchTab('troll6', this)"><span class="icon">🔇</span> Случайный мут</div>
+    <div class="tab-btn" onclick="switchTab('troll7', this)"><span class="icon">👻</span> Призраки</div>
+    <div class="tab-btn" onclick="switchTab('troll8', this)"><span class="icon">🔄</span> Переворот</div>
+    <div class="tab-btn" onclick="switchTab('troll9', this)"><span class="icon">📢</span> Фейк-анонс</div>
+    <div class="tab-btn" onclick="switchTab('troll10', this)"><span class="icon">🎰</span> Казино</div>
+  </div>
+
+  <!-- ОСНОВНАЯ ПАНЕЛЬ -->
+  <div id="mainPanel">
+    <!-- ДАШБОРД -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="card">
+        <h2>📊 Статистика Сервера</h2>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px;">
+          <div style="background:var(--glass); padding:16px; border-radius:12px; text-align:center;">
+            <div style="font-size:24px; font-weight:900; color:var(--ac3);" id="statUsers">0</div>
+            <div style="font-size:11px; color:var(--td);">Юзеров</div>
+          </div>
+          <div style="background:var(--glass); padding:16px; border-radius:12px; text-align:center;">
+            <div style="font-size:24px; font-weight:900; color:var(--green);" id="statOnline">0</div>
+            <div style="font-size:11px; color:var(--td);">Онлайн</div>
+          </div>
+          <div style="background:var(--glass); padding:16px; border-radius:12px; text-align:center;">
+            <div style="font-size:24px; font-weight:900; color:var(--gold);" id="statCoins">0</div>
+            <div style="font-size:11px; color:var(--td);">Монет</div>
+          </div>
+          <div style="background:var(--glass); padding:16px; border-radius:12px; text-align:center;">
+            <div style="font-size:24px; font-weight:900; color:var(--ac);" id="statMsgs">0</div>
+            <div style="font-size:11px; color:var(--td);">Сообщений</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЮЗЕРЫ -->
+    <div id="panel-users" class="panel">
+      <div class="card">
+        <h2>👥 Список Юзеров</h2>
+        <input type="text" class="input" id="userSearch" placeholder="Поиск по нику..." oninput="filterUsers(this.value)">
+        <div id="userList" style="max-height:400px; overflow-y:auto;">
+          <!-- Сюда грузятся юзеры -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКОНОМИКА -->
+    <div id="panel-economy" class="panel">
+      <div class="card">
+        <h2>💰 Управление Экономикой</h2>
+        <button class="btn green" onclick="massGive(100)">Дать всем 100 🏅</button>
+        <button class="btn green" onclick="massGive(1000)">Дать всем 1000 🏅</button>
+        <button class="btn red" onclick="massReset()">Обнулить экономику</button>
+      </div>
+    </div>
+
+    <!-- КАНАЛЫ -->
+    <div id="panel-channels" class="panel">
+      <div class="card">
+        <h2>📢 Управление Каналами</h2>
+        <div id="channelList">Скоро...</div>
+      </div>
+    </div>
+
+    <!-- ПРОМОКОДЫ -->
+    <div id="panel-promo" class="panel">
+      <div class="card">
+        <h2>🎟️ Создать Промокод</h2>
+        <input type="text" class="input" id="promoCode" placeholder="Код (например, GUDRA)">
+        <input type="number" class="input" id="promoReward" placeholder="Награда (монеты)">
+        <input type="number" class="input" id="promoLimit" placeholder="Лимит активаций">
+        <button class="btn" onclick="createPromo()">Создать</button>
+      </div>
+    </div>
+
+    <!-- БАНЫ -->
+    <div id="panel-bans" class="panel">
+      <div class="card">
+        <h2>🚫 Список Банов</h2>
+        <div id="banList">Скоро...</div>
+      </div>
+    </div>
+
+    <!-- ЛОГИ -->
+    <div id="panel-logs" class="panel">
+      <div class="card">
+        <h2>📋 Логи Действий</h2>
+        <div id="logList" style="max-height:400px; overflow-y:auto; font-size:12px; color:var(--td);">
+          Скоро...
+        </div>
+      </div>
+    </div>
+
+    <!-- РАССЫЛКА -->
+    <div id="panel-broadcast" class="panel">
+      <div class="card">
+        <h2>📢 Массовая Рассылка</h2>
+        <textarea class="input" id="bcText" placeholder="Текст рассылки..." style="height:100px;"></textarea>
+        <button class="btn" onclick="sendBroadcast()">Отправить всем</button>
+      </div>
+    </div>
+
+    <!-- ЖАЛОБЫ -->
+    <div id="panel-reports" class="panel">
+      <div class="card">
+        <h2>📩 Жалобы</h2>
+        <div id="reportList">Скоро...</div>
+      </div>
+    </div>
+
+    <!-- СТАТИСТИКА -->
+    <div id="panel-stats" class="panel">
+      <div class="card">
+        <h2>📈 Графики</h2>
+        <div style="height:200px; background:var(--glass); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--td);">
+          Тут будет график
+        </div>
+      </div>
+    </div>
+
+    <!-- КОНСОЛЬ -->
+    <div id="panel-console" class="panel">
+      <div class="card">
+        <h2>💻 Консоль Бога</h2>
+        <div id="consoleOutput" style="background:#000; padding:12px; border-radius:12px; font-family:monospace; font-size:12px; color:var(--green); height:200px; overflow-y:auto; margin-bottom:12px;">
+          > Добро пожаловать, Владелец.
+        </div>
+        <input type="text" class="input" id="consoleInput" placeholder="Введи команду (help)..." onkeydown="if(event.key==='Enter')runCommand()">
+      </div>
+    </div>
+
+    <!-- СИСТЕМА -->
+    <div id="panel-system" class="panel">
+      <div class="card">
+        <h2>⚙️ Системные Действия</h2>
+        <button class="btn orange" onclick="hotReload()">♻️ Перезагрузить всех</button>
+        <button class="btn red" onclick="clearCache()">🧹 Очистить кэш</button>
+        <button class="btn" onclick="maintenance()">🛠️ Режим ТО</button>
+      </div>
+    </div>
+
+    <!-- ТЕМЫ -->
+    <div id="panel-theme" class="panel">
+      <div class="card">
+        <h2>🎨 Сменить тему всем</h2>
+        <button class="btn" style="background:#0a0a12" onclick="setTheme('dark')">🌑 Тёмная</button>
+        <button class="btn" style="background:#eef0f5; color:#000" onclick="setTheme('light')">☀️ Светлая</button>
+        <button class="btn" style="background:#000; border:1px solid var(--gb)" onclick="setTheme('amoled')">⚫ AMOLED</button>
+      </div>
+    </div>
+
+    <!-- ТРОЛЛЬ-ФИЧИ (10 вкладок) -->
+    <div id="panel-troll1" class="panel">
+      <div class="card">
+        <h2>💀 Тролль-бан</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Бан на 5 минут с забавным сообщением.</p>
+        <input type="text" class="input" id="trollBanUser" placeholder="@username">
+        <button class="btn red" onclick="trollBan()">Забанить</button>
+      </div>
+    </div>
+
+    <div id="panel-troll2" class="panel">
+      <div class="card">
+        <h2>💸 Кража монет</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Забрать 100 монет у жертвы (себе).</p>
+        <input type="text" class="input" id="stealUser" placeholder="@username">
+        <button class="btn red" onclick="stealCoins()">Украсть</button>
+      </div>
+    </div>
+
+    <div id="panel-troll3" class="panel">
+      <div class="card">
+        <h2>🎭 Подмена ников</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Сменить ник жертвы на смешной.</p>
+        <input type="text" class="input" id="nickUser" placeholder="@username">
+        <input type="text" class="input" id="nickNew" placeholder="Новый ник (например, Лох)">
+        <button class="btn orange" onclick="changeNick()">Сменить</button>
+      </div>
+    </div>
+
+    <div id="panel-troll4" class="panel">
+      <div class="card">
+        <h2>🌈 Радуга</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Включить радужный фон у всех (на 1 минуту).</p>
+        <button class="btn" onclick="rainbow()">Включить радугу</button>
+      </div>
+    </div>
+
+    <div id="panel-troll5" class="panel">
+      <div class="card">
+        <h2>🐌 Лаг-режим</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Замедлить анимации у всех.</p>
+        <button class="btn orange" onclick="lagMode()">Включить лаг</button>
+      </div>
+    </div>
+
+    <div id="panel-troll6" class="panel">
+      <div class="card">
+        <h2>🔇 Случайный мут</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Замутить случайного юзера на 5 минут.</p>
+        <button class="btn red" onclick="randomMute()">Замутить</button>
+      </div>
+    </div>
+
+    <div id="panel-troll7" class="panel">
+      <div class="card">
+        <h2>👻 Призраки</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Сделать всех невидимыми на 1 минуту.</p>
+        <button class="btn" onclick="ghostMode()">Включить</button>
+      </div>
+    </div>
+
+    <div id="panel-troll8" class="panel">
+      <div class="card">
+        <h2>🔄 Переворот</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Перевернуть экран у всех на 10 секунд.</p>
+        <button class="btn" onclick="flipMode()">Перевернуть</button>
+      </div>
+    </div>
+
+    <div id="panel-troll9" class="panel">
+      <div class="card">
+        <h2>📢 Фейк-анонс</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Отправить фейковое сообщение от имени системы.</p>
+        <input type="text" class="input" id="fakeAnnText" placeholder="Текст...">
+        <button class="btn" onclick="fakeAnnounce()">Отправить</button>
+      </div>
+    </div>
+
+    <div id="panel-troll10" class="panel">
+      <div class="card">
+        <h2>🎰 Казино</h2>
+        <p style="font-size:12px; color:var(--td); margin-bottom:12px;">Забрать 50 монет у всех (в фонд Бога).</p>
+        <button class="btn red" onclick="casinoTroll()">Забрать у всех</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Токен (предполагается, что ты залогинен как владелец)
+const token = localStorage.getItem('bc_token');
+
+// Переключение вкладок
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tabId).classList.add('active');
+  
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  
+  // Загрузка данных для вкладок
+  if(tabId === 'users') loadUsers();
+}
+
+// Загрузка юзеров (заглушка)
+function loadUsers() {
+  const box = document.getElementById('userList');
+  box.innerHTML = '<div style="text-align:center; padding:20px; color:var(--td);">Загрузка...</div>';
+  // Тут будет fetch('/api/admin/users')
+}
+
+function filterUsers(q) {
+  // Фильтрация
+}
+
+function massGive(amount) { alert('Дать всем ' + amount + ' монет (в разработке)'); }
+function massReset() { alert('Обнулить (в разработке)'); }
+function createPromo() { alert('Создать промокод (в разработке)'); }
+function sendBroadcast() { alert('Разослать (в разработке)'); }
+function runCommand() { 
+  const inp = document.getElementById('consoleInput');
+  const out = document.getElementById('consoleOutput');
+  out.innerHTML += '<br>> ' + inp.value;
+  inp.value = '';
+}
+function hotReload() { alert('Перезагрузка (в разработке)'); }
+function clearCache() { alert('Кэш очищен'); }
+function maintenance() { alert('ТО включено'); }
+function setTheme(t) { alert('Тема ' + t + ' включена'); }
+
+// Тролль-фичи
+function trollBan() { alert('Тролль-бан (в разработке)'); }
+function stealCoins() { alert('Кража монет (в разработке)'); }
+function changeNick() { alert('Подмена ников (в разработке)'); }
+function rainbow() { alert('Радуга (в разработке)'); }
+function lagMode() { alert('Лаг-режим (в разработке)'); }
+function randomMute() { alert('Случайный мут (в разработке)'); }
+function ghostMode() { alert('Призраки (в разработке)'); }
+function flipMode() { alert('Переворот (в разработке)'); }
+function fakeAnnounce() { alert('Фейк-анонс (в разработке)'); }
+function casinoTroll() { alert('Забрать у всех (в разработке)'); }
+</script>
+</body>
+</html>
