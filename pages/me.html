@@ -1,22 +1,23 @@
-<div style="flex:1; display:flex; flex-direction:column; height:100%; overflow-y:auto; padding-bottom:100px;">
+<div style="flex:1; display:flex; flex-direction:column; height:100%; overflow-y:auto; background:var(--bg);">
   
   <!-- БАННЕР -->
-  <div id="meBanner" style="height:150px; background:linear-gradient(135deg,#22c55e,#f97316); position:relative; overflow:hidden; flex-shrink:0;">
+  <div id="meBanner" style="height:150px; background:linear-gradient(135deg,var(--ac),var(--ac2)); position:relative; overflow:hidden; flex-shrink:0;">
+    <button onclick="closeApp()" style="position:absolute; left:12px; top:12px; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid rgba(255,255,255,0.3); cursor:pointer; z-index:5;">←</button>
     <button onclick="document.getElementById('bannerInput').click()" style="position:absolute; right:12px; bottom:12px; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid rgba(255,255,255,0.3); cursor:pointer;">📷</button>
   </div>
   <input type="file" id="bannerInput" accept="image/*" style="display:none" onchange="uploadBanner(this)">
 
   <!-- АВАТАРКА -->
   <div style="position:relative; margin:-55px 0 0 20px; width:110px; height:110px;">
-    <div id="meAv" style="width:110px; height:110px; border-radius:24px; background:linear-gradient(135deg,#22c55e,#f97316); border:5px solid var(--bg2); display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:900; color:#fff; overflow:hidden; position:relative; z-index:2;">?</div>
+    <div id="meAv" style="width:110px; height:110px; border-radius:24px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:5px solid var(--bg); display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:900; color:#000; overflow:hidden; position:relative; z-index:2;">?</div>
     <button onclick="document.getElementById('avatarInput').click()" style="position:absolute; right:-6px; bottom:4px; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#000; display:flex; align-items:center; justify-content:center; font-size:16px; z-index:3; border:none; cursor:pointer;">✏️</button>
   </div>
   <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
 
   <!-- ИНФО -->
   <div style="padding:16px 20px;">
-    <h2 id="meName" style="font-size:22px; font-weight:900; margin-bottom:4px; display:flex; align-items:center; gap:8px;">юзер</h2>
-    <div id="meUser" style="color:var(--ac); font-size:14px; font-weight:700; margin-bottom:4px;">@username</div>
+    <h2 id="meName" style="font-size:22px; font-weight:900; margin-bottom:4px; color:var(--tx);">юзер</h2>
+    <div id="meUser" style="color:var(--ac2); font-size:14px; font-weight:700; margin-bottom:4px;">@username</div>
     <div id="meBio" style="font-size:13px; color:var(--td);">Без описания</div>
   </div>
 
@@ -24,63 +25,39 @@
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:0 16px; margin-bottom:20px;">
     <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
       <div id="meCoins" style="font-size:20px; font-weight:900; color:var(--gold);">0</div>
-      <div style="font-size:10px; color:var(--tm); margin-top:2px;">🏅</div>
+      <div style="font-size:10px; color:var(--tm);">🏅</div>
     </div>
     <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
       <div id="meLevel" style="font-size:20px; font-weight:900; color:var(--ac3);">1</div>
-      <div style="font-size:10px; color:var(--tm); margin-top:2px;">📊</div>
+      <div style="font-size:10px; color:var(--tm);">📊</div>
     </div>
     <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
       <div id="meMsgs" style="font-size:20px; font-weight:900; color:var(--ac);">0</div>
-      <div style="font-size:10px; color:var(--tm); margin-top:2px;">💬</div>
+      <div style="font-size:10px; color:var(--tm);">💬</div>
     </div>
     <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
       <div id="meCandy" style="font-size:20px; font-weight:900; color:#ec4899;">0</div>
-      <div style="font-size:10px; color:var(--tm); margin-top:2px;">🍬</div>
+      <div style="font-size:10px; color:var(--tm);">🍬</div>
     </div>
   </div>
 
   <!-- КНОПКИ -->
   <div style="padding:0 16px;">
-    <!-- СТЕНА -->
-    <div onclick="openWall()" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+    <div onclick="alert('Стена')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
       <div style="font-size:20px;">💬</div>
-      <div style="flex:1; font-weight:800;">Моя стена</div>
-      <div style="color:var(--tm);">›</div>
+      <div style="flex:1; font-weight:800; color:var(--tx);">Моя стена</div>
+      <div style="color:var(--td);">›</div>
     </div>
-
-    <div onclick="navigate('desk')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
-      <div style="font-size:20px;">🖥️</div>
-      <div style="flex:1; font-weight:800;">Рабочий стол</div>
-      <div style="color:var(--tm);">›</div>
-    </div>
-
-    <div onclick="alert('Настройки скоро')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+    <div onclick="alert('Настройки')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
       <div style="font-size:20px;">⚙️</div>
-      <div style="flex:1; font-weight:800;">Настройки</div>
-      <div style="color:var(--tm);">›</div>
+      <div style="flex:1; font-weight:800; color:var(--tx);">Настройки</div>
+      <div style="color:var(--td);">›</div>
     </div>
-
     <div onclick="logout()" style="padding:14px; background:rgba(220,38,38,0.1); border:1px solid #dc2626; border-radius:14px; display:flex; align-items:center; gap:12px; cursor:pointer;">
       <div style="font-size:20px;">🚪</div>
       <div style="flex:1; font-weight:800; color:#dc2626;">Выйти</div>
       <div style="color:#dc2626;">›</div>
     </div>
-  </div>
-</div>
-
-<!-- МОДАЛКА СТЕНЫ -->
-<div id="mWall" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; flex-direction:column;">
-  <div style="padding:16px; border-bottom:1px solid var(--br); display:flex; align-items:center; gap:12px; background:var(--bg3);">
-    <button onclick="document.getElementById('mWall').style.display='none'" style="background:none; border:none; color:var(--ac3); font-size:22px; cursor:pointer;">←</button>
-    <div style="font-weight:900; font-size:16px;">💬 Стена</div>
-  </div>
-  <div id="wallPosts" style="flex:1; overflow-y:auto; padding:12px;">
-    <div style="text-align:center; color:var(--tm); padding:20px;">Загрузка...</div>
-  </div>
-  <div style="padding:12px; border-top:1px solid var(--br); background:var(--bg3); display:flex; gap:8px;">
-    <input type="text" id="wallInput" placeholder="Оставить запись..." style="flex:1; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:20px; color:var(--tx); outline:none; font-size:13px;">
-    <button onclick="postWall()" style="padding:10px 16px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; border-radius:20px; color:#000; font-weight:900; cursor:pointer;">➤</button>
   </div>
 </div>
 
@@ -105,48 +82,6 @@ async function loadMe() {
     document.getElementById('meMsgs').textContent = u.messages_count || 0;
     document.getElementById('meCandy').textContent = u.candy || 0;
   } catch(e) { console.error(e); }
-}
-
-async function openWall() {
-  const modal = document.getElementById('mWall');
-  modal.style.display = 'flex';
-  const box = document.getElementById('wallPosts');
-  box.innerHTML = '<div style="text-align:center;color:var(--tm);padding:20px;">Загрузка...</div>';
-  
-  try {
-    const r = await fetch('/api/wall/0?token=' + token);
-    const posts = await r.json();
-    
-    if(!Array.isArray(posts) || !posts.length) {
-      box.innerHTML = '<div style="text-align:center;color:var(--tm);padding:20px;">Стена пуста</div>';
-      return;
-    }
-    
-    box.innerHTML = '';
-    posts.forEach(p => {
-      const d = document.createElement('div');
-      d.style.cssText = 'background:var(--glass);border:1px solid var(--gb);border-radius:12px;padding:12px;margin-bottom:8px;';
-      d.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:6px;"><div style="width:32px;height:32px;border-radius:8px;background:var(--ac2);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;">${esc((p.display_name||p.username||'?').charAt(0).toUpperCase())}</div><div><div style="font-weight:800;font-size:13px;">${esc(p.display_name||p.username)}</div><div style="font-size:10px;color:var(--tm);">${new Date(p.created_at).toLocaleString('ru-RU')}</div></div></div><div style="font-size:13px;line-height:1.4;">${esc(p.text)}</div>`;
-      box.appendChild(d);
-    });
-  } catch(e) {
-    box.innerHTML = '<div style="text-align:center;color:#dc2626;padding:20px;">Ошибка</div>';
-  }
-}
-
-async function postWall() {
-  const inp = document.getElementById('wallInput');
-  const text = inp.value.trim();
-  if(!text) return;
-  
-  try {
-    const r = await fetch('/api/wall/0/post', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token, text })
-    });
-    if(r.ok) { inp.value = ''; openWall(); }
-    else { alert('Ошибка'); }
-  } catch(e) { alert('Ошибка сети'); }
 }
 
 async function uploadAvatar(input) {
