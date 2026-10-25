@@ -4351,6 +4351,14 @@ async def index():
         with open("index.html","r",encoding="utf-8") as f: return HTMLResponse(f.read())
     except Exception as e: return HTMLResponse(f"<h1>index.html нет</h1><p>{e}</p>",status_code=500)
 
+@app.get("/admin")
+async def admin_page():
+    try:
+        with open("admin.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(f.read())
+    except Exception as e:
+        return HTMLResponse(f"<h1>admin.html не найден</h1><p>{e}</p>", status_code=500)
+
 if __name__=="__main__":
     import uvicorn
     port=int(os.environ.get("PORT",8000))
