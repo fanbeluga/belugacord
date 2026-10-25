@@ -1,0 +1,221 @@
+<div style="flex:1; display:flex; flex-direction:column; height:100%; overflow:hidden;">
+  
+  <!-- ВКЛАДКИ -->
+  <div style="display:flex; gap:6px; padding:12px; border-bottom:1px solid var(--br); flex-shrink:0; background:var(--bg3);">
+    <button class="f-tab on" data-ftab="all" onclick="switchFriendsTab('all')" style="flex:1; padding:10px; border-radius:12px; font-weight:800; font-size:12px; text-align:center; color:#fff; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; cursor:pointer;">👥 Все</button>
+    <button class="f-tab" data-ftab="in" onclick="switchFriendsTab('in')" style="flex:1; padding:10px; border-radius:12px; font-weight:800; font-size:12px; text-align:center; color:var(--td); background:var(--glass); border:1px solid var(--gb); cursor:pointer;">📩 Входящие <span id="fCountIn" style="background:#f43f5e; color:#fff; padding:1px 6px; border-radius:8px; font-size:10px; margin-left:4px; display:none;">0</span></button>
+    <button class="f-tab" data-ftab="out" onclick="switchFriendsTab('out')" style="flex:1; padding:10px; border-radius:12px; font-weight:800; font-size:12px; text-align:center; color:var(--td); background:var(--glass); border:1px solid var(--gb); cursor:pointer;">⏳ Отправленные</button>
+  </div>
+
+  <!-- СПИСОК -->
+  <div id="friendsList" style="flex:1; overflow-y:auto; padding:12px 12px 100px;">
+    <div style="padding:20px; text-align:center; color:var(--tm);">Загрузка...</div>
+  </div>
+
+  <!-- КНОПКА ПОИСКА (FAB) -->
+  <button onclick="openFriendSearch()" style="position:fixed; bottom:24px; right:20px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; font-size:28px; border:none; cursor:pointer; box-shadow:0 8px 28px rgba(217,70,239,0.5); z-index:30; display:flex; align-items:center; justify-content:center;">＋</button>
+</div>
+
+<!-- МОДАЛКА ПОИСКА -->
+<div id="mFriendSearch" style="display:none; position:fixed; inset:0; background:rgba(5,0,15,0.95); z-index:1500; align-items:center; justify-content:center; padding:14px; backdrop-filter:blur(5px);">
+  <div style="background:rgba(10,5,20,0.98); border:1px solid var(--ac); border-radius:20px; width:100%; max-width:500px; padding:24px; position:relative; box-shadow:0 0 30px rgba(217,70,239,0.6); max-height:90vh; overflow-y:auto;">
+    <button onclick="closeFriendSearch()" style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.2); color:#fff; width:34px; height:34px; border-radius:50%; font-size:15px; border:1px solid #dc2626; cursor:pointer;">✕</button>
+    <h2 style="text-align:center; margin-bottom:16px; color:var(--ac);">🔍 Найти друга</h2>
+    <input type="text" id="friendSearchInput" placeholder="@username или ник..." oninput="doFriendSearch(this.value)" style="width:100%; padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; color:var(--tx); outline:none; margin-bottom:16px; font-size:14px;">
+    <div id="friendSearchRes"></div>
+  </div>
+</div>
+
+<style>
+.f-card { display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:16px; margin-bottom:8px; }
+.f-card .av { width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg,var(--ac),var(--ac2)); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:20px; overflow:hidden; flex-shrink:0; }
+.f-card .av img { width:100%; height:100%; object-fit:cover; }
+.f-card .info { flex:1; min-width:0; }
+.f-card .nm { font-weight:800; font-size:15px; margin-bottom:2px; display:flex; align-items:center; gap:6px; }
+.f-card .sub { font-size:12px; color:var(--tm); }
+.f-card .actions { display:flex; gap:6px; }
+.f-btn { padding:9px 12px; border-radius:10px; font-size:12px; font-weight:800; background:var(--glass); border:1px solid var(--gb); cursor:pointer; font-family:inherit; color:var(--tx); }
+.f-btn.gn { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; border-color:transparent; }
+.f-btn.rd { background:linear-gradient(135deg,#f43f5e,#dc2626); color:#fff; border-color:transparent; }
+.f-btn.ac { background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border-color:transparent; }
+</style>
+
+<script>
+let friendsCache = [];
+let curFriendsTab = 'all';
+
+async function loadFriends() {
+  const box = document.getElementById('friendsList');
+  box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm)">⏳</div>';
+  try {
+    const r = await fetch('/api/friends/list?token=' + token);
+    const list = await r.json();
+    friendsCache = Array.isArray(list) ? list : [];
+    renderFriendsList();
+  } catch(e) { box.innerHTML = '<div style="padding:20px;text-align:center;color:#f43f5e">Ошибка</div>'; }
+}
+
+function switchFriendsTab(t) {
+  curFriendsTab = t;
+  document.querySelectorAll('.f-tab').forEach(b => {
+    const isOn = b.dataset.ftab === t;
+    b.style.background = isOn ? 'linear-gradient(135deg,var(--ac),var(--ac2))' : 'var(--glass)';
+    b.style.color = isOn ? '#fff' : 'var(--td)';
+  });
+  renderFriendsList();
+}
+
+function renderFriendsList() {
+  const box = document.getElementById('friendsList');
+  const incoming = friendsCache.filter(f => f.status === 'incoming');
+  const outgoing = friendsCache.filter(f => f.status === 'outgoing');
+  const accepted = friendsCache.filter(f => f.status === 'accepted');
+
+  // Счетчик входящих
+  const cntEl = document.getElementById('fCountIn');
+  if(cntEl) {
+    cntEl.textContent = incoming.length;
+    cntEl.style.display = incoming.length > 0 ? 'inline-block' : 'none';
+  }
+
+  let list = curFriendsTab === 'in' ? incoming : (curFriendsTab === 'out' ? outgoing : accepted);
+  
+  if(!list.length) {
+    box.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tm);">Пусто</div>';
+    return;
+  }
+
+  box.innerHTML = '';
+  list.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'f-card';
+    const av = f.avatar ? `<img src="${esc(f.avatar)}">` : esc((f.display_name||f.username).charAt(0).toUpperCase());
+    card.innerHTML = `
+      <div class="av">${av}</div>
+      <div class="info">
+        <div class="nm">${esc(f.display_name||f.username)}</div>
+        <div class="sub">${f.status === 'accepted' ? '🟢 В друзьях' : (f.status === 'incoming' ? '📩 Хочет в друзья' : '⏳ Заявка отправлена')}</div>
+      </div>
+    `;
+    const act = document.createElement('div');
+    act.className = 'actions';
+    
+    if(f.status === 'incoming') {
+      act.innerHTML = `<button class="f-btn gn" onclick="acceptFriend(${f.request_id})">✓</button><button class="f-btn rd" onclick="declineFriend(${f.request_id})">✕</button>`;
+    } else if(f.status === 'accepted') {
+      act.innerHTML = `<button class="f-btn ac" onclick="openDMWithFriend(${f.id}, '${esc(f.display_name||f.username)}', '${esc(f.avatar||'')}')">💬</button>`;
+    } else if(f.status === 'outgoing') {
+      act.innerHTML = `<button class="f-btn rd" onclick="cancelFriendRequest(${f.request_id})">Отмена</button>`;
+    }
+    
+    card.appendChild(act);
+    box.appendChild(card);
+  });
+}
+
+async function acceptFriend(rid) {
+  try {
+    const r = await fetch('/api/friends/accept', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, request_id: rid })
+    });
+    if(r.ok) { loadFriends(); }
+  } catch(e) {}
+}
+
+async function declineFriend(rid) {
+  try {
+    await fetch('/api/friends/decline', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, request_id: rid })
+    });
+    loadFriends();
+  } catch(e) {}
+}
+
+async function cancelFriendRequest(rid) {
+  try {
+    await fetch('/api/friends/cancel', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, request_id: rid })
+    });
+    loadFriends();
+  } catch(e) {}
+}
+
+function openDMWithFriend(id, name, avatar) {
+  // Переходим на страницу чатов и открываем ЛС
+  navigate('dm');
+  // (Поскольку страница загрузится асинхронно, мы не можем напрямую вызвать openDM,
+  //  но можно использовать хак с временным localStorage)
+  setTimeout(() => {
+    if(typeof openDM === 'function') openDM(id, name, avatar);
+  }, 500);
+}
+
+/* ====== ПОИСК ДРУЗЕЙ ====== */
+function openFriendSearch() {
+  document.getElementById('mFriendSearch').style.display = 'flex';
+  document.getElementById('friendSearchInput').value = '';
+  document.getElementById('friendSearchRes').innerHTML = '';
+  setTimeout(() => document.getElementById('friendSearchInput').focus(), 100);
+}
+
+function closeFriendSearch() {
+  document.getElementById('mFriendSearch').style.display = 'none';
+}
+
+async function doFriendSearch(q) {
+  const box = document.getElementById('friendSearchRes');
+  if(!q || q.trim().length < 2) { box.innerHTML = ''; return; }
+  
+  box.innerHTML = '<div style="padding:12px;text-align:center;color:var(--tm)">Поиск...</div>';
+  try {
+    const r = await fetch('/api/users/search?q=' + encodeURIComponent(q.trim().replace(/^@/,'')) + '&token=' + token);
+    const us = await r.json();
+    
+    if(!Array.isArray(us) || !us.length) { box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm)">Никого не нашли</div>'; return; }
+    
+    box.innerHTML = '';
+    us.forEach(u => {
+      const row = document.createElement('div');
+      row.className = 'f-card';
+      const av = u.avatar ? `<img src="${esc(u.gif_avatar||u.avatar)}">` : esc((u.display_name||u.username).charAt(0).toUpperCase());
+      row.innerHTML = `
+        <div class="av">${av}</div>
+        <div class="info">
+          <div class="nm">${esc(u.display_name||u.username)}</div>
+          <div class="sub">@${esc(u.username)}</div>
+        </div>
+      `;
+      const act = document.createElement('div');
+      act.className = 'actions';
+      act.innerHTML = `<button class="f-btn ac" onclick="sendFriendRequest(${u.id})">Добавить</button>`;
+      row.appendChild(act);
+      box.appendChild(row);
+    });
+  } catch(e) { box.innerHTML = '<div style="padding:20px;text-align:center;color:#f43f5e">Ошибка</div>'; }
+}
+
+async function sendFriendRequest(uid) {
+  try {
+    const r = await fetch('/api/friends/request', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, user_id: uid })
+    });
+    const d = await r.json();
+    if(r.ok) {
+      alert('📩 Заявка отправлена');
+      closeFriendSearch();
+      loadFriends();
+    } else {
+      alert('❌ ' + (d.detail || 'Ошибка'));
+    }
+  } catch(e) { alert('❌ Ошибка сети'); }
+}
+
+/* ====== ИНИЦИАЛИЗАЦИЯ ====== */
+function init_friends() {
+  loadFriends();
+}
+</script>
