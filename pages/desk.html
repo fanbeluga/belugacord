@@ -1,10 +1,12 @@
 <div style="padding:16px; flex:1; overflow-y:auto;">
+  <!-- Приветствие -->
   <div style="padding:16px; background:linear-gradient(135deg, rgba(217,70,239,.15), rgba(34,211,238,.1)); border:1px solid var(--br); border-radius:16px; margin-bottom:20px;">
     <h2 style="font-size:20px; font-weight:900; color:var(--ac); margin-bottom:4px;" id="deskHello">Привет 👋</h2>
     <p style="font-size:12px; color:var(--td);">BelugaCord 4.3 — CYBER PULSE</p>
   </div>
 
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// БЫСТРЫЕ ДЕЙСТВИЯ</div>
+  <!-- БЫСТРЫЕ -->
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// БЫСТРЫЕ</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
     <div class="d-icon" onclick="navigate('dm')"><div class="ic">💬</div><div class="nm">Чаты</div></div>
     <div class="d-icon" onclick="navigate('friends')"><div class="ic">👥</div><div class="nm">Друзья</div></div>
@@ -12,20 +14,48 @@
     <div class="d-icon" onclick="navigate('street')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
   </div>
 
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ЭКОНОМИКА</div>
+  <!-- ГОРОД (БЕЗ ЛУДОМАНИИ) -->
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ГОРОД</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="alert('Магазин в разработке')"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
-    <div class="d-icon" onclick="alert('Лутбоксы в разработке')"><div class="ic">🎁</div><div class="nm">Лутбоксы</div></div>
+    <div class="d-icon" onclick="navigate('street')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
+    <div class="d-icon" onclick="navigate('house')"><div class="ic">🏠</div><div class="nm">Дом</div></div>
     <div class="d-icon" onclick="alert('Биржа в разработке')"><div class="ic">💰</div><div class="nm">Биржа</div></div>
-    <div class="d-icon" onclick="alert('Казино в разработке')"><div class="ic">🎰</div><div class="nm">Казино</div></div>
+    <div class="d-icon" onclick="alert('Семьи в разработке')"><div class="ic">👨‍👩‍👧</div><div class="nm">Семья</div></div>
+    <div class="d-icon" onclick="alert('Питомцы в разработке')"><div class="ic">🐱</div><div class="nm">Питомцы</div></div>
+    <div class="d-icon" onclick="alert('Акции в разработке')"><div class="ic">📈</div><div class="nm">Акции</div></div>
+    <div class="d-icon" onclick="alert('Капсулы в разработке')"><div class="ic">⏳</div><div class="nm">Капсулы</div></div>
+    <div class="d-icon" onclick="alert('Магазин в разработке')"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
   </div>
 
+  <!-- РАЗВЛЕЧЕНИЯ (БЕЗ СТАВОК) -->
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// РАЗВЛЕЧЕНИЯ</div>
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
+    <div class="d-icon" onclick="alert('Игры в разработке')"><div class="ic">🎮</div><div class="nm">Игры</div></div>
+    <div class="d-icon" onclick="alert('Анонимки в разработке')"><div class="ic">🕵️</div><div class="nm">Анонимки</div></div>
+    <div class="d-icon" onclick="alert('Детектор в разработке')"><div class="ic">🔮</div><div class="nm">Детектор</div></div>
+    <div class="d-icon" onclick="alert('Санта в разработке')"><div class="ic">🎅</div><div class="nm">Санта</div></div>
+    <div class="d-icon" onclick="alert('Бомба в разработке')"><div class="ic">💣</div><div class="nm">Бомба</div></div>
+    <div class="d-icon" onclick="alert('Дуэли в разработке')"><div class="ic">🎲</div><div class="nm">Дуэли</div></div>
+    <div class="d-icon" onclick="alert('Спор в разработке')"><div class="ic">🤝</div><div class="nm">Спор</div></div>
+    <div class="d-icon" onclick="alert('Рисование в разработке')"><div class="ic">🎨</div><div class="nm">Рисование</div></div>
+  </div>
+
+  <!-- НОВОЕ В 4.3 -->
+  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// НОВОЕ В 4.3</div>
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
+    <div class="d-icon" onclick="openLegal()"><div class="ic">📜</div><div class="nm">Соглашение</div></div>
+    <div class="d-icon" onclick="alert('Новости в разработке')"><div class="ic">📰</div><div class="nm">Новости</div></div>
+    <div class="d-icon" onclick="alert('Поддержка в разработке')"><div class="ic">🤖</div><div class="nm">Поддержка</div></div>
+    <div class="d-icon" onclick="alert('Истории в разработке')"><div class="ic">📸</div><div class="nm">Истории</div></div>
+  </div>
+
+  <!-- ПРОЧЕЕ -->
   <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ПРОЧЕЕ</div>
   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
     <div class="d-icon" onclick="navigate('me')"><div class="ic">👤</div><div class="nm">Профиль</div></div>
     <div class="d-icon" onclick="alert('Настройки в разработке')"><div class="ic">⚙️</div><div class="nm">Настройки</div></div>
-    <div class="d-icon" onclick="navigate('house')"><div class="ic">🏠</div><div class="nm">Дом</div></div>
-    <div class="d-icon" onclick="localStorage.removeItem('bc_token'); location.href='/'"><div class="ic">🚪</div><div class="nm">Выйти</div></div>
+    <div class="d-icon" onclick="alert('Звонки в разработке')"><div class="ic">📞</div><div class="nm">Звонки</div></div>
+    <div class="d-icon" onclick="logout()"><div class="ic">🚪</div><div class="nm">Выйти</div></div>
   </div>
 </div>
 
@@ -45,4 +75,6 @@ function init_desk() {
       if(h) h.textContent = 'Привет, ' + (u.display_name || u.username) + ' 👋';
     }).catch(()=>{});
 }
+function openLegal() { navigate('legal'); }
+function logout() { localStorage.removeItem('bc_token'); window.location.href = '/'; }
 </script>
