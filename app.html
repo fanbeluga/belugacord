@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BelugaCord 4.3 — CYBER PULSE</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192x192.png">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Courier New',monospace; }
+:root {
+  --bg:#020005; --bg2:#0a0514; --bg3:#140a24;
+  --ac:#d946ef; --ac2:#8b5cf6; --ac3:#22d3ee; --gold:#ffd700;
+  --tx:#e8e0ff; --td:#9d8fc4; --tm:#6b5f8a;
+  --glass:rgba(255,255,255,.05); --gb:rgba(255,255,255,.1);
+  --br:rgba(200,80,255,.15);
+  --neon:0 0 15px rgba(217,70,239,.6); --neon-cyan:0 0 15px rgba(34,211,238,.6);
+  --hd:60px; --fs:14px;
+}
+html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--tx); font-size:var(--fs); overscroll-behavior:none; }
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(217,70,239,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(217,70,239,.06) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,rgba(0,0,0,.15),rgba(0,0,0,.15) 1px,transparent 1px,transparent 2px); opacity:.15; pointer-events:none; z-index:100; animation:cp-scan 8s linear infinite; }
+@keyframes cp-scan { from{background-position:0 0} to{background-position:0 100px} }
+
+/* УГЛЫ */
+.cp-corner { position:fixed; width:30px; height:30px; z-index:5; pointer-events:none; }
+.cp-corner.tl { top:10px; left:10px; border-top:2px solid var(--ac3); border-left:2px solid var(--ac3); }
+.cp-corner.tr { top:10px; right:10px; border-top:2px solid var(--ac3); border-right:2px solid var(--ac3); }
+.cp-corner.bl { bottom:10px; left:10px; border-bottom:2px solid var(--ac3); border-left:2px solid var(--ac3); }
+.cp-corner.br { bottom:10px; right:10px; border-bottom:2px solid var(--ac3); border-right:2px solid var(--ac3); }
+
+/* ШАПКА */
+#topBar { height:var(--hd); display:flex; align-items:center; justify-content:space-between; padding:0 16px; background:rgba(10,5,20,.9); border-bottom:1px solid rgba(217,70,239,.3); z-index:20; backdrop-filter:blur(10px); flex-shrink:0; padding-top:env(safe-area-inset-top); }
+.tb-logo { font-size:18px; font-weight:900; color:var(--ac); text-shadow:var(--neon); letter-spacing:2px; cursor:pointer; }
+.tb-tabs { display:flex; gap:6px; flex:1; justify-content:center; }
+.tb-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; width:44px; height:44px; background:rgba(20,16,32,.8); border:1px solid rgba(217,70,239,.2); color:var(--td); transition:all .2s; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); cursor:pointer; }
+.tb-tab .ic { font-size:18px; }
+.tb-tab.on { background:rgba(217,70,239,.2); border-color:var(--ac); color:#fff; box-shadow:var(--neon); }
+.tb-act { display:flex; gap:6px; }
+.tb-ico { width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:rgba(20,16,32,.8); border:1px solid rgba(217,70,239,.2); color:var(--td); font-size:18px; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); cursor:pointer; }
+
+/* КОНТЕЙНЕР */
+#appContent { flex:1; overflow-y:auto; position:relative; z-index:10; display:flex; flex-direction:column; }
+
+/* ЗАГРУЗКА */
+.loading { display:flex; align-items:center; justify-content:center; height:100%; color:var(--td); font-size:14px; }
+.spinner { width:40px; height:40px; border:3px solid rgba(217,70,239,.3); border-top-color:var(--ac); border-radius:50%; animation:spin 1s linear infinite; margin-right:12px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="cp-corner tl"></div><div class="cp-corner tr"></div><div class="cp-corner bl"></div><div class="cp-corner br"></div>
+
+<!-- ШАПКА -->
+<div id="topBar">
+  <div class="tb-logo" onclick="navigate('desk')">🐱 BELUGA</div>
+  <div class="tb-tabs">
+    <div class="tb-tab" data-page="dm" onclick="navigate('dm')"><span class="ic">💬</span></div>
+    <div class="tb-tab" data-page="friends" onclick="navigate('friends')"><span class="ic">👥</span></div>
+    <div class="tb-tab" data-page="channels" onclick="navigate('channels')"><span class="ic">📢</span></div>
+    <div class="tb-tab" data-page="street" onclick="navigate('street')"><span class="ic">🌆</span></div>
+    <div class="tb-tab" data-page="desk" onclick="navigate('desk')"><span class="ic">🖥️</span></div>
+    <div class="tb-tab" data-page="me" onclick="navigate('me')"><span class="ic">👤</span></div>
+  </div>
+  <div class="tb-act">
+    <div class="tb-ico" onclick="navigate('desk')">🔍</div>
+    <div class="tb-ico" onclick="navigate('desk')">☰</div>
+  </div>
+</div>
+
+<!-- СЮДА ГРУЗИМ СТРАНИЦЫ -->
+<div id="appContent">
+  <div class="loading"><div class="spinner"></div> Загрузка...</div>
+</div>
+
+<script>
+/* ====== ЯДРО (Общие функции) ====== */
+const token = localStorage.getItem('bc_token');
+if (!token) window.location.href = '/login';
+
+let me = null;
+let ws = null;
+let offlineQ = [];
+
+function g(id) { return document.getElementById(id); }
+function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg, type) { alert(`[${type||'info'}] ${msg}`); }
+
+function wsSend(p) {
+  const j = JSON.stringify(p);
+  if(ws && ws.readyState === 1) ws.send(j);
+  else offlineQ.push(j);
+}
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+  ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token));
+  ws.onopen = function() { while(offlineQ.length) { ws.send(offlineQ.shift()); } };
+  ws.onmessage = function(ev) { 
+    try { 
+      const d = JSON.parse(ev.data); 
+      if (typeof handlePageWS === 'function') handlePageWS(d); 
+    } catch(e) {} 
+  };
+  ws.onclose = function() { setTimeout(connectWS, 3000); };
+}
+
+/* ====== РОУТЕР (Загрузка страниц) ====== */
+let curPage = null;
+
+async function navigate(page) {
+  if (curPage === page) return;
+  curPage = page;
+
+  // Подсвечиваем активную иконку
+  document.querySelectorAll('.tb-tab').forEach(t => t.classList.toggle('on', t.dataset.page === page));
+
+  const container = g('appContent');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> Загрузка...</div>';
+
+  // Меняем URL без перезагрузки страницы
+  history.pushState(null, '', '/app/' + page);
+
+  try {
+    const r = await fetch('/pages/' + page + '.html');
+    if (!r.ok) throw new Error('404');
+    const html = await r.text();
+    
+    // Вставляем HTML
+    container.innerHTML = html;
+    
+    // Если у страницы есть свой скрипт (внутри HTML), он выполнится автоматически
+    // Для этого нужно, чтобы в HTML были теги <script>
+    
+    // Вызываем функцию инициализации страницы, если она есть
+    const initFn = window['init_' + page];
+    if (typeof initFn === 'function') initFn();
+
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#f43f5e;">Ошибка загрузки страницы</div>';
+  }
+}
+
+/* ====== ИНИЦИАЛИЗАЦИЯ ====== */
+window.addEventListener('DOMContentLoaded', async () => {
+  // 1. Проверяем токен
+  try {
+    const r = await fetch('/api/me?token=' + token);
+    if (!r.ok) throw new Error('Unauthorized');
+    me = await r.json();
+  } catch(e) {
+    localStorage.removeItem('bc_token');
+    window.location.href = '/login';
+    return;
+  }
+
+  // 2. Подключаем WebSocket
+  connectWS();
+
+  // 3. Загружаем стартовую страницу (Рабочий стол по умолчанию)
+  const urlPage = location.pathname.split('/').pop();
+  const startPage = urlPage && urlPage !== 'app' ? urlPage : 'desk';
+  navigate(startPage);
+});
+
+// Обработка кнопок "Назад/Вперёд" в браузере
+window.addEventListener('popstate', () => {
+  const urlPage = location.pathname.split('/').pop();
+  if (urlPage) navigate(urlPage);
+});
+</script>
+</body>
+</html>
