@@ -1,12 +1,12 @@
-<div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; position:relative; z-index:10;">
+<div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; position:relative; z-index:10; overflow-y:auto;">
   
-  <div style="font-size:80px; margin-bottom:20px; animation:glitch 2s infinite;">🚫</div>
+  <div style="font-size:72px; margin-bottom:16px; animation:glitch 2s infinite;">🚫</div>
   
-  <div style="font-size:28px; font-weight:900; color:#f43f5e; letter-spacing:4px; text-shadow:0 0 20px rgba(244,63,94,0.6); margin-bottom:10px;">
+  <div style="font-size:26px; font-weight:900; color:#f43f5e; letter-spacing:3px; text-shadow:0 0 20px rgba(244,63,94,0.6); margin-bottom:10px;">
     ВЫ ЗАБЛОКИРОВАНЫ
   </div>
   
-  <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(244,63,94,0.3); border-radius:16px; padding:20px; max-width:500px; width:100%; margin-top:20px; text-align:left;">
+  <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(244,63,94,0.3); border-radius:16px; padding:20px; max-width:500px; width:100%; margin-top:16px; text-align:left;">
     <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ДЕТАЛИ БЛОКИРОВКИ</div>
     
     <div style="margin-bottom:12px;">
@@ -19,13 +19,13 @@
       <div id="banReason" style="font-size:14px; font-weight:800; color:#f43f5e;">Загрузка...</div>
     </div>
 
-    <div style="margin-bottom:0;">
+    <div>
       <div style="font-size:10px; color:var(--tm);">Дата:</div>
       <div id="banDate" style="font-size:12px; font-weight:700; color:var(--td);">Загрузка...</div>
     </div>
   </div>
 
-  <div style="margin-top:24px; max-width:500px; font-size:13px; color:var(--td); line-height:1.6;">
+  <div style="margin-top:20px; max-width:500px; font-size:13px; color:var(--td); line-height:1.6;">
     Если вы считаете, что блокировка несправедлива, вы можете подать апелляцию. <br><br>
     <b style="color:var(--ac);">Напишите на почту:</b><br>
     <a href="mailto:belugacordsupport@gmail.com" style="color:var(--ac3); font-weight:900; font-size:15px; text-decoration:none; border-bottom:1px dashed var(--ac3);">belugacordsupport@gmail.com</a>
@@ -33,9 +33,22 @@
     <span style="font-size:11px; color:var(--tm); font-style:italic;">Время ответа: от 10 минут до 2 дней (зависит от загруженности поддержки).</span>
   </div>
 
-  <button onclick="localStorage.removeItem('bc_token'); window.location.href='/'" style="margin-top:30px; padding:12px 30px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); border-radius:12px; font-weight:900; font-size:12px; letter-spacing:1px; cursor:pointer; font-family:inherit;">
-    ВЫЙТИ НА ГЛАВНУЮ
-  </button>
+  <!-- БЛОК ДЕЙСТВИЙ -->
+  <div style="margin-top:24px; display:flex; flex-direction:column; gap:10px; max-width:500px; width:100%;">
+    <!-- Кнопка выхода -->
+    <button onclick="localStorage.removeItem('bc_token'); window.location.href='/'" style="padding:14px 20px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); border-radius:12px; font-weight:900; font-size:13px; letter-spacing:1px; cursor:pointer; font-family:inherit;">
+      🚪 ВЫЙТИ НА ГЛАВНУЮ
+    </button>
+
+    <!-- Кнопка удаления аккаунта -->
+    <button onclick="deleteMyAccount()" id="delAccBtn" style="padding:14px 20px; background:rgba(244,63,94,0.15); border:1px solid #f43f5e; color:#f43f5e; border-radius:12px; font-weight:900; font-size:13px; letter-spacing:1px; cursor:pointer; font-family:inherit;">
+      🗑️ УДАЛИТЬ АККАУНТ И ИСТОРИЮ
+    </button>
+  </div>
+
+  <div style="margin-top:16px; font-size:10px; color:var(--tm); max-width:500px; text-align:center;">
+    ⚠️ Удаление аккаунта приведет к потере всех сообщений, монет и данных. Восстановить нельзя.
+  </div>
 </div>
 
 <style>
@@ -59,7 +72,6 @@ async function init_banned() {
     const reasonEl = document.getElementById('banReason');
     const dateEl = document.getElementById('banDate');
     
-    // Подставляем роль (Овнер, Админ, Модератор)
     if(d.role) {
       if(d.role === 'owner') roleEl.textContent = '👑 Владелец (БОГ)';
       else if(d.role === 'admin') roleEl.textContent = '🛡️ Администратор';
@@ -69,11 +81,9 @@ async function init_banned() {
       roleEl.textContent = 'Система';
     }
     
-    // Причина
     if(d.reason) reasonEl.textContent = d.reason;
     else reasonEl.textContent = 'Нарушение правил сообщества';
 
-    // Дата
     if(d.date) {
       const dt = new Date(d.date);
       dateEl.textContent = dt.toLocaleString('ru-RU');
@@ -81,7 +91,6 @@ async function init_banned() {
       dateEl.textContent = '—';
     }
 
-    // Если забанил модератор, добавляем приписку
     if(d.role === 'moderator') {
       const note = document.createElement('div');
       note.style.cssText = 'margin-top:12px; font-size:11px; color:var(--gold); font-style:italic;';
@@ -93,6 +102,39 @@ async function init_banned() {
     console.error('Ошибка загрузки инфо о бане', e);
     document.getElementById('banRole').textContent = 'Неизвестно';
     document.getElementById('banReason').textContent = 'Данные недоступны';
+  }
+}
+
+async function deleteMyAccount() {
+  // Двойное подтверждение, чтобы не удалили случайно
+  if(!confirm('Ты уверен, что хочешь УДАЛИТЬ АККАУНТ? Это удалит ВСЕ твои сообщения, монеты и данные. Восстановить нельзя.')) return;
+  if(!confirm('Точно? Это последний шанс передумать.')) return;
+
+  const btn = document.getElementById('delAccBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ УДАЛЕНИЕ...';
+
+  try {
+    const r = await fetch('/api/delete_my_account', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token: token })
+    });
+    const d = await r.json();
+    
+    if(r.ok) {
+      localStorage.removeItem('bc_token');
+      alert('✅ Аккаунт удален. Теперь ты можешь зарегистрировать новый.');
+      window.location.href = '/reg';
+    } else {
+      alert('❌ Ошибка: ' + (d.detail || 'Не удалось удалить'));
+      btn.disabled = false;
+      btn.textContent = '🗑️ УДАЛИТЬ АККАУНТ И ИСТОРИЮ';
+    }
+  } catch(e) {
+    alert('❌ Ошибка сети');
+    btn.disabled = false;
+    btn.textContent = '🗑️ УДАЛИТЬ АККАУНТ И ИСТОРИЮ';
   }
 }
 </script>
