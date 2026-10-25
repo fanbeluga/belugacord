@@ -1,38 +1,19 @@
-<div style="position:relative; width:100%; height:100%; overflow:hidden; background:linear-gradient(180deg,#4a3a5e,#2a1a3e); touch-action:none;" id="houseStage">
-  
-  <!-- ШАПКА -->
-  <div style="position:absolute; top:0; left:0; right:0; padding:12px 14px; padding-top:calc(12px + env(safe-area-inset-top)); display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(10,10,18,.9), transparent); z-index:10; pointer-events:none;">
-    <button onclick="navigate('desk')" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; pointer-events:auto;">←</button>
-    <div id="houseTitle" style="flex:1; color:#fff; font-weight:900; font-size:15px; text-shadow:0 2px 6px #000;">🏠 Мой дом</div>
-    <button onclick="openHouseShop()" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; pointer-events:auto;">🛒</button>
+<div style="position:relative; width:100%; height:100%; overflow:hidden; background:linear-gradient(180deg,#171a21,#0f1115); touch-action:none;" id="houseStage">
+  <!-- Шапка -->
+  <div style="position:absolute; top:0; left:0; right:0; padding:12px 14px; padding-top:calc(12px + env(safe-area-inset-top)); display:flex; align-items:center; gap:10px; background:linear-gradient(180deg, rgba(15,17,21,.9), transparent); z-index:10;">
+    <button onclick="navigate('desk')" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">←</button>
+    <div id="houseTitle" style="flex:1; color:#fff; font-weight:900; font-size:15px;">🏠 Мой дом</div>
+    <button onclick="openHouseShop()" style="width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">🛒</button>
   </div>
   
-  <!-- КОНТЕЙНЕР ДЛЯ МЕБЕЛИ -->
   <div id="houseItems" style="position:absolute; inset:0;"></div>
-</div>
-
-<!-- МОДАЛКА МАГАЗИНА МЕБЕЛИ -->
-<div id="mHouseShop" style="display:none; position:fixed; inset:0; background:rgba(5,0,15,0.95); z-index:1500; align-items:center; justify-content:center; padding:14px; backdrop-filter:blur(5px);">
-  <div style="background:rgba(10,5,20,0.98); border:1px solid var(--ac); border-radius:20px; width:100%; max-width:500px; padding:24px; position:relative; box-shadow:0 0 30px rgba(217,70,239,0.6); max-height:90vh; overflow-y:auto;">
-    <button onclick="closeHouseShop()" style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.2); color:#fff; width:34px; height:34px; border-radius:50%; font-size:15px; border:1px solid #dc2626; cursor:pointer;">✕</button>
-    <h2 style="text-align:center; margin-bottom:16px; color:var(--ac);">🛒 Магазин мебели</h2>
-    <div id="houseShopList" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;"></div>
-  </div>
 </div>
 
 <style>
 .house-item {
-  position:absolute;
-  font-size:40px;
-  transform:translate(-50%,-50%);
-  cursor:pointer;
-  user-select:none;
-  touch-action:none;
-  z-index:5;
+  position:absolute; font-size:40px; transform:translate(-50%,-50%);
+  cursor:pointer; user-select:none; touch-action:none; z-index:5;
   filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));
-}
-.house-item:active {
-  transform:translate(-50%,-50%) scale(1.1);
 }
 </style>
 
@@ -63,29 +44,20 @@ function renderHouseItems() {
     return;
   }
   
-  const cat = {
-    "sofa": "🛋️", "table": "🪑", "bed": "🛏️", "tv": "📺",
-    "plant": "🪴", "lamp": "💡", "carpet": "🟫", "fridge": "🧊", "flashlight": "🔦"
-  };
+  const cat = { "sofa": "🛋️", "table": "🪑", "bed": "🛏️", "tv": "📺", "plant": "🪴", "lamp": "💡", "carpet": "🟫", "fridge": "🧊", "flashlight": "🔦" };
   
   houseData.items.forEach(it => {
     const el = document.createElement('div');
     el.className = 'house-item';
     el.style.left = it.x + '%';
     el.style.top = it.y + '%';
-    el.style.touchAction = 'none';
     el.textContent = cat[it.item_id] || '📦';
     
-    let isDragging = false;
-    let startX = 0, startY = 0;
-    let origLeft = 0, origTop = 0;
+    let isDragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
     
     el.addEventListener('pointerdown', (e) => {
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      origLeft = parseFloat(el.style.left) || 50;
-      origTop = parseFloat(el.style.top) || 50;
+      isDragging = true; sx = e.clientX; sy = e.clientY;
+      ox = parseFloat(el.style.left) || 50; oy = parseFloat(el.style.top) || 50;
       try { el.setPointerCapture(e.pointerId); } catch(ex) {}
       e.preventDefault();
     }, { passive: false });
@@ -93,12 +65,10 @@ function renderHouseItems() {
     el.addEventListener('pointermove', (e) => {
       if(!isDragging) return;
       const parent = box.getBoundingClientRect();
-      const dx = ((e.clientX - startX) / parent.width) * 100;
-      const dy = ((e.clientY - startY) / parent.height) * 100;
-      const nx = Math.max(5, Math.min(95, origLeft + dx));
-      const ny = Math.max(5, Math.min(95, origTop + dy));
-      el.style.left = nx + '%';
-      el.style.top = ny + '%';
+      const dx = ((e.clientX - sx) / parent.width) * 100;
+      const dy = ((e.clientY - sy) / parent.height) * 100;
+      el.style.left = Math.max(5, Math.min(95, ox + dx)) + '%';
+      el.style.top = Math.max(5, Math.min(95, oy + dy)) + '%';
     }, { passive: false });
     
     el.addEventListener('pointerup', () => {
@@ -106,56 +76,23 @@ function renderHouseItems() {
       isDragging = false;
       const nx = parseFloat(el.style.left) || 50;
       const ny = parseFloat(el.style.top) || 50;
-      fetch('/api/house/place', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ token, item_row_id: it.id, x: nx, y: ny, rot: 0 })
-      }).catch(()=>{});
+      fetch('/api/house/place', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token, item_row_id: it.id, x: nx, y: ny, rot: 0 }) }).catch(()=>{});
     }, { passive: false });
     
-    el.addEventListener('pointercancel', () => { isDragging = false; });
     box.appendChild(el);
   });
 }
 
 async function openHouseShop() {
-  document.getElementById('mHouseShop').style.display = 'flex';
-  const c = document.getElementById('houseShopList');
-  c.innerHTML = 'Загрузка...';
+  const name = prompt('Что купить? (sofa, table, bed, tv, plant, lamp)');
+  if(!name) return;
   try {
-    const r = await fetch('/api/house/catalog');
-    const arr = await r.json();
-    if(!Array.isArray(arr) || !arr.length) { c.innerHTML = 'Пусто'; return; }
-    c.innerHTML = '';
-    arr.forEach(it => {
-      const d = document.createElement('div');
-      d.style.cssText = 'background:var(--glass); border:1px solid var(--gb); border-radius:14px; padding:12px; text-align:center; cursor:pointer;';
-      d.innerHTML = `<div style="font-size:36px; margin-bottom:6px;">${it.emoji}</div><div style="font-size:12px; font-weight:800; margin-bottom:4px;">${esc(it.name)}</div><div style="font-size:13px; color:var(--gold); font-weight:900;">${it.price} 🏅</div>`;
-      d.onclick = () => buyHouseItem(it.item_id, it.price);
-      c.appendChild(d);
-    });
-  } catch(e) { c.innerHTML = 'Ошибка'; }
-}
-
-function closeHouseShop() {
-  document.getElementById('mHouseShop').style.display = 'none';
-}
-
-async function buyHouseItem(itemId, price) {
-  if(!confirm(`Купить за ${price} 🏅?`)) return;
-  try {
-    const r = await fetch('/api/house/buy', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token, item_id: itemId })
-    });
+    const r = await fetch('/api/house/buy', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token, item_id: name }) });
     const d = await r.json();
-    if(r.ok) { alert('✅ Куплено'); closeHouseShop(); openHouse(); }
+    if(r.ok) { alert('✅ Куплено'); openHouse(); }
     else { alert('❌ ' + (d.detail || 'Ошибка')); }
   } catch(e) { alert('❌ Ошибка'); }
 }
 
-function init_house() {
-  openHouse();
-}
+function init_house() { openHouse(); }
 </script>
