@@ -752,6 +752,62 @@ async def sw(): return FileResponse("sw.js", media_type="application/javascript"
 @app.get("/manifest.json")
 async def manifest(): return FileResponse("manifest.json")
 
+@app.post("/api/channels/{cid}/edit")
+async def channel_edit(cid: int, data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        c = await conn.fetchrow("SELECT * FROM channels WHERE id=$1", cid)
+        if not c: raise HTTPException(404, "Нет канала")
+        if c["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
+        
+        new_username = data.get("username")
+        if new_username:
+            new_username = new_username.lower().strip()
+            if len(new_username) < 4: raise HTTPException(400, "Username мин 4")
+            if not re.match(r'^[a-z][a-z0-9_]*$', new_username): raise HTTPException(400, "Только a-z, 0-9, _")
+            if await conn.fetchval("SELECT 1 FROM users WHERE LOWER(username)=$1", new_username):
+                raise HTTPException(400, "Username занят пользователем")
+            if await conn.fetchval("SELECT 1 FROM channels WHERE LOWER(username)=$1 AND id!=$2", new_username, cid):
+                raise HTTPException(400, "Username занят каналом")
+        
+        await conn.execute("""UPDATE channels SET 
+            name=COALESCE($1,name), bio=COALESCE($2,bio), username=COALESCE($3,username)
+            WHERE id=$4""", 
+            data.get("name"), data.get("bio"), new_username, cid)
+    return {"ok": True}
+
+@app.post("/api/channels/{cid}/upload_avatar")
+async def channel_upload_avatar(cid: int, token: str = Form(...), file: UploadFile = File(...)):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        c = await conn.fetchrow("SELECT * FROM channels WHERE id=$1", cid)
+        if not c or c["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
+    if not (file.content_type or "").startswith("image/"): raise HTTPException(400, "Только фото")
+    content = await file.read()
+    if len(content) > 5*1024*1024: raise HTTPException(400, "Макс 5 МБ")
+    ext = os.path.splitext(file.filename or "")[1].lower() or ".png"
+    name = f"ch_av_{secrets.token_hex(8)}{ext}"
+    with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
+    url = f"/uploads/{name}"
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE channels SET avatar=$1 WHERE id=$2", url, cid)
+    return {"ok": True, "url": url}
+
+@app.post("/api/channels/{cid}/delete")
+async def channel_delete(cid: int, data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        c = await conn.fetchrow("SELECT owner_id FROM channels WHERE id=$1", cid)
+        if not c or c["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
+        await conn.execute("DELETE FROM channels WHERE id=$1", cid)
+    return {"ok": True}
+
 # ====== ЗАПУСК ======
 if __name__ == "__main__":
     import uvicorn
