@@ -1,315 +1,260 @@
-<div class="dm-layout" style="display:flex; flex:1; height:100%; overflow:hidden;">
+<div id="dmPage" style="display:flex; height:100%; width:100%;">
   <!-- ПАНЕЛЬ ЧАТОВ -->
-  <div class="panel" id="dmPanel" style="width:320px; background:var(--bg3); border-right:1px solid var(--br); display:flex; flex-direction:column; flex-shrink:0;">
-    <div style="padding:12px; border-bottom:1px solid var(--br);">
-      <input id="chatSearch" placeholder="🔍 Поиск чатов..." oninput="filterChats(this.value)" style="width:100%; padding:10px 14px; border-radius:12px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); outline:none; font-size:13px;">
+  <div id="dmPanel" style="width:320px; background:var(--bg3); border-right:1px solid var(--br); display:flex; flex-direction:column; flex-shrink:0;">
+    <div style="padding:8px 12px; border-bottom:1px solid var(--br);">
+      <input type="text" id="dmSearch" placeholder="🔍 Поиск чатов..." style="width:100%; padding:10px 14px; border-radius:12px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); outline:none; font-size:13px;">
     </div>
-    <div class="pl-tabs" style="display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid var(--br); overflow-x:auto;">
-      <button class="pl-tab on" data-ptab="all" onclick="switchPanelTab('all')" style="padding:6px 12px; border-radius:10px; font-size:11px; font-weight:800; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border:none; white-space:nowrap;">Все</button>
-      <button class="pl-tab" data-ptab="dm" onclick="switchPanelTab('dm')" style="padding:6px 12px; border-radius:10px; font-size:11px; font-weight:800; background:var(--glass); border:1px solid var(--gb); color:var(--td); white-space:nowrap;">Личка</button>
-      <button class="pl-tab" data-ptab="channel" onclick="switchPanelTab('channel')" style="padding:6px 12px; border-radius:10px; font-size:11px; font-weight:800; background:var(--glass); border:1px solid var(--gb); color:var(--td); white-space:nowrap;">Каналы</button>
-    </div>
-    <div class="pl-b" id="panelBody" style="flex:1; overflow-y:auto; padding:8px;">
+    <div style="flex:1; overflow-y:auto; padding:8px;" id="dmList">
       <div style="padding:20px; text-align:center; color:var(--tm);">Загрузка...</div>
     </div>
   </div>
 
   <!-- ОКНО ЧАТА -->
-  <div class="chat-win" id="chatWindow" style="flex:1; background:var(--bg2); display:flex; flex-direction:column; min-width:0; position:relative;">
-    <!-- Заглушка, если чат не выбран -->
-    <div id="chatPlaceholder" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--td);">
-      <div style="font-size:64px; margin-bottom:16px; opacity:0.5;">💬</div>
-      <div style="font-size:14px;">Выбери чат слева</div>
+  <div id="dmChatWin" style="flex:1; background:var(--bg2); display:flex; flex-direction:column; min-width:0; position:relative;">
+    <div style="height:56px; padding:0 10px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--br); flex-shrink:0; background:var(--bg3); z-index:5;">
+      <button id="dmBackBtn" onclick="dmBack()" style="width:38px; height:38px; border-radius:12px; display:none; align-items:center; justify-content:center; font-size:20px; color:var(--td); background:none; border:none;">←</button>
+      <div id="dmChatAvatar" style="width:38px; height:38px; font-size:15px; background:linear-gradient(135deg,var(--ac),var(--ac2)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; flex-shrink:0; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); overflow:hidden;">#</div>
+      <div style="font-weight:800; font-size:14px; flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+        <div id="dmChatTitle" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Выбери чат</div>
+        <div id="dmChatSub" style="font-size:11px; color:var(--tm); font-weight:600; margin-top:1px;"></div>
+      </div>
+      <button id="dmCallBtn" onclick="dmStartCall()" style="background:none; color:var(--ac3); font-size:20px; padding:6px 8px; display:none; border:none; cursor:pointer;">📞</button>
     </div>
 
-    <!-- Сам чат (скрыт по умолчанию) -->
-    <div id="chatActive" style="display:none; flex-direction:column; height:100%;">
-      <div class="cw-h" style="height:56px; padding:0 10px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--br); flex-shrink:0; background:var(--bg3);">
-        <button class="cw-back" id="cwBack" onclick="backToPanel()" style="width:38px; height:38px; border-radius:12px; display:none; align-items:center; justify-content:center; font-size:20px; color:var(--td); background:none; border:none; cursor:pointer;">←</button>
-        <div id="chatAvatar" style="width:38px; height:38px; font-size:15px; background:linear-gradient(135deg,var(--ac),var(--ac2)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; flex-shrink:0; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); overflow:hidden;">#</div>
-        <div class="cw-t" id="chatTitleBox" style="font-weight:800; font-size:14px; flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
-          <div class="nm" id="chatTitle" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Выбери чат</div>
-          <div class="sub" id="chatSub" style="font-size:11px; color:var(--tm); font-weight:600; margin-top:1px;"></div>
-        </div>
-        <button class="fb" id="chatCallBtn" onclick="startCallFromChat()" style="display:none; color:var(--ac3); font-size:20px; background:none; border:none; cursor:pointer;">📞</button>
-        <button class="fb" id="chatMenuBtn" onclick="openChatMenu()" style="display:none; color:var(--td); font-size:20px; background:none; border:none; cursor:pointer;">⋮</button>
-      </div>
-      <div class="cw-body" id="msgsBody" style="flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:4px;">
-        <div id="msgsInner"></div>
-      </div>
-      <div class="cw-in" style="padding:10px 12px 14px; flex-shrink:0; background:var(--bg3); border-top:1px solid var(--br); padding-bottom:calc(14px + env(safe-area-inset-bottom));">
-        <div class="cw-ib" style="background:var(--glass); border:1px solid var(--gb); border-radius:22px; display:flex; align-items:flex-end; padding:6px 12px; gap:6px;">
-          <label class="fb" for="fileInput" style="color:var(--ac); font-size:22px; cursor:pointer;">＋</label>
-          <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this)" accept="image/*,video/*,audio/*,.zip,.rar,.7z,.pdf,.txt,.doc,.docx">
-          <textarea id="inp" placeholder="Написать..." rows="1" style="flex:1; background:none; border:none; outline:none; color:var(--tx); font-size:14px; padding:8px 0; resize:none; max-height:120px; min-height:22px; line-height:1.4;"></textarea>
-          <button class="fb" onclick="sendMsg()" style="color:var(--ac); font-size:20px; background:none; border:none; cursor:pointer;">➤</button>
-        </div>
-        <div class="cc" id="charCount" style="font-size:10px; color:var(--tm); text-align:right; padding:2px 6px;">0 / 2000</div>
+    <div id="dmMsgsBody" style="flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:4px;">
+      <div id="dmMsgsInner"></div>
+    </div>
+
+    <div style="padding:10px 12px 14px; flex-shrink:0; background:var(--bg3); border-top:1px solid var(--br); padding-bottom:calc(14px + env(safe-area-inset-bottom));">
+      <div style="background:var(--glass); border:1px solid var(--gb); border-radius:22px; display:flex; align-items:flex-end; padding:6px 12px; gap:6px;">
+        <label for="dmFileInput" style="color:var(--ac); font-size:22px; cursor:pointer; padding:6px;">＋</label>
+        <input type="file" id="dmFileInput" style="display:none" onchange="dmUploadFile(this)" accept="image/*,video/*,audio/*">
+        <textarea id="dmInput" placeholder="Написать..." rows="1" style="flex:1; background:none; border:none; outline:none; color:var(--tx); font-size:14px; padding:8px 0; resize:none; max-height:120px;"></textarea>
+        <button onclick="dmSend()" style="background:none; color:var(--ac); font-size:20px; padding:6px 8px; border:none; cursor:pointer;">➤</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- МОДАЛКА ЗВОНКА (ВНУТРИ DM!) -->
+<div id="mCall" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.97); z-index:2000;">
+  <div style="position:relative; width:100%; height:100%; background:#020005;">
+    <video id="remoteVideo" autoplay playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; display:none;"></video>
+    <video id="localVideo" autoplay playsinline muted style="position:absolute; bottom:30px; right:30px; width:100px; height:130px; object-fit:cover; border:1px solid #22d3ee; z-index:15; display:none;"></video>
+    <div style="position:absolute; top:40px; left:50%; transform:translateX(-50%); z-index:20; display:flex; gap:6px;">
+      <button id="cbMic" onclick="tglMic()" style="width:46px; height:46px; background:rgba(20,16,32,.8); border:1px solid rgba(217,70,239,.2); color:#fff; font-size:20px; cursor:pointer;">🎤</button>
+      <button id="cbCam" onclick="tglCam()" style="width:46px; height:46px; background:rgba(20,16,32,.8); border:1px solid rgba(217,70,239,.2); color:#fff; font-size:20px; cursor:pointer;">📷</button>
+      <button onclick="endCall()" style="width:46px; height:46px; background:rgba(220,38,38,.3); border:1px solid #dc2626; color:#fff; font-size:20px; cursor:pointer;">📞</button>
+    </div>
+    <div style="position:absolute; left:30px; top:50%; transform:translateY(-50%); z-index:10;">
+      <div id="callAv" style="width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#d946ef,#8b5cf6); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:900; border:2px solid #d946ef; overflow:hidden;">?</div>
+      <div id="callName" style="font-size:14px; font-weight:900; text-align:center; margin-top:8px;">Юзер</div>
+      <div id="callSt" style="font-size:9px; color:#22d3ee; text-align:center;">ОЖИДАНИЕ...</div>
+    </div>
+    <div style="position:absolute; top:80px; right:30px; z-index:10; background:rgba(0,0,0,.6); border:1px solid rgba(34,211,238,.3); padding:10px 16px;">
+      <div style="font-size:9px; color:#22d3ee; font-weight:900;">ВРЕМЯ</div>
+      <div id="callTime" style="font-size:22px; font-weight:900; color:#22c55e;">00:00</div>
+    </div>
+  </div>
+</div>
+
 <style>
-/* Стили для сообщений (если их нет в app.html) */
-.msg { display:flex; gap:10px; padding:5px 8px; border-radius:12px; position:relative; }
-.msg .av { width:40px; height:40px; background:linear-gradient(135deg,var(--ac2),var(--ac3)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:15px; overflow:hidden; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.msg .av img { width:100%; height:100%; object-fit:cover; }
-.msg-body { flex:1; min-width:0; }
-.msg-h { display:flex; align-items:baseline; gap:8px; margin-bottom:2px; flex-wrap:wrap; }
-.msg-a { font-weight:800; font-size:13px; cursor:pointer; color:var(--ac); text-shadow:var(--neon); }
-.msg-t { font-size:10px; color:var(--tm); }
-.msg-c { color:var(--tx); font-size:13.5px; line-height:1.5; word-wrap:break-word; background:rgba(217,70,239,.05); padding:8px 13px; border-left:2px solid var(--ac); display:inline-block; max-width:100%; white-space:pre-wrap; }
-.msg-img { max-width:min(340px,80vw); max-height:340px; border-radius:12px; margin-top:5px; display:block; cursor:pointer; border:1px solid var(--br); }
-.msg-vid { max-width:min(400px,80vw); max-height:400px; border-radius:12px; margin-top:5px; display:block; background:#000; }
-.msg-aud { padding:8px 12px; background:rgba(139,92,246,.15); border-radius:12px; margin-top:5px; display:flex; align-items:center; gap:10px; max-width:320px; }
-.msg-fl { display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(139,92,246,.12); border:1px solid var(--br); border-radius:14px; margin-top:5px; text-decoration:none; color:var(--tx); max-width:340px; }
-.ci { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; cursor:pointer; margin-bottom:4px; background:rgba(20,16,32,.7); border:1px solid rgba(217,70,239,.15); clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%); }
-.ci:active { background:rgba(217,70,239,.1); border-color:var(--ac); box-shadow:var(--neon); }
-.ci .av { width:46px; height:46px; background:linear-gradient(135deg,var(--ac),var(--ac2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:17px; overflow:hidden; position:relative; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.ci .av img { width:100%; height:100%; object-fit:cover; }
-.ci-i { flex:1; min-width:0; }
-.ci-n { font-weight:700; font-size:14px; margin-bottom:2px; display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ci-p { color:var(--tm); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ci-t { font-size:9px; color:var(--tm); margin-left:auto; flex-shrink:0; }
+.dm-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; cursor:pointer; margin-bottom:4px; background:rgba(20,16,32,.7); border:1px solid rgba(217,70,239,.15); clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%); }
+.dm-item:active { background:rgba(217,70,239,.1); border-color:var(--ac); }
+.dm-item .av { width:46px; height:46px; background:linear-gradient(135deg,var(--ac),var(--ac2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:17px; overflow:hidden; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
+.dm-item .av img { width:100%; height:100%; object-fit:cover; }
+.dm-msg { display:flex; gap:10px; padding:5px 8px; border-radius:12px; position:relative; }
+.dm-msg .av { width:40px; height:40px; background:linear-gradient(135deg,var(--ac2),var(--ac3)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:15px; overflow:hidden; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
+.dm-msg .av img { width:100%; height:100%; object-fit:cover; }
+.dm-msg .body { flex:1; min-width:0; }
+.dm-msg .head { display:flex; align-items:baseline; gap:8px; margin-bottom:2px; flex-wrap:wrap; }
+.dm-msg .author { font-weight:800; font-size:13px; color:var(--ac); }
+.dm-msg .time { font-size:10px; color:var(--tm); }
+.dm-msg .text { color:var(--tx); font-size:13.5px; line-height:1.5; word-wrap:break-word; background:rgba(217,70,239,.05); padding:8px 13px; border-left:2px solid var(--ac); display:inline-block; max-width:100%; white-space:pre-wrap; }
+.dm-msg .img { max-width:min(340px,80vw); max-height:340px; border-radius:12px; margin-top:5px; display:block; cursor:pointer; border:1px solid var(--br); }
+.dm-msg .vid { max-width:min(400px,80vw); max-height:400px; border-radius:12px; margin-top:5px; display:block; background:#000; }
+.dm-msg .aud { padding:8px 12px; background:rgba(139,92,246,.15); border-radius:12px; margin-top:5px; display:flex; align-items:center; gap:10px; max-width:320px; }
 </style>
 
 <script>
-let chatsCache = [];
-let curType = 'none';
-let curDM = null;
-let chatFilter = '';
-let panelTab = 'all';
+let dmCurPeer = null;
+let dmChatsCache = [];
 
-function filterChats(q){ chatFilter = (q||'').toLowerCase(); renderChatsList(); }
-function switchPanelTab(t){ 
-  panelTab = t; 
-  document.querySelectorAll('.pl-tab').forEach(b => {
-    const isActive = b.dataset.ptab === t;
-    b.classList.toggle('on', isActive);
-    b.style.background = isActive ? 'linear-gradient(135deg,var(--ac),var(--ac2))' : 'var(--glass)';
-    b.style.color = isActive ? '#fff' : 'var(--td)';
-  });
-  renderChatsList(); 
-}
-
-async function loadPanel() {
-  const box = document.getElementById('panelBody');
+async function dmLoadPanel() {
+  const box = document.getElementById('dmList');
   box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm)">⏳</div>';
   try {
     const r = await fetch('/api/friends/list?token=' + token);
     const fr = await r.json();
-    const chR = await fetch('/api/channels/my?token=' + token);
-    const ch = chR.ok ? await chR.json() : [];
-    
-    const items = [];
-    if(Array.isArray(fr)) { fr.forEach(f => { if(f.status === 'accepted') items.push({ type: 'dm', id: f.id, name: f.display_name || f.username, avatar: f.avatar }); }); }
-    if(Array.isArray(ch)) { ch.forEach(c => { items.push({ type: 'channel', id: c.id, name: c.name, avatar: c.avatar }); }); }
-    chatsCache = items;
-    renderChatsList();
+    dmChatsCache = [];
+    if(Array.isArray(fr)) {
+      fr.forEach(f => {
+        if(f.status === 'accepted') dmChatsCache.push({ id: f.id, name: f.display_name || f.username, avatar: f.avatar });
+      });
+    }
+    dmRenderPanel();
   } catch(e) { box.innerHTML = '<div style="padding:20px;text-align:center;color:#f43f5e">Ошибка</div>'; }
 }
 
-function renderChatsList() {
-  const box = document.getElementById('panelBody');
-  let items = chatsCache.filter(it => {
-    if(chatFilter && it.name.toLowerCase().indexOf(chatFilter) < 0) return false;
-    if(panelTab === 'dm' && it.type !== 'dm') return false;
-    if(panelTab === 'channel' && it.type !== 'channel') return false;
-    return true;
-  });
-  
-  if(!items.length) { box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm);font-size:13px">Пусто</div>'; return; }
+function dmRenderPanel() {
+  const box = document.getElementById('dmList');
+  if(!dmChatsCache.length) { box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm);font-size:13px">Нет друзей. Добавь кого-нибудь!</div>'; return; }
   box.innerHTML = '';
-  
-  items.forEach(it => {
+  dmChatsCache.forEach(it => {
     const div = document.createElement('div');
-    div.className = 'ci';
+    div.className = 'dm-item';
     const av = it.avatar ? `<img src="${esc(it.avatar)}">` : esc(it.name.charAt(0).toUpperCase());
-    const typeLabel = it.type === 'dm' ? 'личка' : 'канал';
-    div.innerHTML = `<div class="av">${av}</div><div class="ci-i"><div class="ci-n">${esc(it.name)}</div><div class="ci-p">${typeLabel}</div></div>`;
-    div.onclick = () => {
-      if(it.type === 'dm') openDM(it.id, it.name, it.avatar);
-      else if(it.type === 'channel') alert('Каналы скоро');
-    };
+    div.innerHTML = `<div class="av">${av}</div><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:14px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(it.name)}</div><div style="color:var(--tm); font-size:11px;">личка</div></div>`;
+    div.onclick = () => dmOpenChat(it.id, it.name, it.avatar);
     box.appendChild(div);
   });
 }
 
-async function openDM(id, name, avatar) {
-  curDM = { id, name, avatar };
-  curType = 'dm';
+async function dmOpenChat(id, name, avatar) {
+  dmCurPeer = { id, name, avatar };
+  document.getElementById('dmChatTitle').textContent = name;
+  document.getElementById('dmChatAvatar').innerHTML = avatar ? `<img src="${esc(avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(name.charAt(0).toUpperCase());
+  document.getElementById('dmCallBtn').style.display = 'block';
   
-  document.getElementById('chatPlaceholder').style.display = 'none';
-  document.getElementById('chatActive').style.display = 'flex';
-  
-  // На мобилке скрываем панель
-  if(window.innerWidth <= 900) document.getElementById('dmPanel').style.display = 'none';
-  
-  document.getElementById('chatTitle').textContent = name;
-  document.getElementById('chatAvatar').innerHTML = avatar ? `<img src="${esc(avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(name.charAt(0).toUpperCase());
-  document.getElementById('chatCallBtn').style.display = 'block';
-  document.getElementById('chatMenuBtn').style.display = 'block';
-  
-  document.getElementById('msgsInner').innerHTML = '<div style="text-align:center;padding:40px;color:var(--tm)">⏳</div>';
+  if(window.innerWidth <= 900) {
+    document.getElementById('dmPanel').style.display = 'none';
+    document.getElementById('dmBackBtn').style.display = 'flex';
+  }
+
+  document.getElementById('dmMsgsInner').innerHTML = '<div style="text-align:center;padding:40px;color:var(--tm)">⏳</div>';
   
   try {
     const r = await fetch('/api/dm/' + id + '/messages?token=' + token);
     const d = await r.json();
     const msgs = Array.isArray(d) ? d : (d.messages || []);
-    document.getElementById('msgsInner').innerHTML = '';
-    msgs.forEach(addMsg);
-    scrollBot();
-  } catch(e) { document.getElementById('msgsInner').innerHTML = '<div style="text-align:center;padding:40px;color:#f43f5e">Ошибка</div>'; }
+    document.getElementById('dmMsgsInner').innerHTML = '';
+    msgs.forEach(dmAddMsg);
+    dmScrollBot();
+  } catch(e) { document.getElementById('dmMsgsInner').innerHTML = '<div style="text-align:center;padding:40px;color:#f43f5e">Ошибка</div>'; }
 }
 
-function addMsg(m) {
-  const inner = document.getElementById('msgsInner');
+function dmBack() {
+  document.getElementById('dmPanel').style.display = 'flex';
+  document.getElementById('dmBackBtn').style.display = 'none';
+  dmCurPeer = null;
+}
+
+function dmAddMsg(m) {
+  const inner = document.getElementById('dmMsgsInner');
   const d = document.createElement('div');
-  d.className = 'msg';
+  d.className = 'dm-msg';
   const avSrc = m.gif_avatar || m.avatar;
   const av = avSrc ? `<div class="av"><img src="${esc(avSrc)}"></div>` : `<div class="av">${esc((m.display_name||m.username||'?').charAt(0).toUpperCase())}</div>`;
-  
   let fh = '';
   const kind = m.msg_kind || 'text';
   const url = m.file_url || '';
   if(url) {
-    if(kind === 'photo' || /\.(png|jpg|jpeg|gif|webp)$/i.test(url)) fh = `<img class="msg-img" loading="lazy" src="${esc(url)}">`;
-    else if(kind === 'video' || /\.(mp4|webm|mov)$/i.test(url)) fh = `<video class="msg-vid" controls preload="metadata" src="${esc(url)}"></video>`;
-    else if(kind === 'voice' || /\.(mp3|wav|ogg)$/i.test(url)) fh = `<div class="msg-aud">🎵<audio controls src="${esc(url)}" style="height:32px;flex:1"></audio></div>`;
-    else fh = `<a class="msg-fl" href="${esc(url)}" target="_blank">📎 Файл</a>`;
+    if(kind === 'photo' || /\.(png|jpg|jpeg|gif|webp)$/i.test(url)) fh = `<img class="img" loading="lazy" src="${esc(url)}">`;
+    else if(kind === 'video' || /\.(mp4|webm|mov)$/i.test(url)) fh = `<video class="vid" controls preload="metadata" src="${esc(url)}"></video>`;
+    else if(kind === 'voice' || /\.(mp3|wav|ogg)$/i.test(url)) fh = `<div class="aud">🎵<audio controls src="${esc(url)}"></audio></div>`;
+    else fh = `<a href="${esc(url)}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(139,92,246,.12); border:1px solid var(--br); border-radius:14px; margin-top:5px; text-decoration:none; color:var(--tx);">📎 Файл</a>`;
   }
-  
-  const text = m.text ? `<div class="msg-c">${esc(m.text)}</div>` : '';
-  d.innerHTML = `${av}<div class="msg-body"><div class="msg-h"><span class="msg-a">${esc(m.display_name || m.username || '?')}</span><span class="msg-t">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>${text}${fh}</div>`;
+  const text = m.text ? `<div class="text">${esc(m.text)}</div>` : '';
+  d.innerHTML = `${av}<div class="body"><div class="head"><span class="author">${esc(m.display_name || m.username || '?')}</span><span class="time">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>${text}${fh}</div>`;
   inner.appendChild(d);
-  scrollBot();
+  dmScrollBot();
 }
 
-function scrollBot() { const c = document.getElementById('msgsBody'); if(c) c.scrollTop = c.scrollHeight; }
-function backToPanel() { 
-  document.getElementById('chatPlaceholder').style.display = 'flex';
-  document.getElementById('chatActive').style.display = 'none';
-  document.getElementById('dmPanel').style.display = 'flex';
-  curType = 'none';
-}
+function dmScrollBot() { const c = document.getElementById('dmMsgsBody'); if(c) c.scrollTop = c.scrollHeight; }
 
-function sendMsg() {
-  const inp = document.getElementById('inp');
+function dmSend() {
+  const inp = document.getElementById('dmInput');
   const t = inp.value.trim();
-  if(!t || curType === 'none' || !curDM) return;
-  
-  addMsg({ id: 'temp-'+Date.now(), user_id: me.id, display_name: me.display_name || me.username, avatar: me.avatar, text: t, created_at: new Date().toISOString() });
-  wsSend({ type: 'dm', to_user: curDM.id, text: t });
-  
+  if(!t || !dmCurPeer) return;
+  dmAddMsg({ id: 'temp-'+Date.now(), user_id: me.id, display_name: me.display_name || me.username, avatar: me.avatar, text: t, created_at: new Date().toISOString() });
+  wsSend({ type: 'dm', to_user: dmCurPeer.id, text: t });
   inp.value = '';
-  document.getElementById('charCount').textContent = '0 / 2000';
 }
 
-async function uploadFile(input) {
+async function dmUploadFile(input) {
   const f = input.files[0];
   if(!f) return;
-  const lim = 30 * 1024 * 1024;
-  if(f.size > lim) { alert('❌ > 30 МБ'); input.value = ''; return; }
-  
+  if(f.size > 30 * 1024 * 1024) { alert('❌ > 30 МБ'); input.value = ''; return; }
   let kind = 'file';
   if(f.type.startsWith('image/')) kind = 'photo';
   else if(f.type.startsWith('video/')) kind = 'video';
   else if(f.type.startsWith('audio/')) kind = 'audio';
-  
   alert('⏳ Загрузка...');
   const fd = new FormData();
   fd.append('token', token);
   fd.append('file', f);
-  
   try {
     const r = await fetch('/api/upload', { method: 'POST', body: fd });
     const d = await r.json();
     if(r.ok && d.url) {
-      addMsg({ id: 'temp-'+Date.now(), user_id: me.id, display_name: me.display_name || me.username, avatar: me.avatar, text: '', file_url: d.url, msg_kind: kind, created_at: new Date().toISOString() });
-      if(curType === 'dm' && curDM) wsSend({ type: 'dm', to_user: curDM.id, text: '', file_url: d.url, msg_kind: kind, file_size: f.size });
-      alert('✅ Загружено');
-    } else { alert('❌ ' + (d.detail || '')); }
-  } catch(e) { alert('❌ Ошибка'); }
+      dmAddMsg({ id: 'temp-'+Date.now(), user_id: me.id, display_name: me.display_name || me.username, avatar: me.avatar, text: '', file_url: d.url, msg_kind: kind, created_at: new Date().toISOString() });
+      if(dmCurPeer) wsSend({ type: 'dm', to_user: dmCurPeer.id, text: '', file_url: d.url, msg_kind: kind, file_size: f.size });
+    } else { alert('❌ ' + (d.detail || 'Ошибка')); }
+  } catch(e) { alert('❌ Ошибка сети'); }
   input.value = '';
 }
 
-function openChatMenu() { alert('Меню чата скоро'); }
+/* ====== ЗВОНКИ (ВНУТРИ DM) ====== */
+let dmPC = null, dmLS = null, dmCallActive = false;
 
-/* ====== ЗВОНКИ (С TURN) ====== */
-let cP = null, cLS = null, curCall = { active: false, peerId: null, type: 'audio' };
-
-async function startCallFromChat() {
-  if(!curDM) return;
+async function dmStartCall() {
+  if(!dmCurPeer) return;
   const isVideo = confirm('Видеозвонок?');
-  curCall = { active: true, peerId: curDM.id, type: isVideo ? 'video' : 'audio' };
-  openCallUI(curDM.name, curDM.avatar);
-  wsSend({ type: 'call_invite', to_user: curDM.id, call_type: curCall.type });
-}
-
-function openCallUI(name, avatar) {
-  const callModal = document.getElementById('mCall');
-  if(!callModal) { alert('Модалка звонка не найдена (mCall)'); return; }
-  callModal.classList.add('open');
-  document.getElementById('callName').textContent = name;
-  document.getElementById('callAv').innerHTML = avatar ? `<img src="${esc(avatar)}">` : esc(name.charAt(0).toUpperCase());
-  document.getElementById('callSt').textContent = 'ОЖИДАНИЕ...';
+  dmCallActive = true;
+  document.getElementById('callName').textContent = dmCurPeer.name;
+  document.getElementById('callAv').innerHTML = dmCurPeer.avatar ? `<img src="${esc(dmCurPeer.avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(dmCurPeer.name.charAt(0).toUpperCase());
+  document.getElementById('mCall').style.display = 'block';
+  wsSend({ type: 'call_invite', to_user: dmCurPeer.id, call_type: isVideo ? 'video' : 'audio' });
 }
 
 async function getLocalStream() {
-  if(cLS) return cLS;
-  cLS = await navigator.mediaDevices.getUserMedia({ audio: true, video: curCall.type === 'video' });
-  if(curCall.type === 'video') { 
-    document.getElementById('localVideo').srcObject = cLS; 
-    document.getElementById('localVideo').style.display = 'block'; 
-    document.getElementById('localFeed').style.display = 'none'; 
-  }
-  return cLS;
+  if(dmLS) return dmLS;
+  dmLS = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+  document.getElementById('localVideo').srcObject = dmLS;
+  document.getElementById('localVideo').style.display = 'block';
+  return dmLS;
 }
 
 function makePC() {
-  cP = new RTCPeerConnection(ICE_SERVERS);
-  cP.onicecandidate = e => { if(e.candidate) wsSend({ type: 'webrtc_ice', to_user: curCall.peerId, candidate: e.candidate }); };
-  cP.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('remoteVideo').style.display = 'block'; };
-  return cP;
+  dmPC = new RTCPeerConnection(ICE_SERVERS);
+  dmPC.onicecandidate = e => { if(e.candidate) wsSend({ type: 'webrtc_ice', to_user: dmCurPeer.id, candidate: e.candidate }); };
+  dmPC.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('remoteVideo').style.display = 'block'; };
+  return dmPC;
 }
 
 function handleCallWS(d) {
   if(d.type === 'call_incoming') {
     if(confirm('Звонок от ' + d.from_name + '. Принять?')) {
-      curCall = { active: true, peerId: d.from_user, type: d.call_type };
-      openCallUI(d.from_name, d.from_avatar);
+      dmCurPeer = { id: d.from_user, name: d.from_name, avatar: d.from_avatar };
+      document.getElementById('mCall').style.display = 'block';
+      document.getElementById('callName').textContent = d.from_name;
       wsSend({ type: 'call_accept', call_id: d.call_id });
       getLocalStream();
     } else { wsSend({ type: 'call_reject', call_id: d.call_id }); }
   }
   if(d.type === 'call_accepted') {
-    document.getElementById('callSt').textContent = 'ПОДКЛЮЧЕНИЕ...';
-    getLocalStream().then(async () => { makePC(); cLS.getTracks().forEach(t => cP.addTrack(t, cLS)); const offer = await cP.createOffer(); await cP.setLocalDescription(offer); wsSend({ type: 'webrtc_offer', to_user: curCall.peerId, sdp: offer }); });
+    getLocalStream().then(async () => { makePC(); dmLS.getTracks().forEach(t => dmPC.addTrack(t, dmLS)); const offer = await dmPC.createOffer(); await dmPC.setLocalDescription(offer); wsSend({ type: 'webrtc_offer', to_user: dmCurPeer.id, sdp: offer }); });
   }
   if(d.type === 'webrtc_offer') {
-    getLocalStream().then(async () => { if(!cP) makePC(); cLS.getTracks().forEach(t => cP.addTrack(t, cLS)); await cP.setRemoteDescription(d.sdp); const answer = await cP.createAnswer(); await cP.setLocalDescription(answer); wsSend({ type: 'webrtc_answer', to_user: curCall.peerId, sdp: answer }); });
+    getLocalStream().then(async () => { if(!dmPC) makePC(); dmLS.getTracks().forEach(t => dmPC.addTrack(t, dmLS)); await dmPC.setRemoteDescription(d.sdp); const answer = await dmPC.createAnswer(); await dmPC.setLocalDescription(answer); wsSend({ type: 'webrtc_answer', to_user: dmCurPeer.id, sdp: answer }); });
   }
-  if(d.type === 'webrtc_answer') cP.setRemoteDescription(d.sdp);
-  if(d.type === 'webrtc_ice') { if(cP) cP.addIceCandidate(d.candidate).catch(()=>{}); }
+  if(d.type === 'webrtc_answer') dmPC.setRemoteDescription(d.sdp);
+  if(d.type === 'webrtc_ice') { if(dmPC) dmPC.addIceCandidate(d.candidate).catch(()=>{}); }
   if(d.type === 'call_ended' || d.type === 'call_rejected') endCall();
 }
 
-function tglMic() { if(!cLS) return; const track = cLS.getAudioTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbMic').classList.toggle('mut', !track.enabled); } }
-function tglCam() { if(!cLS) return; const track = cLS.getVideoTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbCam').classList.toggle('on', !track.enabled); } }
-function endCall() { if(cP) cP.close(); if(cLS) cLS.getTracks().forEach(t => t.stop()); cP = null; cLS = null; curCall = { active: false }; document.getElementById('mCall').classList.remove('open'); }
+function tglMic() { if(!dmLS) return; const track = dmLS.getAudioTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbMic').classList.toggle('mut', !track.enabled); } }
+function tglCam() { if(!dmLS) return; const track = dmLS.getVideoTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbCam').classList.toggle('on', !track.enabled); } }
+function endCall() { if(dmPC) dmPC.close(); if(dmLS) dmLS.getTracks().forEach(t => t.stop()); dmPC = null; dmLS = null; dmCallActive = false; document.getElementById('mCall').style.display = 'none'; }
 
-/* ====== ИНИЦИАЛИЗАЦИЯ СТРАНИЦЫ ====== */
 function init_dm() {
-  loadPanel();
-  document.getElementById('inp').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
-  document.getElementById('inp').addEventListener('input', function() { document.getElementById('charCount').textContent = this.value.length + ' / 2000'; });
+  dmLoadPanel();
+  document.getElementById('dmInput').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); dmSend(); } });
 }
 
-// Обработка WebSocket событий для этой страницы
 function handlePageWS(d) {
-  if(d.type === 'dm' && curDM && (d.from_user === curDM.id || d.to_user === curDM.id)) {
-    addMsg(d);
+  if(d.type === 'dm' && dmCurPeer && (d.from_user === dmCurPeer.id || d.to_user === dmCurPeer.id)) {
+    dmAddMsg(d);
   }
   if(d.type.startsWith('call_') || d.type.startsWith('webrtc_')) {
     if(typeof handleCallWS === 'function') handleCallWS(d);
