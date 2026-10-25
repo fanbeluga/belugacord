@@ -1,0 +1,137 @@
+<div style="flex:1; display:flex; flex-direction:column; height:100%; overflow-y:auto; padding-bottom:100px;">
+  
+  <!-- БАННЕР -->
+  <div id="meBanner" style="height:150px; background:linear-gradient(135deg,#d946ef,#8b5cf6,#22d3ee); position:relative; overflow:hidden; flex-shrink:0;">
+    <button onclick="document.getElementById('bannerInput').click()" style="position:absolute; right:12px; bottom:12px; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid rgba(255,255,255,0.3); cursor:pointer;">📷</button>
+  </div>
+  <input type="file" id="bannerInput" accept="image/*" style="display:none" onchange="uploadBanner(this)">
+
+  <!-- АВАТАРКА -->
+  <div style="position:relative; margin:-55px 0 0 20px; width:110px; height:110px;">
+    <div id="meAv" style="width:110px; height:110px; border-radius:24px; background:linear-gradient(135deg,#d946ef,#8b5cf6); border:5px solid var(--bg2); display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:900; color:#fff; overflow:hidden; position:relative; z-index:2;">?</div>
+    <button onclick="document.getElementById('avatarInput').click()" style="position:absolute; right:-6px; bottom:4px; width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; z-index:3; border:none; cursor:pointer;">✏️</button>
+  </div>
+  <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+
+  <!-- ИНФО -->
+  <div style="padding:16px 20px;">
+    <h2 id="meName" style="font-size:22px; font-weight:900; margin-bottom:4px; display:flex; align-items:center; gap:8px;">юзер</h2>
+    <div id="meUser" style="color:var(--ac); font-size:14px; font-weight:700; margin-bottom:4px;">@username</div>
+    <div id="meBio" style="font-size:13px; color:var(--td);">Без описания</div>
+  </div>
+
+  <!-- СТАТИСТИКА -->
+  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:0 16px; margin-bottom:20px;">
+    <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
+      <div id="meCoins" style="font-size:20px; font-weight:900; color:var(--gold);">0</div>
+      <div style="font-size:10px; color:var(--tm); margin-top:2px;">🏅</div>
+    </div>
+    <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
+      <div id="meLevel" style="font-size:20px; font-weight:900; color:var(--ac3);">1</div>
+      <div style="font-size:10px; color:var(--tm); margin-top:2px;">📊</div>
+    </div>
+    <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
+      <div id="meMsgs" style="font-size:20px; font-weight:900; color:var(--ac);">0</div>
+      <div style="font-size:10px; color:var(--tm); margin-top:2px;">💬</div>
+    </div>
+    <div style="padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; text-align:center;">
+      <div id="meCandy" style="font-size:20px; font-weight:900; color:#ec4899;">0</div>
+      <div style="font-size:10px; color:var(--tm); margin-top:2px;">🍬</div>
+    </div>
+  </div>
+
+  <!-- КНОПКИ -->
+  <div style="padding:0 16px;">
+    <div onclick="navigate('desk')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <div style="font-size:20px;">🖥️</div>
+      <div style="flex:1; font-weight:800;">Рабочий стол</div>
+      <div style="color:var(--tm);">›</div>
+    </div>
+    
+    <div onclick="alert('Настройки скоро')" style="padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <div style="font-size:20px;">⚙️</div>
+      <div style="flex:1; font-weight:800;">Настройки</div>
+      <div style="color:var(--tm);">›</div>
+    </div>
+
+    <div onclick="logout()" style="padding:14px; background:rgba(244,63,94,0.1); border:1px solid rgba(244,63,94,0.3); border-radius:14px; display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <div style="font-size:20px;">🚪</div>
+      <div style="flex:1; font-weight:800; color:#f43f5e;">Выйти</div>
+      <div style="color:#f43f5e;">›</div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadMe() {
+  try {
+    const r = await fetch('/api/me?token=' + token);
+    const u = await r.json();
+    
+    // Аватар
+    const avSrc = u.gif_avatar || u.avatar;
+    const av = document.getElementById('meAv');
+    if(avSrc) av.innerHTML = `<img src="${esc(avSrc)}" style="width:100%;height:100%;object-fit:cover">`;
+    else av.textContent = (u.display_name || u.username).charAt(0).toUpperCase();
+    
+    // Баннер
+    if(u.banner) {
+      document.getElementById('meBanner').style.background = `url(${u.banner}) center/cover`;
+    }
+    
+    // Инфо
+    document.getElementById('meName').textContent = u.display_name || u.username;
+    document.getElementById('meUser').textContent = '@' + u.username;
+    if(u.bio) document.getElementById('meBio').textContent = u.bio;
+    
+    // Статы
+    document.getElementById('meCoins').textContent = u.coins || 0;
+    document.getElementById('meLevel').textContent = u.level || 1;
+    document.getElementById('meMsgs').textContent = u.messages_count || 0;
+    document.getElementById('meCandy').textContent = u.candy || 0;
+    
+  } catch(e) { console.error(e); }
+}
+
+async function uploadAvatar(input) {
+  const f = input.files[0];
+  if(!f) return;
+  const fd = new FormData();
+  fd.append('token', token);
+  fd.append('file', f);
+  alert('⏳ Загрузка аватарки...');
+  try {
+    const r = await fetch('/api/upload_avatar', { method: 'POST', body: fd });
+    const d = await r.json();
+    if(r.ok) { alert('✅ Аватарка обновлена'); loadMe(); }
+    else alert('❌ ' + (d.detail || 'Ошибка'));
+  } catch(e) { alert('❌ Ошибка сети'); }
+  input.value = '';
+}
+
+async function uploadBanner(input) {
+  const f = input.files[0];
+  if(!f) return;
+  const fd = new FormData();
+  fd.append('token', token);
+  fd.append('file', f);
+  alert('⏳ Загрузка баннера...');
+  try {
+    const r = await fetch('/api/upload_banner', { method: 'POST', body: fd });
+    const d = await r.json();
+    if(r.ok) { alert('✅ Баннер обновлен'); loadMe(); }
+    else alert('❌ ' + (d.detail || 'Ошибка'));
+  } catch(e) { alert('❌ Ошибка сети'); }
+  input.value = '';
+}
+
+function logout() {
+  if(!confirm('Выйти из аккаунта?')) return;
+  localStorage.removeItem('bc_token');
+  window.location.href = '/';
+}
+
+function init_me() {
+  loadMe();
+}
+</script>
