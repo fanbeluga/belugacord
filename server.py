@@ -208,6 +208,12 @@ async def sw(): return FileResponse("sw.js", media_type="application/javascript"
 @app.get("/manifest.json")
 async def manifest(): return FileResponse("manifest.json")
 
+@app.get("/login")
+async def login_page(): return FileResponse("login.html")
+
+@app.get("/reg")
+async def reg_page(): return FileResponse("reg.html")
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
