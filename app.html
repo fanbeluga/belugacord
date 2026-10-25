@@ -38,7 +38,6 @@ body::after { content:''; position:fixed; inset:0; background:repeating-linear-g
 .spinner { width:40px; height:40px; border:3px solid rgba(34,197,94,.3); border-top-color:var(--ac); border-radius:50%; animation:spin 1s linear infinite; margin-right:12px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-/* МОБИЛЬНАЯ НИЖНЯЯ ПАНЕЛЬ */
 #bottomNav { display:none; height:64px; background:rgba(10,18,10,.98); border-top:1px solid rgba(34,197,94,.3); justify-content:space-around; align-items:center; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom); z-index:20; }
 .bn-item { display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--td); font-size:10px; cursor:pointer; }
 .bn-item .ic { font-size:22px; }
@@ -81,17 +80,24 @@ body::after { content:''; position:fixed; inset:0; background:repeating-linear-g
 </div>
 
 <script>
+// 1. Проверка токена (без редиректа, если он есть)
 const token = localStorage.getItem('bc_token');
-if (!token) window.location.href = '/login';
+if (!token) {
+    window.location.href = '/login';
+}
 
-let me = null, ws = null, offlineQ = [];
-let ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+// Глобальные переменные
+let me = null;
+let ws = null;
+let offlineQ = [];
 let curPage = null;
+let ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
 function g(id) { return document.getElementById(id); }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function wsSend(p) { const j = JSON.stringify(p); if(ws && ws.readyState === 1) ws.send(j); else offlineQ.push(j); }
 
+// 2. WebSocket подключение
 function connectWS() {
   const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
   ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(token));
@@ -105,19 +111,27 @@ function connectWS() {
   ws.onclose = function() { setTimeout(connectWS, 3000); };
 }
 
+// 3. Навигация по страницам
 async function navigate(page) {
   if (curPage === page) return;
   curPage = page;
+  
+  // Подсветка активной вкладки
   document.querySelectorAll('.tb-tab').forEach(t => t.classList.toggle('on', t.dataset.page === page));
+  
   const container = g('appContent');
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Загрузка...</div>';
+  
+  // Меняем URL без перезагрузки страницы
   history.pushState(null, '', '/app/' + page);
+  
   try {
     const r = await fetch('/pages/' + page + '.html');
     if (!r.ok) throw new Error('404');
     const html = await r.text();
     container.innerHTML = html;
     
+    // Перезапускаем скрипты внутри загруженной страницы
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
@@ -126,25 +140,43 @@ async function navigate(page) {
       oldScript.parentNode.replaceChild(newScript, oldScript);
     });
 
+    // Вызываем функцию инициализации страницы (например, init_desk)
     const initFn = window['init_' + page];
     if (typeof initFn === 'function') initFn();
 
   } catch(e) {
     container.innerHTML = '<div style="text-align:center;padding:40px;color:#dc2626;">Ошибка загрузки страницы</div>';
+    console.error(e);
   }
 }
 
+// 4. Старт приложения
 window.addEventListener('DOMContentLoaded', async () => {
+  // Проверяем токен у сервера
   try {
-    const r = await fetch('/api/me?token=' + token);
-    if (!r.ok) throw new Error('Unauthorized');
+    const r = await fetch('/api/me', {
+        method: 'GET',
+        headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    if (!r.ok) {
+        throw new Error('Unauthorized');
+    }
+    
     me = await r.json();
+    console.log("Успешный вход! Профиль:", me);
+    
   } catch(e) {
+    console.error("Ошибка авторизации:", e);
     localStorage.removeItem('bc_token');
     window.location.href = '/login';
     return;
   }
 
+  // Пытаемся получить настройки WebRTC (если есть)
   try {
     const iceR = await fetch('/api/webrtc/config');
     if (iceR.ok) {
@@ -153,12 +185,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch(e) {}
 
+  // Подключаем WebSocket и открываем десктоп
   connectWS();
   const urlPage = location.pathname.split('/').pop();
   const startPage = urlPage && urlPage !== 'app' ? urlPage : 'desk';
   navigate(startPage);
 });
 
+// 5. Обработка кнопок "Назад/Вперед" в браузере
 window.addEventListener('popstate', () => {
   const urlPage = location.pathname.split('/').pop();
   if (urlPage) navigate(urlPage);
