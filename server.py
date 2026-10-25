@@ -9,14 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://belugacord_user:1VSALM1cow@127.0.0.1/belugacord_zjgh")
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs("pages", exist_ok=True) # Папка для страниц SPA
-
+os.makedirs("pages", exist_ok=True)
 SECRET_KEY = os.environ.get("SECRET_KEY", "belugacord_secret_2032")
-OWNER_PASSWORD = "12344321"
 ADMIN_USERNAME = "_fan_beluga_"
+OWNER_PASSWORD = "12344321"
 CURRENT_VERSION = "4.3"
 
-# TURN (твой сервер)
 TURN_HOST = "189.74.125.21"
 TURN_PORT = 3478
 TURN_USER = "beluga"
@@ -66,8 +64,7 @@ def _safe_json(v, default=None):
 pool = None
 async def get_pool():
     global pool
-    if pool is None: 
-        pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
+    if pool is None: pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
     return pool
 
 async def init_db():
@@ -129,7 +126,6 @@ async def init_db():
             id SERIAL PRIMARY KEY, item_id VARCHAR(32) UNIQUE, name VARCHAR(64),
             emoji VARCHAR(8), price INTEGER DEFAULT 0
         )""")
-        # Заполняем каталог мебели
         furniture = [("sofa","Диван","🛋️",500),("table","Стол","🪑",300),("bed","Кровать","🛏️",800),
                      ("tv","Телевизор","📺",1500),("plant","Растение","🪴",200),("lamp","Лампа","💡",250)]
         for f in furniture:
@@ -141,16 +137,17 @@ async def init_db():
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
-app.mount("/pages", StaticFiles(directory="pages"), name="pages") # Раздаем страницы SPA
+app.mount("/pages", StaticFiles(directory="pages"), name="pages")
 
 online_users = set()
-manager_ref = None # Ссылка на менеджер соединений (заполним позже)
+manager_ref = None
 
 @app.on_event("startup")
 async def startup():
     if DATABASE_URL:
         try: await init_db()
         except Exception as e: print(f"❌ DB INIT: {e}")
+
 # ====== ХЕЛПЕРЫ ======
 async def get_current_user(token: str):
     parsed = parse_token(token)
@@ -181,7 +178,6 @@ def user_public(row, viewer_id=None):
     except Exception as e:
         print(f"[user_public ERR] {e}")
         return {"id": row.get("id"), "username": row.get("username")}
-
 # ====== АВТОРИЗАЦИЯ ======
 @app.post("/api/register")
 async def register(data: dict):
@@ -195,8 +191,8 @@ async def register(data: dict):
     
     p = await get_pool()
     async with p.acquire() as conn:
-        exists = await conn.fetchrow("SELECT id FROM users WHERE username=$1", raw_u)
-        if exists: raise HTTPException(400, "Занято")
+        exists = await conn.fetchrow("SELECT id FROM users WHERE LOWER(username)=LOWER($1)", raw_u)
+        if exists: raise HTTPException(400, "Этот username уже занят. Выбери другой.")
         
         row = await conn.fetchrow("""INSERT INTO users(username,display_name,password_hash,is_admin) 
             VALUES($1,$2,$3,$4) RETURNING *""", raw_u, raw_d, hash_password(pw), raw_u == ADMIN_USERNAME)
@@ -219,7 +215,6 @@ async def login(data: dict):
     if not row or not verify_password(pw, row["password_hash"]): 
         raise HTTPException(400, "Неверный логин/пароль")
     
-    # Не блокируем вход, если забанен (фронт сам перекинет на /banned)
     return {"token": make_token(row["id"], row["username"]), "user": user_public(row, row["id"])}
 
 @app.get("/api/me")
@@ -245,7 +240,6 @@ async def delete_my_account(data: dict):
     if not user: raise HTTPException(401, "Не авторизован")
     p = await get_pool()
     async with p.acquire() as conn:
-        # Благодаря ON DELETE CASCADE удалятся его сообщения, друзья, посты и т.д.
         await conn.execute("DELETE FROM users WHERE id=$1", user["id"])
     return {"ok": True}
 
@@ -299,7 +293,7 @@ async def upload_banner(token: str = Form(...), file: UploadFile = File(...)):
 async def upload_file(token: str = Form(...), file: UploadFile = File(...)):
     user = await get_current_user(token)
     if not user: raise HTTPException(401, "Не авторизован")
-    lim = 30 * 1024 * 1024 # 30 MB
+    lim = 30 * 1024 * 1024
     mime = (file.content_type or "application/octet-stream").lower()
     content = await file.read()
     if len(content) > lim: raise HTTPException(400, "Макс 30 МБ")
@@ -337,7 +331,6 @@ async def friends_list(token: str):
     p = await get_pool()
     async with p.acquire() as conn:
         result = []
-        # Принятые
         frows = await conn.fetch("SELECT CASE WHEN user_a=$1 THEN user_b ELSE user_a END AS oid FROM friends WHERE user_a=$1 OR user_b=$1", uid)
         for r in frows:
             o = await conn.fetchrow("SELECT * FROM users WHERE id=$1", r["oid"])
@@ -345,7 +338,6 @@ async def friends_list(token: str):
                 item = user_public(o, uid)
                 item["status"] = "accepted"
                 result.append(item)
-        # Входящие
         inc = await conn.fetch("SELECT id AS rid, from_user AS oid FROM friend_requests WHERE to_user=$1", uid)
         for r in inc:
             o = await conn.fetchrow("SELECT * FROM users WHERE id=$1", r["oid"])
@@ -354,7 +346,6 @@ async def friends_list(token: str):
                 item["status"] = "incoming"
                 item["request_id"] = r["rid"]
                 result.append(item)
-        # Исходящие
         out = await conn.fetch("SELECT id AS rid, to_user AS oid FROM friend_requests WHERE from_user=$1", uid)
         for r in out:
             o = await conn.fetchrow("SELECT * FROM users WHERE id=$1", r["oid"])
@@ -416,6 +407,22 @@ async def friends_cancel(data: dict):
     return {"ok": True}
 
 # ====== КАНАЛЫ ======
+@app.get("/api/check_channel_username")
+async def check_channel_username(u: str, token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    u = (u or "").lower().strip()
+    if len(u) < 4: return {"available": False, "reason": "Минимум 4 символа"}
+    if len(u) > 32: return {"available": False, "reason": "Максимум 32 символа"}
+    if not re.match(r'^[a-z][a-z0-9_]*$', u): return {"available": False, "reason": "Только a-z, 0-9, _"}
+    p = await get_pool()
+    async with p.acquire() as conn:
+        u1 = await conn.fetchval("SELECT 1 FROM users WHERE LOWER(username)=$1", u)
+        if u1: return {"available": False, "reason": "Занято пользователем"}
+        u2 = await conn.fetchval("SELECT 1 FROM channels WHERE LOWER(username)=$1", u)
+        if u2: return {"available": False, "reason": "Занято каналом"}
+    return {"available": True, "reason": "Свободен"}
+
 @app.get("/api/channels/my")
 async def channels_my(token: str):
     user = await get_current_user(token)
@@ -434,6 +441,13 @@ async def channels_create(data: dict):
     uname = (data.get("username") or "").strip().lower()
     p = await get_pool()
     async with p.acquire() as conn:
+        if uname:
+            if len(uname) < 4: raise HTTPException(400, "Username мин 4")
+            if not re.match(r'^[a-z][a-z0-9_]*$', uname): raise HTTPException(400, "Только a-z, 0-9, _")
+            if await conn.fetchval("SELECT 1 FROM users WHERE LOWER(username)=$1", uname):
+                raise HTTPException(400, "Username занят пользователем")
+            if await conn.fetchval("SELECT 1 FROM channels WHERE LOWER(username)=$1", uname):
+                raise HTTPException(400, "Username занят каналом")
         c = await conn.fetchrow("""INSERT INTO channels(username,name,bio,avatar,owner_id,is_private) 
             VALUES($1,$2,$3,$4,$5,$6) RETURNING *""",
             uname or None, name, (data.get("bio") or "")[:256], data.get("avatar"), user["id"], bool(data.get("is_private", False)))
@@ -475,7 +489,6 @@ async def channel_post(cid: int, data: dict):
         r = await conn.fetchrow("""INSERT INTO channel_posts(channel_id,author_id,text,media_urls,media_kind)
             VALUES($1,$2,$3,$4,$5) RETURNING *""", cid, user["id"], text, json.dumps(media), kind)
     return {"ok": True, "post_id": r["id"]}
-
 # ====== УЛИЦА ======
 @app.get("/api/street/users")
 async def street_users(token: str):
@@ -497,7 +510,7 @@ async def street_move(data: dict):
     async with p.acquire() as conn:
         await conn.execute("""INSERT INTO user_positions(user_id,x,y,location,updated_at) VALUES($1,$2,$3,'street',NOW())
             ON CONFLICT(user_id) DO UPDATE SET x=$2,y=$3,location='street',updated_at=NOW()""", user["id"], x, y)
-    if manager_ref: await manager_ref.broadcast({"type": "street_move", "user_id": user["id"], "x": x, "y": y}, exclude=user["id"])
+    await manager.broadcast({"type": "street_move", "user_id": user["id"], "x": x, "y": y}, exclude=user["id"])
     return {"ok": True}
 
 # ====== ДОМ ======
@@ -533,26 +546,74 @@ async def house_place(data: dict):
             float(data.get("x", 50)), float(data.get("y", 50)), iid, h["id"])
     return {"ok": True}
 
-# ====== ФАЙЛЫ И СТАТИКА ======
-@app.get("/manifest.json")
-async def manifest():
-    return {"name":"BelugaCord 4.3","short_name":"BelugaCord","start_url":"/","display":"standalone","background_color":"#020005","theme_color":"#d946ef","icons":[{"src":"/icon-192x192.png","sizes":"192x192","type":"image/png"}]}
+# ====== АДМИНКА ======
+@app.post("/api/owner/verify")
+async def owner_verify(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    if user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    if (data.get("password") or "") != OWNER_PASSWORD: raise HTTPException(403, "Неверный пароль")
+    return {"ok": True}
 
-# ====== РОУТЫ ДЛЯ SPA ======
-@app.get("/")
-async def index(): return FileResponse("index.html")
-@app.get("/login")
-async def login_page(): return FileResponse("login.html")
-@app.get("/reg")
-async def reg_page(): return FileResponse("reg.html")
-@app.get("/app")
-async def app_page(): return FileResponse("app.html")
-@app.get("/banned")
-async def banned_page(): return FileResponse("pages/banned.html")
-# ====== WEBSOCKET МЕНЕДЖЕР ======
+@app.get("/api/owner/stats")
+async def owner_stats(token: str):
+    user = await get_current_user(token)
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        u = await conn.fetchval("SELECT COUNT(*) FROM users")
+        c = await conn.fetchval("SELECT COALESCE(SUM(coins),0) FROM users")
+        m = await conn.fetchval("SELECT COUNT(*) FROM dms")
+        ch = await conn.fetchval("SELECT COUNT(*) FROM channels")
+    return {"users": u, "online": len(online_users), "coins": c, "messages": m, "channels": ch, "groups": 0}
+
+@app.get("/api/admin/users")
+async def admin_users(token: str, limit: int = 500):
+    user = await get_current_user(token)
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("SELECT id,username,display_name,is_admin,is_banned,coins,level FROM users ORDER BY id LIMIT $1", limit)
+    return {"users": [dict(r) for r in rows]}
+
+@app.post("/api/admin/action")
+async def admin_action(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    tid = int(data.get("target_id", 0))
+    action = data.get("action")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        if action == "ban":
+            await conn.execute("UPDATE users SET is_banned=TRUE, ban_reason=$1, ban_role='owner', ban_date=NOW() WHERE id=$2", (data.get("reason") or "")[:256], tid)
+        elif action == "unban":
+            await conn.execute("UPDATE users SET is_banned=FALSE WHERE id=$1", tid)
+    return {"ok": True}
+
+@app.post("/api/owner/give_coins")
+async def give_coins(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user or user["username"] != ADMIN_USERNAME: raise HTTPException(403, "Только владелец")
+    tid = int(data.get("user_id", 0))
+    amt = int(data.get("amount", 0))
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2", amt, tid)
+    return {"ok": True}
+
+# ====== TURN CONFIG ======
+@app.get("/api/webrtc/config")
+async def webrtc_config():
+    return {
+        "iceServers": [
+            {"urls": "stun:stun.l.google.com:19302"},
+            {"urls": f"turn:{TURN_HOST}:{TURN_PORT}", "username": TURN_USER, "credential": TURN_PASS}
+        ]
+    }
+
+# ====== WEBSOCKET ======
 class ConnectionManager:
-    def __init__(self): 
-        self.connections = {}
+    def __init__(self): self.connections = {}
     async def connect(self, uid, ws):
         await ws.accept()
         self.connections.setdefault(uid, []).append(ws)
@@ -576,53 +637,32 @@ class ConnectionManager:
                 except: self.disconnect(uid, ws)
 
 manager = ConnectionManager()
-manager_ref = manager # Связываем с переменной из Части 1
 
-# ====== TURN CONFIG API ======
-@app.get("/api/webrtc/config")
-async def webrtc_config():
-    return {
-        "iceServers": [
-            {"urls": "stun:stun.l.google.com:19302"},
-            {"urls": f"turn:{TURN_HOST}:{TURN_PORT}", "username": TURN_USER, "credential": TURN_PASS}
-        ]
-    }
-
-# ====== WEBSOCKET ======
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket, token: str):
     user = await get_current_user(token)
-    if not user: 
-        await ws.close()
-        return
-    if user.get("is_banned"):
-        await ws.close()
-        return
-
+    if not user: await ws.close(); return
+    if user.get("is_banned"): await ws.close(); return
+    
     uid = user["id"]
     await manager.connect(uid, ws)
+    active_calls = {}
     
-    try: 
-        await ws.send_json({"type": "online_list", "users": list(online_users)})
+    try: await ws.send_json({"type": "online_list", "users": list(online_users)})
     except: pass
-    
     await manager.broadcast({"type": "user_online", "user_id": uid}, exclude=uid)
-
-    active_calls = {} # Храним звонки в памяти
 
     try:
         while True:
             raw = await ws.receive_text()
             try: data = json.loads(raw)
             except: continue
-            
             t = data.get("type")
             if t == "ping":
                 try: await ws.send_json({"type": "pong"})
                 except: pass
                 continue
 
-            # 1. ЛИЧНЫЕ СООБЩЕНИЯ
             if t == "dm":
                 to_id = int(data.get("to_user", 0))
                 text = (data.get("text") or "")[:MAX_TEXT]
@@ -631,43 +671,29 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 fsize = int(data.get("file_size", 0))
                 tid = data.get("temp_id")
                 if not to_id: continue
-                
                 p = await get_pool()
                 async with p.acquire() as conn:
                     msg = await conn.fetchrow("""INSERT INTO dms(from_user,to_user,text,file_url,file_size,msg_kind) 
                         VALUES($1,$2,$3,$4,$5,$6) RETURNING *""", uid, to_id, text, furl, fsize, kind)
                     await conn.execute("UPDATE users SET messages_count=messages_count+1 WHERE id=$1", uid)
-                
                 dn = user.get("display_name") or user["username"]
-                payload = {
-                    "type": "dm", "id": msg["id"], "from_user": uid, "to_user": to_id,
-                    "username": user["username"], "display_name": dn, "avatar": user.get("avatar"),
-                    "text": text, "file_url": furl, "file_size": fsize, "msg_kind": kind,
-                    "created_at": _iso(msg["created_at"]), "temp_id": tid
-                }
+                payload = {"type": "dm", "id": msg["id"], "from_user": uid, "to_user": to_id, "username": user["username"], "display_name": dn, "avatar": user.get("avatar"), "text": text, "file_url": furl, "file_size": fsize, "msg_kind": kind, "created_at": _iso(msg["created_at"]), "temp_id": tid}
                 await manager.send_to(to_id, payload)
-                await manager.send_to(uid, payload) # Отправляем себе, чтобы заменить временное
+                await manager.send_to(uid, payload)
 
-            # 2. ПЕРЕМЕЩЕНИЕ НА УЛИЦЕ
             elif t == "street_move":
                 x = max(0, min(100, float(data.get("x", 50))))
                 y = max(0, min(100, float(data.get("y", 50))))
                 await manager.broadcast({"type": "street_move", "user_id": uid, "x": x, "y": y}, exclude=uid)
 
-            # 3. ЗВОНКИ (С TURN)
             elif t == "call_invite":
                 to_id = int(data.get("to_user", 0))
                 ctype = data.get("call_type", "audio")
                 if not to_id: continue
-                
                 call_id = secrets.token_hex(8)
                 active_calls[call_id] = {"caller": uid, "callee": to_id, "type": ctype}
                 dn = user.get("display_name") or user["username"]
-                
-                await manager.send_to(to_id, {
-                    "type": "call_incoming", "call_id": call_id, "from_user": uid, 
-                    "from_name": dn, "from_avatar": user.get("avatar"), "call_type": ctype
-                })
+                await manager.send_to(to_id, {"type": "call_incoming", "call_id": call_id, "from_user": uid, "from_name": dn, "from_avatar": user.get("avatar"), "call_type": ctype})
                 await manager.send_to(uid, {"type": "call_ringing", "call_id": call_id})
 
             elif t == "call_accept":
@@ -689,7 +715,6 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                     await manager.send_to(other, {"type": "call_ended", "call_id": cid})
                     del active_calls[cid]
 
-            # 4. WebRTC СИГНАЛИНГ (обмен SDP и ICE)
             elif t in ("webrtc_offer", "webrtc_answer", "webrtc_ice"):
                 to_id = int(data.get("to_user", 0))
                 if not to_id: continue
@@ -699,13 +724,33 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 else: payload["candidate"] = data.get("candidate")
                 await manager.send_to(to_id, payload)
 
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"[WS ERR] {e}")
+    except WebSocketDisconnect: pass
+    except Exception as e: print(f"[WS ERR] {e}")
     finally:
         manager.disconnect(uid, ws)
         await manager.broadcast({"type": "user_offline", "user_id": uid})
+
+# ====== РАЗДАЧА СТРАНИЦ ======
+@app.get("/")
+async def index(): return FileResponse("index.html")
+@app.get("/login")
+async def login_page(): return FileResponse("login.html")
+@app.get("/reg")
+async def reg_page(): return FileResponse("reg.html")
+@app.get("/app")
+async def app_page(): return FileResponse("app.html")
+@app.get("/banned")
+async def banned_page(): return FileResponse("pages/banned.html")
+@app.get("/admin")
+async def admin_page(): return FileResponse("admin.html")
+@app.get("/app/{path:path}")
+async def app_spa(path: str): return FileResponse("app.html")
+
+@app.get("/sw.js")
+async def sw(): return FileResponse("sw.js", media_type="application/javascript")
+
+@app.get("/manifest.json")
+async def manifest(): return FileResponse("manifest.json")
 
 # ====== ЗАПУСК ======
 if __name__ == "__main__":
