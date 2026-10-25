@@ -1,0 +1,265 @@
+<div style="flex:1; display:flex; flex-direction:column; height:100%; overflow:hidden;">
+  
+  <!-- СПИСОК КАНАЛОВ -->
+  <div id="channelsWrap" style="flex:1; overflow-y:auto; padding:14px 12px 100px;">
+    <div style="padding:16px; text-align:center; color:var(--tm);">Загрузка каналов...</div>
+  </div>
+
+  <!-- КНОПКА СОЗДАНИЯ (FAB) -->
+  <button onclick="openCreateChannel()" style="position:fixed; bottom:24px; right:20px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; font-size:28px; border:none; cursor:pointer; box-shadow:0 8px 28px rgba(217,70,239,0.5); z-index:30; display:flex; align-items:center; justify-content:center;">＋</button>
+</div>
+
+<!-- МОДАЛКА СОЗДАНИЯ КАНАЛА -->
+<div id="mCreateChannel" style="display:none; position:fixed; inset:0; background:rgba(5,0,15,0.95); z-index:1500; align-items:center; justify-content:center; padding:14px; backdrop-filter:blur(5px);">
+  <div style="background:rgba(10,5,20,0.98); border:1px solid var(--ac); border-radius:20px; width:100%; max-width:500px; padding:24px; position:relative; box-shadow:0 0 30px rgba(217,70,239,0.6); max-height:90vh; overflow-y:auto;">
+    <button onclick="closeCreateChannel()" style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.2); color:#fff; width:34px; height:34px; border-radius:50%; font-size:15px; border:1px solid #dc2626; cursor:pointer;">✕</button>
+    <h2 style="text-align:center; margin-bottom:16px; color:var(--ac);">📢 Новый канал</h2>
+    
+    <label style="font-size:11px; color:var(--td); font-weight:800;">Название</label>
+    <input type="text" id="chName" placeholder="Мой канал" style="width:100%; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 12px; font-family:inherit; outline:none;">
+    
+    <label style="font-size:11px; color:var(--td); font-weight:800;">@username (опционально)</label>
+    <input type="text" id="chUsername" placeholder="my_channel" style="width:100%; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 12px; font-family:inherit; outline:none; text-transform:lowercase;">
+    
+    <label style="font-size:11px; color:var(--td); font-weight:800;">Описание</label>
+    <textarea id="chBio" placeholder="О чём канал..." style="width:100%; min-height:70px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 12px; font-family:inherit; outline:none; resize:vertical;"></textarea>
+    
+    <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; margin-bottom:12px;">
+      <div style="flex:1;">
+        <div style="font-weight:800; font-size:14px;">🔒 Приватный</div>
+        <div style="font-size:11px; color:var(--tm);">Скрыт из поиска</div>
+      </div>
+      <div onclick="this.classList.toggle('on')" id="chPrivate" style="width:52px; height:30px; background:var(--gb); border-radius:15px; cursor:pointer; position:relative; transition:0.2s;">
+        <div style="position:absolute; top:3px; left:3px; width:24px; height:24px; background:#fff; border-radius:50%; transition:0.2s;"></div>
+      </div>
+    </div>
+    
+    <button onclick="createChannel()" style="width:100%; padding:14px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:14px; cursor:pointer; font-family:inherit; letter-spacing:1px;">СОЗДАТЬ</button>
+  </div>
+</div>
+
+<!-- ПРОСМОТР КАНАЛА -->
+<div id="mChannelView" style="display:none; position:fixed; inset:0; background:rgba(5,0,15,0.98); z-index:1400; flex-direction:column; overflow-y:auto;">
+  <div style="padding:16px; border-bottom:1px solid var(--br); background:var(--bg3); display:flex; align-items:center; gap:12px; flex-shrink:0; position:sticky; top:0; z-index:10;">
+    <button onclick="closeChannelView()" style="background:none; border:none; color:var(--td); font-size:22px; cursor:pointer;">←</button>
+    <div style="flex:1;">
+      <div id="cvName" style="font-weight:900; font-size:16px;">Канал</div>
+      <div id="cvUser" style="font-size:11px; color:var(--ac);">@username</div>
+    </div>
+    <button onclick="toggleChannelSub()" id="cvSubBtn" style="padding:8px 14px; border-radius:10px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#fff; font-weight:800; font-size:12px; cursor:pointer; font-family:inherit;">+ Подписаться</button>
+  </div>
+  
+  <div id="cvPosts" style="flex:1; padding:14px 12px 100px; overflow-y:auto;">
+    <div style="text-align:center; padding:40px; color:var(--tm);">Загрузка постов...</div>
+  </div>
+  
+  <div id="cvPostIn" style="padding:10px 12px 14px; background:var(--bg3); border-top:1px solid var(--br); position:sticky; bottom:0; flex-shrink:0;">
+    <div style="display:flex; gap:6px; align-items:flex-end;">
+      <label for="cvFileInput" style="color:var(--ac); font-size:22px; cursor:pointer; padding:6px;">＋</label>
+      <input type="file" id="cvFileInput" style="display:none" onchange="uploadChannelMedia(this)" accept="image/*,video/*">
+      <textarea id="cvPostText" placeholder="Новый пост..." rows="1" style="flex:1; background:var(--glass); border:1px solid var(--gb); border-radius:14px; color:var(--tx); padding:10px 14px; resize:none; font-family:inherit; outline:none; max-height:80px;"></textarea>
+      <button onclick="publishChannelPost()" style="padding:10px 14px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer; font-family:inherit;">📢</button>
+    </div>
+    <div id="cvMediaPreview" style="margin-top:6px; font-size:11px; color:var(--ac3);"></div>
+  </div>
+</div>
+
+<style>
+.chan-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--glass); border:1px solid var(--gb); border-radius:16px; margin-bottom:10px; cursor:pointer; }
+.chan-card:active { background:rgba(217,70,239,.1); border-color:var(--ac); }
+.chan-card .ic { width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg,#22d3ee,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; overflow:hidden; }
+.chan-card .ic img { width:100%; height:100%; object-fit:cover; }
+.chan-card .info { flex:1; min-width:0; }
+.chan-card .nm { font-weight:800; font-size:14px; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chan-card .sub { font-size:11px; color:var(--tm); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.post-card { background:rgba(20,16,32,.7); border:1px solid rgba(217,70,239,.15); border-radius:14px; padding:14px; margin-bottom:10px; }
+.post-text { font-size:14px; line-height:1.5; margin-bottom:8px; white-space:pre-wrap; }
+.post-media img { width:100%; border-radius:10px; max-height:400px; object-fit:cover; cursor:pointer; margin-bottom:6px; }
+.post-meta { display:flex; justify-content:space-between; font-size:10px; color:var(--tm); margin-top:6px; }
+#chPrivate.on { background:linear-gradient(135deg,var(--ac),var(--ac2)); }
+#chPrivate.on div { transform:translateX(22px); }
+</style>
+
+<script>
+let curChannel = null;
+let curChannelData = null;
+let curChannelMedia = [];
+
+async function loadChannels() {
+  const w = document.getElementById('channelsWrap');
+  w.innerHTML = '<div style="padding:16px; text-align:center; color:var(--tm);">Загрузка...</div>';
+  try {
+    const r = await fetch('/api/channels/my?token=' + token);
+    const arr = await r.json();
+    if(!Array.isArray(arr) || !arr.length) {
+      w.innerHTML = '<div style="padding:40px; text-align:center; color:var(--tm);"><div style="font-size:48px; margin-bottom:12px;">📢</div>У тебя нет каналов<br><br>Создай первый!</div>';
+      return;
+    }
+    w.innerHTML = '';
+    arr.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'chan-card';
+      d.innerHTML = `<div class="ic">${c.avatar ? `<img src="${esc(c.avatar)}">` : '📢'}</div><div class="info"><div class="nm">${esc(c.name)}</div><div class="sub">@${esc(c.username || '')} · ${c.subscribers_count || 0} подп.</div></div>`;
+      d.onclick = () => openChannelView(c.id);
+      w.appendChild(d);
+    });
+  } catch(e) { w.innerHTML = 'Ошибка'; }
+}
+
+function openCreateChannel() {
+  document.getElementById('mCreateChannel').style.display = 'flex';
+}
+
+function closeCreateChannel() {
+  document.getElementById('mCreateChannel').style.display = 'none';
+}
+
+async function createChannel() {
+  const name = document.getElementById('chName').value.trim();
+  const username = document.getElementById('chUsername').value.trim().toLowerCase();
+  const bio = document.getElementById('chBio').value.trim();
+  const isPriv = document.getElementById('chPrivate').classList.contains('on');
+  
+  if(!name) { alert('⚠️ Введи название'); return; }
+  
+  try {
+    const r = await fetch('/api/channels/create', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, name, username: username || undefined, bio, is_private: isPriv })
+    });
+    const d = await r.json();
+    if(r.ok) {
+      alert('✅ Канал создан');
+      closeCreateChannel();
+      loadChannels();
+    } else {
+      alert('❌ ' + (d.detail || 'Ошибка'));
+    }
+  } catch(e) { alert('❌ Ошибка сети'); }
+}
+
+async function openChannelView(cid) {
+  curChannel = { id: cid };
+  document.getElementById('mChannelView').style.display = 'flex';
+  document.getElementById('cvPosts').innerHTML = '<div style="text-align:center; padding:40px; color:var(--tm);">⏳</div>';
+  
+  try {
+    const r = await fetch('/api/channels/' + cid + '?token=' + token);
+    curChannelData = await r.json();
+    if(!r.ok) { alert('Ошибка канала'); return; }
+    
+    document.getElementById('cvName').textContent = curChannelData.name;
+    document.getElementById('cvUser').textContent = curChannelData.username ? '@' + curChannelData.username : '';
+    document.getElementById('cvSubBtn').textContent = curChannelData.is_owner ? '👑 Владелец' : (curChannelData.is_subscribed ? '✓ Подписан' : '+ Подписаться');
+    
+    // Показываем поле ввода только если это владелец/админ
+    document.getElementById('cvPostIn').style.display = curChannelData.is_admin ? 'block' : 'none';
+    
+    loadChannelPosts(cid);
+  } catch(e) { alert('Ошибка загрузки'); }
+}
+
+function closeChannelView() {
+  document.getElementById('mChannelView').style.display = 'none';
+  curChannel = null;
+}
+
+async function loadChannelPosts(cid) {
+  const box = document.getElementById('cvPosts');
+  try {
+    const r = await fetch('/api/channels/' + cid + '/posts?token=' + token);
+    const posts = await r.json();
+    if(!Array.isArray(posts) || !posts.length) {
+      box.innerHTML = '<div style="text-align:center; padding:40px; color:var(--tm);">Пока постов нет</div>';
+      return;
+    }
+    box.innerHTML = '';
+    posts.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'post-card';
+      let mediaHtml = '';
+      if(p.media_urls && p.media_urls.length) {
+        p.media_urls.forEach(u => {
+          if(/\.(mp4|webm|mov)$/i.test(u)) mediaHtml += `<video class="post-media" controls style="width:100%; border-radius:10px; margin-bottom:6px;" src="${esc(u)}"></video>`;
+          else mediaHtml += `<div class="post-media"><img src="${esc(u)}"></div>`;
+        });
+      }
+      card.innerHTML = `
+        ${p.text ? `<div class="post-text">${esc(p.text)}</div>` : ''}
+        ${mediaHtml}
+        <div class="post-meta">
+          <span>👁️ ${p.views || 0} · 💬 ${p.comments_count || 0}</span>
+          <span>${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+      `;
+      box.appendChild(card);
+    });
+  } catch(e) { box.innerHTML = 'Ошибка'; }
+}
+
+async function toggleChannelSub() {
+  if(!curChannelData) return;
+  const url = curChannelData.is_subscribed ? '/api/channels/' + curChannel.id + '/unsubscribe' : '/api/channels/' + curChannel.id + '/subscribe';
+  try {
+    const r = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token }) });
+    if(r.ok) { openChannelView(curChannel.id); }
+  } catch(e) {}
+}
+
+async function uploadChannelMedia(input) {
+  const f = input.files[0];
+  if(!f) return;
+  if(f.size > 30 * 1024 * 1024) { alert('❌ > 30 МБ'); input.value = ''; return; }
+  
+  alert('⏳ Загрузка...');
+  const fd = new FormData();
+  fd.append('token', token);
+  fd.append('file', f);
+  
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    const d = await r.json();
+    if(r.ok && d.url) {
+      curChannelMedia.push(d.url);
+      document.getElementById('cvMediaPreview').innerHTML = '📎 Файл прикреплен: ' + f.name;
+      alert('✅ Файл загружен');
+    } else {
+      alert('❌ ' + (d.detail || 'Ошибка'));
+    }
+  } catch(e) { alert('❌ Ошибка'); }
+  input.value = '';
+}
+
+async function publishChannelPost() {
+  const text = document.getElementById('cvPostText').value.trim();
+  if(!text && curChannelMedia.length === 0) { alert('⚠️ Пусто'); return; }
+  
+  let kind = 'text';
+  if(curChannelMedia.length > 0) {
+    const first = curChannelMedia[0].toLowerCase();
+    if(first.match(/\.(png|jpg|jpeg|gif|webp)$/)) kind = 'photo';
+    else if(first.match(/\.(mp4|webm|mov)$/)) kind = 'video';
+  }
+  
+  try {
+    const r = await fetch('/api/channels/' + curChannel.id + '/post', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, text, media_urls: curChannelMedia, media_kind: kind })
+    });
+    if(r.ok) {
+      document.getElementById('cvPostText').value = '';
+      curChannelMedia = [];
+      document.getElementById('cvMediaPreview').innerHTML = '';
+      alert('📢 Пост опубликован');
+      loadChannelPosts(curChannel.id);
+    } else {
+      const d = await r.json();
+      alert('❌ ' + (d.detail || 'Ошибка'));
+    }
+  } catch(e) { alert('❌ Ошибка'); }
+}
+
+function init_channels() {
+  loadChannels();
+}
+</script>
