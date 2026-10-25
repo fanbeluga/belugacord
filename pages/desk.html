@@ -1,69 +1,39 @@
-<div style="padding:16px; height:100%; overflow-y:auto; box-sizing:border-box;">
-  <div style="padding:16px; background:linear-gradient(135deg, rgba(34,197,94,0.15), rgba(249,115,22,0.1)); border:1px solid var(--br); border-radius:16px; margin-bottom:20px;">
-    <h2 style="font-size:20px; font-weight:900; color:var(--ac); margin-bottom:4px;" id="deskHello">Привет 👋</h2>
-    <p style="font-size:12px; color:var(--td);">BelugaCord x GudraWorld</p>
-  </div>
+<style>
+.desk-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px; }
+.desk-card { background:rgba(10,18,10,0.8); border:1px solid var(--border); padding:20px; position:relative; transition:0.3s; cursor:pointer; }
+.desk-card:hover { border-color:var(--ac); box-shadow:0 0 20px rgba(34,197,94,0.2); transform:translateY(-2px); }
+.desk-card h2 { font-size:16px; color:var(--ac); margin-bottom:10px; display:flex; justify-content:space-between; }
+.desk-card p { font-size:12px; color:var(--td); line-height:1.5; }
+.desk-stat { font-size:28px; font-weight:bold; color:var(--ac2); text-shadow:var(--glow-orange); margin-top:10px; }
+</style>
 
-  <!-- БЫСТРЫЕ -->
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// БЫСТРЫЕ</div>
-  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="navigate('dm')"><div class="ic">💬</div><div class="nm">Чаты</div></div>
-    <div class="d-icon" onclick="navigate('friends')"><div class="ic">👥</div><div class="nm">Друзья</div></div>
-    <div class="d-icon" onclick="navigate('channels')"><div class="ic">📢</div><div class="nm">Каналы</div></div>
-    <div class="d-icon" onclick="navigate('street')"><div class="ic">🌆</div><div class="nm">Улица</div></div>
+<div class="desk-grid">
+  <div class="desk-card" onclick="navigate('dm')">
+    <h2>СООБЩЕНИЯ <span>[💬]</span></h2>
+    <p>Ваши зашифрованные каналы связи.</p>
+    <div class="desk-stat">3 NEW</div>
   </div>
-
-  <!-- ГОРОД -->
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ГОРОД</div>
-  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="openShop()"><div class="ic">🛒</div><div class="nm">Магазин</div></div>
-    <div class="d-icon" onclick="openMarket()"><div class="ic">💰</div><div class="nm">Биржа</div></div>
-    <div class="d-icon" onclick="openFamily()"><div class="ic">👨‍👩‍👧</div><div class="nm">Семья</div></div>
-    <div class="d-icon" onclick="openPets()"><div class="ic">🐱</div><div class="nm">Питомцы</div></div>
-    <div class="d-icon" onclick="navigate('house')"><div class="ic">🏠</div><div class="nm">Дом</div></div>
+  <div class="desk-card" onclick="navigate('friends')">
+    <h2>АГЕНТЫ <span>[👥]</span></h2>
+    <p>Список доверенных лиц в сети.</p>
+    <div class="desk-stat">12 ONLINE</div>
   </div>
-
-  <!-- РАЗВЛЕЧЕНИЯ -->
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// РАЗВЛЕЧЕНИЯ</div>
-  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="openGames()"><div class="ic">🎮</div><div class="nm">Игры</div></div>
-    <div class="d-icon" onclick="openAnonymous()"><div class="ic">🕵️</div><div class="nm">Анонимки</div></div>
-    <div class="d-icon" onclick="openSanta()"><div class="ic">🎅</div><div class="nm">Санта</div></div>
-    <div class="d-icon" onclick="openTruth()"><div class="ic">🔮</div><div class="nm">Детектор</div></div>
+  <div class="desk-card" onclick="navigate('channels')">
+    <h2>ТРАНСЛЯЦИИ <span>[📢]</span></h2>
+    <p>Публичные потоки данных и новости.</p>
+    <div class="desk-stat">5 ACTIVE</div>
   </div>
-
-  <!-- НОВОЕ 4.3 -->
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// НОВОЕ В 4.3</div>
-  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
-    <div class="d-icon" onclick="openPromoModal()"><div class="ic">🎟️</div><div class="nm">Промокоды</div></div>
-    <div class="d-icon" onclick="openMusic()"><div class="ic">🎵</div><div class="nm">Музыка</div></div>
-    <div class="d-icon" onclick="navigate('legal')"><div class="ic">📜</div><div class="nm">Соглашение</div></div>
-    <div class="d-icon" onclick="navigate('me')"><div class="ic">👤</div><div class="nm">Профиль</div></div>
-  </div>
-
-  <!-- ПРОЧЕЕ -->
-  <div style="font-size:12px; color:var(--ac3); font-weight:900; letter-spacing:2px; margin-bottom:10px;">// ПРОЧЕЕ</div>
-  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;">
-    <div class="d-icon" onclick="openPremium()"><div class="ic">💎</div><div class="nm">Premium</div></div>
-    <div class="d-icon" onclick="openSettings()"><div class="ic">⚙️</div><div class="nm">Настройки</div></div>
-    <div class="d-icon" onclick="logout()"><div class="ic">🚪</div><div class="nm">Выйти</div></div>
+  <div class="desk-card" onclick="navigate('me')">
+    <h2>МОЙ ПРОФИЛЬ <span>[👤]</span></h2>
+    <p>Данные агента, инвентарь и баланс.</p>
+    <div class="desk-stat" id="deskCoins">0 🪙</div>
   </div>
 </div>
 
-<style>
-.d-icon { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 6px; background:var(--glass); border:1px solid var(--gb); border-radius:14px; cursor:pointer; text-align:center; gap:6px; transition:0.2s; }
-.d-icon:active { background:rgba(34,197,94,.15); border-color:var(--ac); }
-.d-icon .ic { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:22px; background:rgba(34,197,94,.1); border-radius:12px; }
-.d-icon .nm { font-size:10px; color:var(--td); font-weight:700; line-height:1.2; }
-</style>
-
 <script>
 function init_desk() {
-  fetch('/api/me?token=' + token)
-    .then(r => r.json())
-    .then(u => {
-      const h = document.getElementById('deskHello');
-      if(h) h.textContent = 'Привет, ' + (u.display_name || u.username) + ' 👋';
-    }).catch(()=>{});
+  if (window.me) {
+      document.getElementById('deskCoins').innerText = window.me.coins + ' 🪙';
+  }
 }
 </script>
