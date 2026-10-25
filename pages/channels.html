@@ -1,15 +1,11 @@
 <div style="flex:1; display:flex; flex-direction:column; height:100%; overflow:hidden;">
-  
-  <!-- СПИСОК КАНАЛОВ -->
   <div id="channelsWrap" style="flex:1; overflow-y:auto; padding:14px 12px 100px;">
     <div style="padding:16px; text-align:center; color:var(--tm);">Загрузка каналов...</div>
   </div>
-
-  <!-- КНОПКА СОЗДАНИЯ (FAB) -->
   <button onclick="openCreateChannel()" style="position:fixed; bottom:24px; right:20px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; font-size:28px; border:none; cursor:pointer; box-shadow:0 8px 28px rgba(217,70,239,0.5); z-index:30; display:flex; align-items:center; justify-content:center;">＋</button>
 </div>
 
-<!-- МОДАЛКА СОЗДАНИЯ КАНАЛА -->
+<!-- МОДАЛКА СОЗДАНИЯ -->
 <div id="mCreateChannel" style="display:none; position:fixed; inset:0; background:rgba(5,0,15,0.95); z-index:1500; align-items:center; justify-content:center; padding:14px; backdrop-filter:blur(5px);">
   <div style="background:rgba(10,5,20,0.98); border:1px solid var(--ac); border-radius:20px; width:100%; max-width:500px; padding:24px; position:relative; box-shadow:0 0 30px rgba(217,70,239,0.6); max-height:90vh; overflow-y:auto;">
     <button onclick="closeCreateChannel()" style="position:absolute; top:12px; right:12px; background:rgba(220,38,38,0.2); color:#fff; width:34px; height:34px; border-radius:50%; font-size:15px; border:1px solid #dc2626; cursor:pointer;">✕</button>
@@ -19,7 +15,8 @@
     <input type="text" id="chName" placeholder="Мой канал" style="width:100%; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 12px; font-family:inherit; outline:none;">
     
     <label style="font-size:11px; color:var(--td); font-weight:800;">@username (опционально)</label>
-    <input type="text" id="chUsername" placeholder="my_channel" style="width:100%; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 12px; font-family:inherit; outline:none; text-transform:lowercase;">
+    <input type="text" id="chUsername" oninput="checkChannelUsername(this.value)" placeholder="my_channel" style="width:100%; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 6px; font-family:inherit; outline:none; text-transform:lowercase;">
+    <div id="chUserStatus" style="font-size:11px; color:var(--tm); margin-bottom:12px;"></div>
     
     <label style="font-size:11px; color:var(--td); font-weight:800;">Описание</label>
     <textarea id="chBio" placeholder="О чём канал..." style="width:100%; min-height:70px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; padding:12px; color:var(--tx); margin:6px 0 12px; font-family:inherit; outline:none; resize:vertical;"></textarea>
@@ -56,7 +53,7 @@
   <div id="cvPostIn" style="padding:10px 12px 14px; background:var(--bg3); border-top:1px solid var(--br); position:sticky; bottom:0; flex-shrink:0;">
     <div style="display:flex; gap:6px; align-items:flex-end;">
       <label for="cvFileInput" style="color:var(--ac); font-size:22px; cursor:pointer; padding:6px;">＋</label>
-      <input type="file" id="cvFileInput" style="display:none" onchange="uploadChannelMedia(this)" accept="image/*,video/*">
+      <input type="file" id="cvFileInput" style="display:none" onchange="uploadChannelMedia(this)" accept="image/*,video/*,audio/*">
       <textarea id="cvPostText" placeholder="Новый пост..." rows="1" style="flex:1; background:var(--glass); border:1px solid var(--gb); border-radius:14px; color:var(--tx); padding:10px 14px; resize:none; font-family:inherit; outline:none; max-height:80px;"></textarea>
       <button onclick="publishChannelPost()" style="padding:10px 14px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer; font-family:inherit;">📢</button>
     </div>
@@ -75,6 +72,10 @@
 .post-card { background:rgba(20,16,32,.7); border:1px solid rgba(217,70,239,.15); border-radius:14px; padding:14px; margin-bottom:10px; }
 .post-text { font-size:14px; line-height:1.5; margin-bottom:8px; white-space:pre-wrap; }
 .post-media img { width:100%; border-radius:10px; max-height:400px; object-fit:cover; cursor:pointer; margin-bottom:6px; }
+.post-media video { width:100%; border-radius:10px; max-height:400px; margin-bottom:6px; background:#000; }
+.post-media .circle { width:200px; height:200px; border-radius:50%; overflow:hidden; margin-bottom:6px; border:3px solid var(--ac); }
+.post-media .circle video { width:100%; height:100%; border-radius:50%; }
+.post-media audio { width:100%; margin-bottom:6px; }
 .post-meta { display:flex; justify-content:space-between; font-size:10px; color:var(--tm); margin-top:6px; }
 #chPrivate.on { background:linear-gradient(135deg,var(--ac),var(--ac2)); }
 #chPrivate.on div { transform:translateX(22px); }
@@ -83,7 +84,7 @@
 <script>
 let curChannel = null;
 let curChannelData = null;
-let curChannelMedia = [];
+let curChannelMedia = []; // {url, kind}
 
 async function loadChannels() {
   const w = document.getElementById('channelsWrap');
@@ -106,12 +107,27 @@ async function loadChannels() {
   } catch(e) { w.innerHTML = 'Ошибка'; }
 }
 
-function openCreateChannel() {
-  document.getElementById('mCreateChannel').style.display = 'flex';
-}
+function openCreateChannel() { document.getElementById('mCreateChannel').style.display = 'flex'; }
+function closeCreateChannel() { document.getElementById('mCreateChannel').style.display = 'none'; }
 
-function closeCreateChannel() {
-  document.getElementById('mCreateChannel').style.display = 'none';
+let chCheckTimer = null;
+function checkChannelUsername(val) {
+  const s = document.getElementById('chUserStatus');
+  if(!s) return;
+  val = (val || '').toLowerCase().trim();
+  clearTimeout(chCheckTimer);
+  if(!val) { s.textContent = ''; return; }
+  if(val.length < 4) { s.innerHTML = '<span style="color:#f43f5e">Мин 4</span>'; return; }
+  if(!/^[a-z][a-z0-9_]*$/.test(val)) { s.innerHTML = '<span style="color:#f43f5e">Только a-z, 0-9, _</span>'; return; }
+  s.innerHTML = '<span style="color:var(--tm)">Проверка...</span>';
+  chCheckTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`/api/check_channel_username?u=${encodeURIComponent(val)}&token=${token}`);
+      const d = await r.json();
+      if(d.available) s.innerHTML = '<span style="color:#22c55e">✅ Свободен</span>';
+      else s.innerHTML = '<span style="color:#f43f5e">❌ ' + (d.reason || 'Занято') + '</span>';
+    } catch(e) { s.innerHTML = '<span style="color:#f43f5e">Ошибка</span>'; }
+  }, 500);
 }
 
 async function createChannel() {
@@ -119,7 +135,6 @@ async function createChannel() {
   const username = document.getElementById('chUsername').value.trim().toLowerCase();
   const bio = document.getElementById('chBio').value.trim();
   const isPriv = document.getElementById('chPrivate').classList.contains('on');
-  
   if(!name) { alert('⚠️ Введи название'); return; }
   
   try {
@@ -128,13 +143,8 @@ async function createChannel() {
       body: JSON.stringify({ token, name, username: username || undefined, bio, is_private: isPriv })
     });
     const d = await r.json();
-    if(r.ok) {
-      alert('✅ Канал создан');
-      closeCreateChannel();
-      loadChannels();
-    } else {
-      alert('❌ ' + (d.detail || 'Ошибка'));
-    }
+    if(r.ok) { alert('✅ Канал создан'); closeCreateChannel(); loadChannels(); }
+    else { alert('❌ ' + (d.detail || 'Ошибка')); }
   } catch(e) { alert('❌ Ошибка сети'); }
 }
 
@@ -151,8 +161,6 @@ async function openChannelView(cid) {
     document.getElementById('cvName').textContent = curChannelData.name;
     document.getElementById('cvUser').textContent = curChannelData.username ? '@' + curChannelData.username : '';
     document.getElementById('cvSubBtn').textContent = curChannelData.is_owner ? '👑 Владелец' : (curChannelData.is_subscribed ? '✓ Подписан' : '+ Подписаться');
-    
-    // Показываем поле ввода только если это владелец/админ
     document.getElementById('cvPostIn').style.display = curChannelData.is_admin ? 'block' : 'none';
     
     loadChannelPosts(cid);
@@ -177,13 +185,20 @@ async function loadChannelPosts(cid) {
     posts.forEach(p => {
       const card = document.createElement('div');
       card.className = 'post-card';
+      
       let mediaHtml = '';
       if(p.media_urls && p.media_urls.length) {
         p.media_urls.forEach(u => {
-          if(/\.(mp4|webm|mov)$/i.test(u)) mediaHtml += `<video class="post-media" controls style="width:100%; border-radius:10px; margin-bottom:6px;" src="${esc(u)}"></video>`;
-          else mediaHtml += `<div class="post-media"><img src="${esc(u)}"></div>`;
+          if(/\.(mp4|webm|mov)$/i.test(u)) {
+            // Проверяем, это кружок или обычное видео (по размеру или префиксу)
+            if(u.includes('circle')) mediaHtml += `<div class="circle"><video controls src="${esc(u)}"></video></div>`;
+            else mediaHtml += `<video controls src="${esc(u)}"></video>`;
+          }
+          else if(/\.(mp3|wav|ogg|m4a)$/i.test(u)) mediaHtml += `<audio controls src="${esc(u)}"></audio>`;
+          else mediaHtml += `<img src="${esc(u)}">`;
         });
       }
+      
       card.innerHTML = `
         ${p.text ? `<div class="post-text">${esc(p.text)}</div>` : ''}
         ${mediaHtml}
@@ -211,6 +226,11 @@ async function uploadChannelMedia(input) {
   if(!f) return;
   if(f.size > 30 * 1024 * 1024) { alert('❌ > 30 МБ'); input.value = ''; return; }
   
+  let kind = 'file';
+  if(f.type.startsWith('image/')) kind = 'photo';
+  else if(f.type.startsWith('video/')) kind = 'video';
+  else if(f.type.startsWith('audio/')) kind = 'voice';
+  
   alert('⏳ Загрузка...');
   const fd = new FormData();
   fd.append('token', token);
@@ -220,7 +240,7 @@ async function uploadChannelMedia(input) {
     const r = await fetch('/api/upload', { method: 'POST', body: fd });
     const d = await r.json();
     if(r.ok && d.url) {
-      curChannelMedia.push(d.url);
+      curChannelMedia.push({ url: d.url, kind: kind });
       document.getElementById('cvMediaPreview').innerHTML = '📎 Файл прикреплен: ' + f.name;
       alert('✅ Файл загружен');
     } else {
@@ -236,15 +256,13 @@ async function publishChannelPost() {
   
   let kind = 'text';
   if(curChannelMedia.length > 0) {
-    const first = curChannelMedia[0].toLowerCase();
-    if(first.match(/\.(png|jpg|jpeg|gif|webp)$/)) kind = 'photo';
-    else if(first.match(/\.(mp4|webm|mov)$/)) kind = 'video';
+    kind = curChannelMedia[0].kind;
   }
   
   try {
     const r = await fetch('/api/channels/' + curChannel.id + '/post', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token, text, media_urls: curChannelMedia, media_kind: kind })
+      body: JSON.stringify({ token, text, media_urls: curChannelMedia.map(m => m.url), media_kind: kind })
     });
     if(r.ok) {
       document.getElementById('cvPostText').value = '';
