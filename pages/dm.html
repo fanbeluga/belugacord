@@ -1,142 +1,136 @@
-<div id="dmPage" style="display:flex; flex-direction:column; height:100%; width:100%; background:var(--bg);">
-  <!-- СПИСОК ЧАТОВ -->
-  <div id="dmPanel" style="flex:1; display:flex; flex-direction:column;">
-    <div style="padding:16px; border-bottom:1px solid var(--gb); display:flex; align-items:center; gap:12px; background:var(--bg2);">
-      <button onclick="closeApp()" style="background:none; border:none; color:var(--ac3); font-size:24px; cursor:pointer;">←</button>
-      <div style="font-weight:900; font-size:18px; color:var(--tx);">💬 Чаты</div>
-      <button onclick="alert('Новый чат')" style="margin-left:auto; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#000; padding:8px 16px; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer;">＋</button>
+<div style="display:flex; height:100%; width:100%; background:var(--bg);">
+  <!-- СПИСОК ЧАТОВ (СЛЕВА) -->
+  <div id="dmPanel" style="width:100%; height:100%; display:flex; flex-direction:column; background:var(--bg2); border-right:1px solid var(--border);">
+    <div style="padding:16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px;">
+      <div style="font-weight:900; font-size:18px; color:var(--ac);">💬 Чаты</div>
+      <div style="flex:1;"></div>
     </div>
     
-    <div style="padding:12px; border-bottom:1px solid var(--gb); background:var(--bg2);">
-      <input type="text" placeholder="🔍 Поиск чатов..." style="width:100%; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; color:var(--tx); outline:none; font-size:13px;">
+    <div style="padding:8px 12px; border-bottom:1px solid var(--border);">
+      <input type="text" placeholder="🔍 Поиск..." style="width:100%; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:10px; color:var(--tx); outline:none; font-size:13px;">
     </div>
-    
+
     <div id="dmList" style="flex:1; overflow-y:auto; padding:8px;">
-      <div style="text-align:center; color:var(--tm); padding:40px;">Загрузка...</div>
+      <div style="padding:40px; text-align:center; color:var(--td);">Загрузка...</div>
     </div>
   </div>
 
-  <!-- ОКНО ЧАТА -->
-  <div id="dmChatWin" style="position:absolute; inset:0; background:var(--bg); display:none; flex-direction:column; z-index:50;">
-    <div style="padding:12px; border-bottom:1px solid var(--gb); display:flex; align-items:center; gap:10px; background:var(--bg2);">
-      <button onclick="dmCloseChat()" style="background:none; border:none; color:var(--ac3); font-size:24px; cursor:pointer;">←</button>
-      <div id="dmChatAvatar" style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--ac),var(--ac2)); display:flex; align-items:center; justify-content:center; color:#000; font-weight:900; overflow:hidden;">#</div>
-      <div style="flex:1;">
-        <div id="dmChatTitle" style="font-weight:800; font-size:15px; color:var(--tx);">Чат</div>
-        <div id="dmChatSub" style="font-size:11px; color:var(--td);">онлайн</div>
-      </div>
-      <button onclick="alert('Звонок')" style="background:var(--glass); border:1px solid var(--gb); color:var(--ac3); padding:8px 12px; border-radius:10px; cursor:pointer; font-size:18px;">📞</button>
+  <!-- ОКНО ЧАТА (СПРАВА) -->
+  <div id="chatWindow" class="chat-window" style="flex:1; display:none; flex-direction:column; background:var(--bg);">
+    <div style="height:60px; padding:0 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:var(--bg2);">
+      <button onclick="closeChat()" style="background:none; border:none; color:var(--ac); font-size:24px; cursor:pointer; padding:8px;">←</button>
+      <div id="chatTitle" style="font-weight:700; font-size:16px; color:var(--tx);">Чат</div>
+      <button onclick="startCall()" style="margin-left:auto; background:none; border:none; color:var(--ac2); font-size:20px; cursor:pointer; padding:8px;">📞</button>
     </div>
-
-    <div id="dmMsgsBody" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px;">
-      <div id="dmMsgsInner"></div>
-    </div>
-
-    <div style="padding:8px 12px 12px; border-top:1px solid var(--gb); background:var(--bg2);">
-      <!-- Медиа-кнопки -->
-      <div style="display:flex; gap:8px; padding-bottom:8px; border-bottom:1px solid var(--gb); margin-bottom:8px;">
-        <button onclick="alert('🎤 Голосовое')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">🎤</button>
-        <button onclick="alert('📹 Кружок')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">📹</button>
-        <button onclick="alert('📎 Файл')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">📎</button>
-        <button onclick="alert('🖼️ Фото')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">🖼️</button>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <input type="text" id="dmInput" placeholder="Написать..." style="flex:1; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:20px; color:var(--tx); outline:none; font-size:14px;">
-        <button onclick="dmSend()" style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#000; font-size:18px; cursor:pointer;">➤</button>
-      </div>
+    
+    <div id="chatBody" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;"></div>
+    
+    <div style="padding:12px; border-top:1px solid var(--border); background:var(--bg2); display:flex; gap:8px; align-items:center; padding-bottom:calc(12px + env(safe-area-inset-bottom));">
+      <input type="text" id="msgInput" placeholder="Сообщение..." style="flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:20px; padding:12px 16px; color:var(--tx); outline:none; font-size:14px;" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button onclick="sendMsg()" style="background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; width:44px; height:44px; border-radius:50%; color:#000; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;">➤</button>
     </div>
   </div>
 </div>
 
 <script>
-let dmCurPeer = null;
-let dmChats = [];
+let curDM = null;
 
 async function loadDMList() {
   const box = document.getElementById('dmList');
+  box.innerHTML = '<div style="padding:40px; text-align:center; color:var(--td);">Загрузка...</div>';
+  
   try {
     const r = await fetch('/api/friends/list?token=' + token);
-    const fr = await r.json();
-    dmChats = [];
-    if(Array.isArray(fr)) {
-      fr.forEach(f => { if(f.status === 'accepted') dmChats.push({id:f.id, name:f.display_name||f.username, avatar:f.avatar}); });
+    if(!r.ok) throw new Error('Ошибка сервера');
+    const friends = await r.json();
+    
+    const accepted = Array.isArray(friends) ? friends.filter(f => f.status === 'accepted') : [];
+    
+    if(!accepted.length) {
+      box.innerHTML = '<div style="padding:40px; text-align:center; color:var(--td);">Нет друзей</div>';
+      return;
     }
-    
-    if(!dmChats.length) { box.innerHTML = '<div style="text-align:center; color:var(--tm); padding:40px;">Нет друзей</div>'; return; }
-    
+
     box.innerHTML = '';
-    dmChats.forEach(c => {
+    accepted.forEach(f => {
       const d = document.createElement('div');
-      d.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:16px; margin-bottom:8px; cursor:pointer;';
-      const av = c.avatar ? `<img src="${esc(c.avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(c.name.charAt(0).toUpperCase());
+      d.className = 'dm-item'; // Класс из app.html
+      // Если стилей нет, добавим инлайн
+      d.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; margin-bottom:4px; background:var(--glass); border:1px solid var(--gb); cursor:pointer;';
+      
+      const av = f.avatar ? `<img src="${esc(f.avatar)}" style="width:100%;height:100%;object-fit:cover;">` : esc((f.display_name || f.username).charAt(0).toUpperCase());
       d.innerHTML = `
-        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;overflow:hidden;">${av}</div>
-        <div style="flex:1;"><div style="font-weight:800;font-size:15px;color:var(--tx);">${esc(c.name)}</div><div style="font-size:12px;color:var(--td);">личка</div></div>
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;flex-shrink:0;overflow:hidden;">${av}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;color:var(--tx);">${esc(f.display_name || f.username)}</div>
+          <div style="font-size:12px;color:var(--td);">@${esc(f.username)}</div>
+        </div>
       `;
-      d.onclick = () => dmOpenChat(c.id, c.name, c.avatar);
+      d.onclick = () => openDM(f); 
       box.appendChild(d);
     });
-  } catch(e) {}
+  } catch(e) {
+    console.error(e);
+    box.innerHTML = '<div style="padding:40px; text-align:center; color:#dc2626;">Ошибка загрузки</div>';
+  }
 }
 
-function dmOpenChat(id, name, avatar) {
-  dmCurPeer = {id, name, avatar};
-  document.getElementById('dmPanel').style.display = 'none';
-  document.getElementById('dmChatWin').style.display = 'flex';
-  document.getElementById('dmChatTitle').textContent = name;
-  document.getElementById('dmChatAvatar').innerHTML = avatar ? `<img src="${esc(avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(name.charAt(0).toUpperCase());
+async function openDM(user) {
+  if(!user) return;
+  curDM = user;
   
-  const inner = document.getElementById('dmMsgsInner');
-  inner.innerHTML = `<div style="text-align:center; padding:20px; color:var(--tm);">Загрузка...</div>`;
+  document.getElementById('dmPanel').style.display = 'none'; // Скрываем список
+  document.getElementById('chatWindow').style.display = 'flex'; // Показываем чат
+  document.getElementById('chatTitle').textContent = user.display_name || user.username;
   
-  fetch('/api/dm/' + id + '/messages?token=' + token)
-    .then(r => r.json())
-    .then(msgs => {
-      inner.innerHTML = '';
-      if(Array.isArray(msgs)) msgs.forEach(m => dmAddMsg(m));
-    }).catch(() => { inner.innerHTML = 'Ошибка'; });
+  const body = document.getElementById('chatBody');
+  body.innerHTML = '<div style="text-align:center; color:var(--td);">Загрузка...</div>';
+  
+  try {
+    const r = await fetch('/api/dm/' + user.id + '/messages?token=' + token);
+    const msgs = await r.json();
+    body.innerHTML = '';
+    if(Array.isArray(msgs)) msgs.forEach(m => addMsg(m));
+  } catch(e) { body.innerHTML = 'Ошибка загрузки'; }
 }
 
-function dmCloseChat() {
-  document.getElementById('dmPanel').style.display = 'flex';
-  document.getElementById('dmChatWin').style.display = 'none';
-  dmCurPeer = null;
-}
-
-function dmAddMsg(m) {
-  const inner = document.getElementById('dmMsgsInner');
-  const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  const av = (m.display_name||m.username||'?').charAt(0).toUpperCase();
-  
+function addMsg(m) {
+  const body = document.getElementById('chatBody');
+  const isMe = m.from_user === me.id;
   const d = document.createElement('div');
-  d.style.cssText = 'display:flex; gap:10px; align-items:flex-end;';
+  d.style.cssText = `display:flex; gap:10px; align-items:flex-end; max-width:85%; margin-bottom:4px; ${isMe ? 'align-self:flex-end; flex-direction:row-reverse;' : ''}`;
+  
+  const time = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const av = (m.display_name || m.username || '?').charAt(0).toUpperCase();
+  
   d.innerHTML = `
-    <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--ac2),var(--ac));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:14px;flex-shrink:0;">${esc(av)}</div>
-    <div style="flex:1;">
-      <div style="display:flex; gap:6px; margin-bottom:2px;"><span style="color:var(--ac2); font-weight:700; font-size:13px;">${esc(m.display_name||m.username||'?')}</span><span style="color:var(--tm); font-size:10px;">${time}</span></div>
-      <div style="color:var(--tx); font-size:14px; line-height:1.4; background:rgba(34,197,94,0.08); padding:8px 12px; border-radius:4px 16px 16px 16px; display:inline-block; max-width:100%;">${esc(m.text||'')}</div>
+    <div style="width:34px;height:34px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--td);font-size:14px;flex-shrink:0;">${esc(av)}</div>
+    <div style="display:flex; flex-direction:column; ${isMe ? 'align-items:flex-end;' : ''}">
+      <div style="display:flex; gap:8px; margin-bottom:4px; font-size:12px; color:var(--td);">
+        <span style="font-weight:600; color:var(--ac2);">${esc(m.display_name || m.username || '?')}</span>
+        <span>${time}</span>
+      </div>
+      <div style="font-size:15px; line-height:1.5; padding:10px 14px; border-radius:12px; word-break:break-word; background:${isMe ? 'var(--msg-out)' : 'var(--msg-in)'}; color:var(--tx); border:1px solid ${isMe ? 'transparent' : 'var(--border)'};">${esc(m.text || '')}</div>
     </div>
   `;
-  inner.appendChild(d);
-  const body = document.getElementById('dmMsgsBody');
+  body.appendChild(d);
   body.scrollTop = body.scrollHeight;
 }
 
-function dmSend() {
-  const inp = document.getElementById('dmInput');
+function closeChat() {
+  document.getElementById('dmPanel').style.display = 'flex';
+  document.getElementById('chatWindow').style.display = 'none';
+  curDM = null;
+}
+
+function sendMsg() {
+  const inp = document.getElementById('msgInput');
   const text = inp.value.trim();
-  if(!text || !dmCurPeer) return;
+  if(!text || !curDM) return;
   
-  dmAddMsg({id: 'temp', user_id: me.id, display_name: me.display_name||me.username, text: text, created_at: new Date().toISOString()});
-  wsSend({type: 'dm', to_user: dmCurPeer.id, text: text});
+  wsSend({ type: 'dm', to_user: curDM.id, text: text });
   inp.value = '';
 }
 
 function init_dm() { loadDMList(); }
-
-function handlePageWS(d) {
-  if(d.type === 'dm' && dmCurPeer && (d.from_user === dmCurPeer.id || d.to_user === dmCurPeer.id)) {
-    dmAddMsg(d);
-  }
-}
 </script>
