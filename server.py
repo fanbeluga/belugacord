@@ -1,7 +1,7 @@
 import os, json, time, secrets, hashlib, random, datetime, asyncio, re, traceback
 import asyncpg, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -142,7 +142,6 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.mount("/pages", StaticFiles(directory="pages"), name="pages")
 online_users = set()
-manager_ref = None
 
 @app.on_event("startup")
 async def startup():
@@ -182,8 +181,68 @@ def user_public(row, viewer_id=None):
         print(f"[user_public ERR] {e}")
         return {"id": row.get("id"), "username": row.get("username")}
 
-# ... (ОСТАЛЬНЫЕ РОУТЫ ИЗ ПРЕДЫДУЩЕГО server.py) ...
-# ВСТАВЬ СЮДА ВСЕ РОУТЫ (АВТОРИЗАЦИЯ, ДРУЗЬЯ, КАНАЛЫ, УЛИЦА, ДОМ, МУЗЫКА, СТЕНА, АДМИНКА, WEBSOCKET)
+# ================== АВТОРИЗАЦИЯ ==================
+
+@app.post("/api/register")
+async def register(request: Request):
+    try:
+        data = await request.json()
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
+        
+        if not username or not password:
+            raise HTTPException(status_code=400, detail="Заполните все поля")
+        if not re.match(r"^[a-zA-Z0-9_]{3,20}$", username):
+            raise HTTPException(status_code=400, detail="Логин: 3-20 символов, буквы и цифры")
+            
+        p = await get_pool()
+        async with p.acquire() as conn:
+            existing = await conn.fetchrow("SELECT id FROM users WHERE username=$1", username)
+            if existing:
+                raise HTTPException(status_code=400, detail="Логин уже занят")
+                
+            hashed = hash_password(password)
+            user_id = await conn.fetchval(
+                "INSERT INTO users(username, display_name, password_hash) VALUES($1, $2, $3) RETURNING id",
+                username, username, hashed
+            )
+            
+            # Автоподписка на каналы при регистрации
+            try:
+                await conn.execute("INSERT INTO channel_admins(channel_id, user_id) SELECT id, $1 FROM channels WHERE username IN ('belugacord', 'gudraworld') ON CONFLICT DO NOTHING", user_id)
+            except: pass
+            
+            token = make_token(user_id, username)
+            return {"success": True, "token": token}
+    except HTTPException: raise
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/login")
+async def login(request: Request):
+    try:
+        data = await request.json()
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
+        
+        p = await get_pool()
+        async with p.acquire() as conn:
+            user = await conn.fetchrow("SELECT * FROM users WHERE username=$1", username)
+            if not user or not verify_password(password, user["password_hash"]):
+                raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+                
+            if user["is_banned"]:
+                raise HTTPException(status_code=403, detail="Вы забанены")
+                
+            token = make_token(user["id"], user["username"])
+            return {"success": True, "token": token, "user": user_public(user)}
+    except HTTPException: raise
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ================== СТАТИЧЕСКИЕ СТРАНИЦЫ ==================
 
 @app.get("/")
 async def index(): return FileResponse("index.html")
@@ -208,11 +267,17 @@ async def sw(): return FileResponse("sw.js", media_type="application/javascript"
 @app.get("/manifest.json")
 async def manifest(): return FileResponse("manifest.json")
 
-@app.get("/login")
-async def login_page(): return FileResponse("login.html")
-
-@app.get("/reg")
-async def reg_page(): return FileResponse("reg.html")
+# ================== WEBSOCKET (ЗАГЛУШКА) ==================
+# Сюда потом добавишь логику чата
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Echo: {data}")
+    except WebSocketDisconnect:
+        pass
 
 if __name__ == "__main__":
     import uvicorn
