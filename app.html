@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>BelugaCord 4.3 — CYBER PULSE</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192x192.png">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:'Courier New',monospace; }
 :root {
@@ -11,6 +13,7 @@
   --ac:#d946ef; --ac2:#8b5cf6; --ac3:#22d3ee; --gold:#ffd700;
   --tx:#e8e0ff; --td:#9d8fc4; --tm:#6b5f8a;
   --glass:rgba(255,255,255,.05); --gb:rgba(255,255,255,.1);
+  --br:rgba(200,80,255,.15);
   --neon:0 0 15px rgba(217,70,239,.6);
 }
 html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--tx); }
@@ -35,7 +38,7 @@ body::after { content:''; position:fixed; inset:0; background:repeating-linear-g
 #appContent { flex:1; overflow-y:auto; position:relative; z-index:10; display:flex; flex-direction:column; }
 .loading { display:flex; align-items:center; justify-content:center; height:100%; color:var(--td); font-size:14px; }
 .spinner { width:40px; height:40px; border:3px solid rgba(217,70,239,.3); border-top-color:var(--ac); border-radius:50%; animation:spin 1s linear infinite; margin-right:12px; }
-@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -110,7 +113,7 @@ async function navigate(page) {
     const html = await r.text();
     container.innerHTML = html;
     
-    // Ищем скрипты в загруженном HTML и выполняем их
+    // Выполняем скрипты из загруженного HTML
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
@@ -127,19 +130,38 @@ async function navigate(page) {
   }
 }
 
-/* ====== СТАРТ ====== */
-window.addEventListener('DOMContentLoaded', async () => {
+/* ====== ГЛОБАЛЬНАЯ ПРОВЕРКА БАНА ====== */
+async function checkBan() {
   try {
     const r = await fetch('/api/me?token=' + token);
     if (!r.ok) throw new Error('Unauthorized');
-    me = await r.json();
+    const user = await r.json();
+    if (user.is_banned) {
+      // Кидаем на страницу бана
+      window.location.href = '/banned';
+      return false;
+    }
+    return true;
   } catch(e) {
     localStorage.removeItem('bc_token');
     window.location.href = '/login';
-    return;
+    return false;
   }
+}
 
-  // Загрузка TURN
+/* ====== СТАРТ ====== */
+window.addEventListener('DOMContentLoaded', async () => {
+  // 1. Проверяем, не забанен ли
+  const ok = await checkBan();
+  if (!ok) return; // Если забанен, дальше не идем
+
+  // 2. Загружаем данные юзера
+  try {
+    const r = await fetch('/api/me?token=' + token);
+    me = await r.json();
+  } catch(e) { return; }
+
+  // 3. Загрузка TURN
   try {
     const iceR = await fetch('/api/webrtc/config');
     if (iceR.ok) {
@@ -148,6 +170,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch(e) {}
 
+  // 4. Подключаем WS и грузим стартовую страницу
   connectWS();
   const urlPage = location.pathname.split('/').pop();
   const startPage = urlPage && urlPage !== 'app' ? urlPage : 'desk';
