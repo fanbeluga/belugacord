@@ -1,263 +1,142 @@
-<div id="dmPage" style="display:flex; height:100%; width:100%;">
-  <!-- ПАНЕЛЬ ЧАТОВ -->
-  <div id="dmPanel" style="width:320px; background:var(--bg3); border-right:1px solid var(--br); display:flex; flex-direction:column; flex-shrink:0;">
-    <div style="padding:8px 12px; border-bottom:1px solid var(--br);">
-      <input type="text" id="dmSearch" placeholder="🔍 Поиск чатов..." style="width:100%; padding:10px 14px; border-radius:12px; background:var(--glass); border:1px solid var(--gb); color:var(--tx); outline:none; font-size:13px;">
+<div id="dmPage" style="display:flex; flex-direction:column; height:100%; width:100%; background:var(--bg);">
+  <!-- СПИСОК ЧАТОВ -->
+  <div id="dmPanel" style="flex:1; display:flex; flex-direction:column;">
+    <div style="padding:16px; border-bottom:1px solid var(--gb); display:flex; align-items:center; gap:12px; background:var(--bg2);">
+      <button onclick="closeApp()" style="background:none; border:none; color:var(--ac3); font-size:24px; cursor:pointer;">←</button>
+      <div style="font-weight:900; font-size:18px; color:var(--tx);">💬 Чаты</div>
+      <button onclick="alert('Новый чат')" style="margin-left:auto; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#000; padding:8px 16px; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer;">＋</button>
     </div>
-    <div style="flex:1; overflow-y:auto; padding:8px;" id="dmList">
-      <div style="padding:20px; text-align:center; color:var(--tm);">Загрузка...</div>
+    
+    <div style="padding:12px; border-bottom:1px solid var(--gb); background:var(--bg2);">
+      <input type="text" placeholder="🔍 Поиск чатов..." style="width:100%; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:12px; color:var(--tx); outline:none; font-size:13px;">
+    </div>
+    
+    <div id="dmList" style="flex:1; overflow-y:auto; padding:8px;">
+      <div style="text-align:center; color:var(--tm); padding:40px;">Загрузка...</div>
     </div>
   </div>
 
   <!-- ОКНО ЧАТА -->
-  <div id="dmChatWin" style="flex:1; background:var(--bg2); display:flex; flex-direction:column; min-width:0; position:relative;">
-    <div style="height:56px; padding:0 10px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--br); flex-shrink:0; background:var(--bg3); z-index:5;">
-      <button id="dmBackBtn" onclick="dmBack()" style="width:38px; height:38px; border-radius:12px; display:none; align-items:center; justify-content:center; font-size:20px; color:var(--td); background:none; border:none;">←</button>
-      <div id="dmChatAvatar" style="width:38px; height:38px; font-size:15px; background:linear-gradient(135deg,var(--ac),var(--ac2)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; flex-shrink:0; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); overflow:hidden;">#</div>
-      <div style="font-weight:800; font-size:14px; flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0;">
-        <div id="dmChatTitle" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Выбери чат</div>
-        <div id="dmChatSub" style="font-size:11px; color:var(--tm); font-weight:600; margin-top:1px;"></div>
+  <div id="dmChatWin" style="position:absolute; inset:0; background:var(--bg); display:none; flex-direction:column; z-index:50;">
+    <div style="padding:12px; border-bottom:1px solid var(--gb); display:flex; align-items:center; gap:10px; background:var(--bg2);">
+      <button onclick="dmCloseChat()" style="background:none; border:none; color:var(--ac3); font-size:24px; cursor:pointer;">←</button>
+      <div id="dmChatAvatar" style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--ac),var(--ac2)); display:flex; align-items:center; justify-content:center; color:#000; font-weight:900; overflow:hidden;">#</div>
+      <div style="flex:1;">
+        <div id="dmChatTitle" style="font-weight:800; font-size:15px; color:var(--tx);">Чат</div>
+        <div id="dmChatSub" style="font-size:11px; color:var(--td);">онлайн</div>
       </div>
-      <button id="dmCallBtn" onclick="dmStartCall()" style="background:none; color:var(--ac3); font-size:20px; padding:6px 8px; display:none; border:none; cursor:pointer;">📞</button>
+      <button onclick="alert('Звонок')" style="background:var(--glass); border:1px solid var(--gb); color:var(--ac3); padding:8px 12px; border-radius:10px; cursor:pointer; font-size:18px;">📞</button>
     </div>
 
-    <div id="dmMsgsBody" style="flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:4px;">
+    <div id="dmMsgsBody" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px;">
       <div id="dmMsgsInner"></div>
     </div>
 
-    <div style="padding:10px 12px 14px; flex-shrink:0; background:var(--bg3); border-top:1px solid var(--br); padding-bottom:calc(14px + env(safe-area-inset-bottom));">
-      <div style="background:var(--glass); border:1px solid var(--gb); border-radius:22px; display:flex; align-items:flex-end; padding:6px 12px; gap:6px;">
-        <label for="dmFileInput" style="color:var(--ac); font-size:22px; cursor:pointer; padding:6px;">＋</label>
-        <input type="file" id="dmFileInput" style="display:none" onchange="dmUploadFile(this)" accept="image/*,video/*,audio/*">
-        <textarea id="dmInput" placeholder="Написать..." rows="1" style="flex:1; background:none; border:none; outline:none; color:var(--tx); font-size:14px; padding:8px 0; resize:none; max-height:120px;"></textarea>
-        <button onclick="dmSend()" style="background:none; color:var(--ac); font-size:20px; padding:6px 8px; border:none; cursor:pointer;">➤</button>
+    <div style="padding:8px 12px 12px; border-top:1px solid var(--gb); background:var(--bg2);">
+      <!-- Медиа-кнопки -->
+      <div style="display:flex; gap:8px; padding-bottom:8px; border-bottom:1px solid var(--gb); margin-bottom:8px;">
+        <button onclick="alert('🎤 Голосовое')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">🎤</button>
+        <button onclick="alert('📹 Кружок')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">📹</button>
+        <button onclick="alert('📎 Файл')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">📎</button>
+        <button onclick="alert('🖼️ Фото')" style="width:36px; height:36px; border-radius:50%; background:var(--glass); border:1px solid var(--gb); color:var(--td); cursor:pointer;">🖼️</button>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="dmInput" placeholder="Написать..." style="flex:1; padding:10px 14px; background:var(--glass); border:1px solid var(--gb); border-radius:20px; color:var(--tx); outline:none; font-size:14px;">
+        <button onclick="dmSend()" style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; color:#000; font-size:18px; cursor:pointer;">➤</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- МОДАЛКА ЗВОНКА (ВНУТРИ DM!) -->
-<div id="mCall" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.97); z-index:2000;">
-  <div style="position:relative; width:100%; height:100%; background:#020005;">
-    <video id="remoteVideo" autoplay playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; display:none;"></video>
-    <video id="localVideo" autoplay playsinline muted style="position:absolute; bottom:30px; right:30px; width:100px; height:130px; object-fit:cover; border:1px solid #22d3ee; z-index:15; display:none;"></video>
-    <div style="position:absolute; top:40px; left:50%; transform:translateX(-50%); z-index:20; display:flex; gap:6px;">
-      <button id="cbMic" onclick="tglMic()" style="width:46px; height:46px; background:rgba(20,16,32,.8); border:1px solid rgba(217,70,239,.2); color:#fff; font-size:20px; cursor:pointer;">🎤</button>
-      <button id="cbCam" onclick="tglCam()" style="width:46px; height:46px; background:rgba(20,16,32,.8); border:1px solid rgba(217,70,239,.2); color:#fff; font-size:20px; cursor:pointer;">📷</button>
-      <button onclick="endCall()" style="width:46px; height:46px; background:rgba(220,38,38,.3); border:1px solid #dc2626; color:#fff; font-size:20px; cursor:pointer;">📞</button>
-    </div>
-    <div style="position:absolute; left:30px; top:50%; transform:translateY(-50%); z-index:10;">
-      <div id="callAv" style="width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#d946ef,#8b5cf6); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:900; border:2px solid #d946ef; overflow:hidden;">?</div>
-      <div id="callName" style="font-size:14px; font-weight:900; text-align:center; margin-top:8px;">Юзер</div>
-      <div id="callSt" style="font-size:9px; color:#22d3ee; text-align:center;">ОЖИДАНИЕ...</div>
-    </div>
-    <div style="position:absolute; top:80px; right:30px; z-index:10; background:rgba(0,0,0,.6); border:1px solid rgba(34,211,238,.3); padding:10px 16px;">
-      <div style="font-size:9px; color:#22d3ee; font-weight:900;">ВРЕМЯ</div>
-      <div id="callTime" style="font-size:22px; font-weight:900; color:#22c55e;">00:00</div>
-    </div>
-  </div>
-</div>
-
-<style>
-.dm-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; cursor:pointer; margin-bottom:4px; background:rgba(20,16,32,.7); border:1px solid rgba(217,70,239,.15); clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%); }
-.dm-item:active { background:rgba(217,70,239,.1); border-color:var(--ac); }
-.dm-item .av { width:46px; height:46px; background:linear-gradient(135deg,var(--ac),var(--ac2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:17px; overflow:hidden; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.dm-item .av img { width:100%; height:100%; object-fit:cover; }
-.dm-msg { display:flex; gap:10px; padding:5px 8px; border-radius:12px; position:relative; }
-.dm-msg .av { width:40px; height:40px; background:linear-gradient(135deg,var(--ac2),var(--ac3)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:15px; overflow:hidden; clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
-.dm-msg .av img { width:100%; height:100%; object-fit:cover; }
-.dm-msg .body { flex:1; min-width:0; }
-.dm-msg .head { display:flex; align-items:baseline; gap:8px; margin-bottom:2px; flex-wrap:wrap; }
-.dm-msg .author { font-weight:800; font-size:13px; color:var(--ac); }
-.dm-msg .time { font-size:10px; color:var(--tm); }
-.dm-msg .text { color:var(--tx); font-size:13.5px; line-height:1.5; word-wrap:break-word; background:rgba(217,70,239,.05); padding:8px 13px; border-left:2px solid var(--ac); display:inline-block; max-width:100%; white-space:pre-wrap; }
-.dm-msg .img { max-width:min(340px,80vw); max-height:340px; border-radius:12px; margin-top:5px; display:block; cursor:pointer; border:1px solid var(--br); }
-.dm-msg .vid { max-width:min(400px,80vw); max-height:400px; border-radius:12px; margin-top:5px; display:block; background:#000; }
-.dm-msg .aud { padding:8px 12px; background:rgba(139,92,246,.15); border-radius:12px; margin-top:5px; display:flex; align-items:center; gap:10px; max-width:320px; }
-</style>
-
 <script>
 let dmCurPeer = null;
-let dmChatsCache = [];
+let dmChats = [];
 
-async function dmLoadPanel() {
+async function loadDMList() {
   const box = document.getElementById('dmList');
-  box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm)">⏳</div>';
   try {
     const r = await fetch('/api/friends/list?token=' + token);
     const fr = await r.json();
-    dmChatsCache = [];
+    dmChats = [];
     if(Array.isArray(fr)) {
-      fr.forEach(f => {
-        if(f.status === 'accepted') dmChatsCache.push({ id: f.id, name: f.display_name || f.username, avatar: f.avatar });
-      });
+      fr.forEach(f => { if(f.status === 'accepted') dmChats.push({id:f.id, name:f.display_name||f.username, avatar:f.avatar}); });
     }
-    dmRenderPanel();
-  } catch(e) { box.innerHTML = '<div style="padding:20px;text-align:center;color:#f43f5e">Ошибка</div>'; }
+    
+    if(!dmChats.length) { box.innerHTML = '<div style="text-align:center; color:var(--tm); padding:40px;">Нет друзей</div>'; return; }
+    
+    box.innerHTML = '';
+    dmChats.forEach(c => {
+      const d = document.createElement('div');
+      d.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px; background:var(--glass); border:1px solid var(--gb); border-radius:16px; margin-bottom:8px; cursor:pointer;';
+      const av = c.avatar ? `<img src="${esc(c.avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(c.name.charAt(0).toUpperCase());
+      d.innerHTML = `
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;overflow:hidden;">${av}</div>
+        <div style="flex:1;"><div style="font-weight:800;font-size:15px;color:var(--tx);">${esc(c.name)}</div><div style="font-size:12px;color:var(--td);">личка</div></div>
+      `;
+      d.onclick = () => dmOpenChat(c.id, c.name, c.avatar);
+      box.appendChild(d);
+    });
+  } catch(e) {}
 }
 
-function dmRenderPanel() {
-  const box = document.getElementById('dmList');
-  if(!dmChatsCache.length) { box.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tm);font-size:13px">Нет друзей. Добавь кого-нибудь!</div>'; return; }
-  box.innerHTML = '';
-  dmChatsCache.forEach(it => {
-    const div = document.createElement('div');
-    div.className = 'dm-item';
-    const av = it.avatar ? `<img src="${esc(it.avatar)}">` : esc(it.name.charAt(0).toUpperCase());
-    div.innerHTML = `<div class="av">${av}</div><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:14px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(it.name)}</div><div style="color:var(--tm); font-size:11px;">личка</div></div>`;
-    div.onclick = () => dmOpenChat(it.id, it.name, it.avatar);
-    box.appendChild(div);
-  });
-}
-
-async function dmOpenChat(id, name, avatar) {
-  dmCurPeer = { id, name, avatar };
+function dmOpenChat(id, name, avatar) {
+  dmCurPeer = {id, name, avatar};
+  document.getElementById('dmPanel').style.display = 'none';
+  document.getElementById('dmChatWin').style.display = 'flex';
   document.getElementById('dmChatTitle').textContent = name;
   document.getElementById('dmChatAvatar').innerHTML = avatar ? `<img src="${esc(avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(name.charAt(0).toUpperCase());
-  document.getElementById('dmCallBtn').style.display = 'block';
   
-  if(window.innerWidth <= 900) {
-    document.getElementById('dmPanel').style.display = 'none';
-    document.getElementById('dmBackBtn').style.display = 'flex';
-  }
-
-  document.getElementById('dmMsgsInner').innerHTML = '<div style="text-align:center;padding:40px;color:var(--tm)">⏳</div>';
+  const inner = document.getElementById('dmMsgsInner');
+  inner.innerHTML = `<div style="text-align:center; padding:20px; color:var(--tm);">Загрузка...</div>`;
   
-  try {
-    const r = await fetch('/api/dm/' + id + '/messages?token=' + token);
-    const d = await r.json();
-    const msgs = Array.isArray(d) ? d : (d.messages || []);
-    document.getElementById('dmMsgsInner').innerHTML = '';
-    msgs.forEach(dmAddMsg);
-    dmScrollBot();
-  } catch(e) { document.getElementById('dmMsgsInner').innerHTML = '<div style="text-align:center;padding:40px;color:#f43f5e">Ошибка</div>'; }
+  fetch('/api/dm/' + id + '/messages?token=' + token)
+    .then(r => r.json())
+    .then(msgs => {
+      inner.innerHTML = '';
+      if(Array.isArray(msgs)) msgs.forEach(m => dmAddMsg(m));
+    }).catch(() => { inner.innerHTML = 'Ошибка'; });
 }
 
-function dmBack() {
+function dmCloseChat() {
   document.getElementById('dmPanel').style.display = 'flex';
-  document.getElementById('dmBackBtn').style.display = 'none';
+  document.getElementById('dmChatWin').style.display = 'none';
   dmCurPeer = null;
 }
 
 function dmAddMsg(m) {
   const inner = document.getElementById('dmMsgsInner');
+  const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const av = (m.display_name||m.username||'?').charAt(0).toUpperCase();
+  
   const d = document.createElement('div');
-  d.className = 'dm-msg';
-  const avSrc = m.gif_avatar || m.avatar;
-  const av = avSrc ? `<div class="av"><img src="${esc(avSrc)}"></div>` : `<div class="av">${esc((m.display_name||m.username||'?').charAt(0).toUpperCase())}</div>`;
-  let fh = '';
-  const kind = m.msg_kind || 'text';
-  const url = m.file_url || '';
-  if(url) {
-    if(kind === 'photo' || /\.(png|jpg|jpeg|gif|webp)$/i.test(url)) fh = `<img class="img" loading="lazy" src="${esc(url)}">`;
-    else if(kind === 'video' || /\.(mp4|webm|mov)$/i.test(url)) fh = `<video class="vid" controls preload="metadata" src="${esc(url)}"></video>`;
-    else if(kind === 'voice' || /\.(mp3|wav|ogg)$/i.test(url)) fh = `<div class="aud">🎵<audio controls src="${esc(url)}"></audio></div>`;
-    else fh = `<a href="${esc(url)}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(139,92,246,.12); border:1px solid var(--br); border-radius:14px; margin-top:5px; text-decoration:none; color:var(--tx);">📎 Файл</a>`;
-  }
-  const text = m.text ? `<div class="text">${esc(m.text)}</div>` : '';
-  d.innerHTML = `${av}<div class="body"><div class="head"><span class="author">${esc(m.display_name || m.username || '?')}</span><span class="time">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>${text}${fh}</div>`;
+  d.style.cssText = 'display:flex; gap:10px; align-items:flex-end;';
+  d.innerHTML = `
+    <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--ac2),var(--ac));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:14px;flex-shrink:0;">${esc(av)}</div>
+    <div style="flex:1;">
+      <div style="display:flex; gap:6px; margin-bottom:2px;"><span style="color:var(--ac2); font-weight:700; font-size:13px;">${esc(m.display_name||m.username||'?')}</span><span style="color:var(--tm); font-size:10px;">${time}</span></div>
+      <div style="color:var(--tx); font-size:14px; line-height:1.4; background:rgba(34,197,94,0.08); padding:8px 12px; border-radius:4px 16px 16px 16px; display:inline-block; max-width:100%;">${esc(m.text||'')}</div>
+    </div>
+  `;
   inner.appendChild(d);
-  dmScrollBot();
+  const body = document.getElementById('dmMsgsBody');
+  body.scrollTop = body.scrollHeight;
 }
-
-function dmScrollBot() { const c = document.getElementById('dmMsgsBody'); if(c) c.scrollTop = c.scrollHeight; }
 
 function dmSend() {
   const inp = document.getElementById('dmInput');
-  const t = inp.value.trim();
-  if(!t || !dmCurPeer) return;
-  dmAddMsg({ id: 'temp-'+Date.now(), user_id: me.id, display_name: me.display_name || me.username, avatar: me.avatar, text: t, created_at: new Date().toISOString() });
-  wsSend({ type: 'dm', to_user: dmCurPeer.id, text: t });
+  const text = inp.value.trim();
+  if(!text || !dmCurPeer) return;
+  
+  dmAddMsg({id: 'temp', user_id: me.id, display_name: me.display_name||me.username, text: text, created_at: new Date().toISOString()});
+  wsSend({type: 'dm', to_user: dmCurPeer.id, text: text});
   inp.value = '';
 }
 
-async function dmUploadFile(input) {
-  const f = input.files[0];
-  if(!f) return;
-  if(f.size > 30 * 1024 * 1024) { alert('❌ > 30 МБ'); input.value = ''; return; }
-  let kind = 'file';
-  if(f.type.startsWith('image/')) kind = 'photo';
-  else if(f.type.startsWith('video/')) kind = 'video';
-  else if(f.type.startsWith('audio/')) kind = 'audio';
-  alert('⏳ Загрузка...');
-  const fd = new FormData();
-  fd.append('token', token);
-  fd.append('file', f);
-  try {
-    const r = await fetch('/api/upload', { method: 'POST', body: fd });
-    const d = await r.json();
-    if(r.ok && d.url) {
-      dmAddMsg({ id: 'temp-'+Date.now(), user_id: me.id, display_name: me.display_name || me.username, avatar: me.avatar, text: '', file_url: d.url, msg_kind: kind, created_at: new Date().toISOString() });
-      if(dmCurPeer) wsSend({ type: 'dm', to_user: dmCurPeer.id, text: '', file_url: d.url, msg_kind: kind, file_size: f.size });
-    } else { alert('❌ ' + (d.detail || 'Ошибка')); }
-  } catch(e) { alert('❌ Ошибка сети'); }
-  input.value = '';
-}
-
-/* ====== ЗВОНКИ (ВНУТРИ DM) ====== */
-let dmPC = null, dmLS = null, dmCallActive = false;
-
-async function dmStartCall() {
-  if(!dmCurPeer) return;
-  const isVideo = confirm('Видеозвонок?');
-  dmCallActive = true;
-  document.getElementById('callName').textContent = dmCurPeer.name;
-  document.getElementById('callAv').innerHTML = dmCurPeer.avatar ? `<img src="${esc(dmCurPeer.avatar)}" style="width:100%;height:100%;object-fit:cover">` : esc(dmCurPeer.name.charAt(0).toUpperCase());
-  document.getElementById('mCall').style.display = 'block';
-  wsSend({ type: 'call_invite', to_user: dmCurPeer.id, call_type: isVideo ? 'video' : 'audio' });
-}
-
-async function getLocalStream() {
-  if(dmLS) return dmLS;
-  dmLS = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-  document.getElementById('localVideo').srcObject = dmLS;
-  document.getElementById('localVideo').style.display = 'block';
-  return dmLS;
-}
-
-function makePC() {
-  dmPC = new RTCPeerConnection(ICE_SERVERS);
-  dmPC.onicecandidate = e => { if(e.candidate) wsSend({ type: 'webrtc_ice', to_user: dmCurPeer.id, candidate: e.candidate }); };
-  dmPC.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; document.getElementById('remoteVideo').style.display = 'block'; };
-  return dmPC;
-}
-
-function handleCallWS(d) {
-  if(d.type === 'call_incoming') {
-    if(confirm('Звонок от ' + d.from_name + '. Принять?')) {
-      dmCurPeer = { id: d.from_user, name: d.from_name, avatar: d.from_avatar };
-      document.getElementById('mCall').style.display = 'block';
-      document.getElementById('callName').textContent = d.from_name;
-      wsSend({ type: 'call_accept', call_id: d.call_id });
-      getLocalStream();
-    } else { wsSend({ type: 'call_reject', call_id: d.call_id }); }
-  }
-  if(d.type === 'call_accepted') {
-    getLocalStream().then(async () => { makePC(); dmLS.getTracks().forEach(t => dmPC.addTrack(t, dmLS)); const offer = await dmPC.createOffer(); await dmPC.setLocalDescription(offer); wsSend({ type: 'webrtc_offer', to_user: dmCurPeer.id, sdp: offer }); });
-  }
-  if(d.type === 'webrtc_offer') {
-    getLocalStream().then(async () => { if(!dmPC) makePC(); dmLS.getTracks().forEach(t => dmPC.addTrack(t, dmLS)); await dmPC.setRemoteDescription(d.sdp); const answer = await dmPC.createAnswer(); await dmPC.setLocalDescription(answer); wsSend({ type: 'webrtc_answer', to_user: dmCurPeer.id, sdp: answer }); });
-  }
-  if(d.type === 'webrtc_answer') dmPC.setRemoteDescription(d.sdp);
-  if(d.type === 'webrtc_ice') { if(dmPC) dmPC.addIceCandidate(d.candidate).catch(()=>{}); }
-  if(d.type === 'call_ended' || d.type === 'call_rejected') endCall();
-}
-
-function tglMic() { if(!dmLS) return; const track = dmLS.getAudioTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbMic').classList.toggle('mut', !track.enabled); } }
-function tglCam() { if(!dmLS) return; const track = dmLS.getVideoTracks()[0]; if(track) { track.enabled = !track.enabled; document.getElementById('cbCam').classList.toggle('on', !track.enabled); } }
-function endCall() { if(dmPC) dmPC.close(); if(dmLS) dmLS.getTracks().forEach(t => t.stop()); dmPC = null; dmLS = null; dmCallActive = false; document.getElementById('mCall').style.display = 'none'; }
-
-function init_dm() {
-  dmLoadPanel();
-  document.getElementById('dmInput').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); dmSend(); } });
-}
+function init_dm() { loadDMList(); }
 
 function handlePageWS(d) {
   if(d.type === 'dm' && dmCurPeer && (d.from_user === dmCurPeer.id || d.to_user === dmCurPeer.id)) {
     dmAddMsg(d);
-  }
-  if(d.type.startsWith('call_') || d.type.startsWith('webrtc_')) {
-    if(typeof handleCallWS === 'function') handleCallWS(d);
   }
 }
 </script>
