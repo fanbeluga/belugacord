@@ -13,7 +13,7 @@ os.makedirs("pages", exist_ok=True)
 SECRET_KEY = os.environ.get("SECRET_KEY", "belugacord_secret_2032")
 ADMIN_USERNAME = "_fan_beluga_"
 OWNER_PASSWORD = "12344321"
-CURRENT_VERSION = "4.3"
+CURRENT_VERSION = "4.5"
 
 TURN_HOST = "189.74.125.21"
 TURN_PORT = 3478
@@ -77,7 +77,8 @@ async def init_db():
             is_admin BOOLEAN DEFAULT FALSE, is_banned BOOLEAN DEFAULT FALSE, ban_reason VARCHAR(256),
             ban_role VARCHAR(16), ban_date TIMESTAMPTZ, coins INTEGER DEFAULT 0, candy INTEGER DEFAULT 0,
             level INTEGER DEFAULT 1, xp INTEGER DEFAULT 0, messages_count INTEGER DEFAULT 0,
-            bio VARCHAR(256), theme VARCHAR(16) DEFAULT 'dark', created_at TIMESTAMPTZ DEFAULT NOW()
+            bio VARCHAR(256), theme VARCHAR(16) DEFAULT 'dark', profile_bg VARCHAR(32) DEFAULT 'none',
+            owned_bgs TEXT DEFAULT '["none"]', created_at TIMESTAMPTZ DEFAULT NOW()
         )""")
         await conn.execute("""CREATE TABLE IF NOT EXISTS friends(
             id SERIAL PRIMARY KEY, user_a INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -126,12 +127,26 @@ async def init_db():
             id SERIAL PRIMARY KEY, item_id VARCHAR(32) UNIQUE, name VARCHAR(64),
             emoji VARCHAR(8), price INTEGER DEFAULT 0
         )""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS music(
+            id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            title VARCHAR(256), artist VARCHAR(128), url TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+        )""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS profile_wall(
+            id SERIAL PRIMARY KEY, profile_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            author INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            text TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+        )""")
+        await conn.execute("""CREATE TABLE IF NOT EXISTS promo_activations(
+            id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            promo_code VARCHAR(32), reward INTEGER DEFAULT 0, activated_at TIMESTAMPTZ DEFAULT NOW()
+        )""")
+        
         furniture = [("sofa","Диван","🛋️",500),("table","Стол","🪑",300),("bed","Кровать","🛏️",800),
                      ("tv","Телевизор","📺",1500),("plant","Растение","🪴",200),("lamp","Лампа","💡",250)]
         for f in furniture:
             try: await conn.execute("INSERT INTO furniture_catalog(item_id,name,emoji,price) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING",*f)
             except: pass
-        print("✅ БД 4.3 готова")
+        print("✅ БД 4.5 готова")
 
 # ====== APP ======
 app = FastAPI()
@@ -173,11 +188,14 @@ def user_public(row, viewer_id=None):
             "level": row.get("level", 1), "xp": row.get("xp", 0),
             "messages_count": row.get("messages_count", 0),
             "bio": row.get("bio"), "theme": row.get("theme") or "dark",
+            "profile_bg": row.get("profile_bg") or "none",
+            "owned_bgs": _safe_json(row.get("owned_bgs"), ["none"]),
             "created_at": _iso(row.get("created_at"))
         }
     except Exception as e:
         print(f"[user_public ERR] {e}")
         return {"id": row.get("id"), "username": row.get("username")}
+
 # ====== АВТОРИЗАЦИЯ ======
 @app.post("/api/register")
 async def register(data: dict):
@@ -192,7 +210,7 @@ async def register(data: dict):
     p = await get_pool()
     async with p.acquire() as conn:
         exists = await conn.fetchrow("SELECT id FROM users WHERE LOWER(username)=LOWER($1)", raw_u)
-        if exists: raise HTTPException(400, "Этот username уже занят. Выбери другой.")
+        if exists: raise HTTPException(400, "Этот username уже занят.")
         
         row = await conn.fetchrow("""INSERT INTO users(username,display_name,password_hash,is_admin) 
             VALUES($1,$2,$3,$4) RETURNING *""", raw_u, raw_d, hash_password(pw), raw_u == ADMIN_USERNAME)
@@ -251,10 +269,11 @@ async def update_profile(data: dict):
     async with p.acquire() as conn:
         await conn.execute("""UPDATE users SET 
             display_name=COALESCE($1,display_name), bio=COALESCE($2,bio),
-            avatar_pos=COALESCE($3,avatar_pos), banner_pos=COALESCE($4,banner_pos)
-            WHERE id=$5""", 
+            avatar_pos=COALESCE($3,avatar_pos), banner_pos=COALESCE($4,banner_pos),
+            profile_bg=COALESCE($5,profile_bg)
+            WHERE id=$6""", 
             data.get("display_name"), data.get("bio"), 
-            data.get("avatar_pos"), data.get("banner_pos"), user["id"])
+            data.get("avatar_pos"), data.get("banner_pos"), data.get("profile_bg"), user["id"])
     return {"ok": True}
 
 @app.post("/api/upload_avatar")
@@ -301,6 +320,61 @@ async def upload_file(token: str = Form(...), file: UploadFile = File(...)):
     name = f"{secrets.token_hex(8)}{ext}"
     with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
     return {"url": f"/uploads/{name}", "size": len(content), "mime": mime, "name": file.filename or name}
+
+# ====== МУЗЫКА ======
+@app.get("/api/music/list")
+async def music_list(token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("SELECT * FROM music WHERE user_id=$1 ORDER BY id DESC LIMIT 20", user["id"])
+    return [{"id": r["id"], "title": r["title"], "artist": r["artist"], "url": r["url"]} for r in rows]
+
+@app.post("/api/music/upload")
+async def music_upload(token: str = Form(...), file: UploadFile = File(...), title: str = Form(...)):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    if not (file.content_type or "").startswith("audio/"):
+        raise HTTPException(400, "Только аудио")
+    content = await file.read()
+    if len(content) > 20*1024*1024: raise HTTPException(400, "Макс 20 МБ")
+    ext = os.path.splitext(file.filename or "")[1].lower() or ".mp3"
+    name = f"music_{secrets.token_hex(8)}{ext}"
+    with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
+    url = f"/uploads/{name}"
+    
+    p = await get_pool()
+    async with p.acquire() as conn:
+        cnt = await conn.fetchval("SELECT COUNT(*) FROM music WHERE user_id=$1", user["id"])
+        if cnt >= 20: raise HTTPException(400, "Макс 20 треков")
+        await conn.execute("INSERT INTO music(user_id, title, url) VALUES($1,$2,$3)", user["id"], title, url)
+    return {"url": url, "title": title}
+
+# ====== СТЕНА ======
+@app.get("/api/wall/{uid}")
+async def wall_list(uid: int, token: str):
+    user = await get_current_user(token)
+    if not user: raise HTTPException(401, "Не авторизован")
+    target = uid if uid > 0 else user["id"]
+    p = await get_pool()
+    async with p.acquire() as conn:
+        rows = await conn.fetch("""SELECT pw.*, u.username, u.display_name 
+            FROM profile_wall pw JOIN users u ON u.id=pw.author 
+            WHERE pw.profile_user=$1 ORDER BY pw.id DESC LIMIT 100""", target)
+    return [{"id": r["id"], "text": r["text"], "username": r["username"], "display_name": r["display_name"], "created_at": _iso(r["created_at"])} for r in rows]
+
+@app.post("/api/wall/{uid}/post")
+async def wall_post(uid: int, data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    target = uid if uid > 0 else user["id"]
+    text = (data.get("text") or "").strip()[:1000]
+    if not text: raise HTTPException(400, "Текст")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        await conn.execute("INSERT INTO profile_wall(profile_user,author,text) VALUES($1,$2,$3)", target, user["id"], text)
+    return {"ok": True}
 
 # ====== ПОЛЬЗОВАТЕЛИ ======
 @app.get("/api/user/{user_id}")
@@ -489,6 +563,23 @@ async def channel_post(cid: int, data: dict):
         r = await conn.fetchrow("""INSERT INTO channel_posts(channel_id,author_id,text,media_urls,media_kind)
             VALUES($1,$2,$3,$4,$5) RETURNING *""", cid, user["id"], text, json.dumps(media), kind)
     return {"ok": True, "post_id": r["id"]}
+
+@app.post("/api/channels/subscribe_by_username")
+async def subscribe_by_username(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    uname = (data.get("username") or "").lower().strip()
+    if not uname: raise HTTPException(400, "Введи username")
+    p = await get_pool()
+    async with p.acquire() as conn:
+        c = await conn.fetchrow("SELECT id FROM channels WHERE LOWER(username)=$1", uname)
+        if not c: return {"ok": False, "msg": "Канал не найден"}
+        await conn.execute("""INSERT INTO channel_subscribers(channel_id, user_id) 
+            VALUES($1, $2) ON CONFLICT DO NOTHING""", c["id"], user["id"])
+        await conn.execute("""UPDATE channels SET subscribers_count = 
+            (SELECT COUNT(*) FROM channel_subscribers WHERE channel_id=$1) WHERE id=$1""", c["id"])
+    return {"ok": True, "msg": f"Подписан на @{uname}"}
+
 # ====== УЛИЦА ======
 @app.get("/api/street/users")
 async def street_users(token: str):
@@ -510,7 +601,7 @@ async def street_move(data: dict):
     async with p.acquire() as conn:
         await conn.execute("""INSERT INTO user_positions(user_id,x,y,location,updated_at) VALUES($1,$2,$3,'street',NOW())
             ON CONFLICT(user_id) DO UPDATE SET x=$2,y=$3,location='street',updated_at=NOW()""", user["id"], x, y)
-    await manager.broadcast({"type": "street_move", "user_id": user["id"], "x": x, "y": y}, exclude=user["id"])
+    if manager_ref: await manager_ref.broadcast({"type": "street_move", "user_id": user["id"], "x": x, "y": y}, exclude=user["id"])
     return {"ok": True}
 
 # ====== ДОМ ======
@@ -601,6 +692,33 @@ async def give_coins(data: dict):
         await conn.execute("UPDATE users SET coins=coins+$1 WHERE id=$2", amt, tid)
     return {"ok": True}
 
+# ====== ПРОМОКОДЫ ======
+@app.post("/api/promocodes/activate")
+async def promocode_activate(data: dict):
+    user = await get_current_user(data.get("token"))
+    if not user: raise HTTPException(401, "Не авторизован")
+    code = (data.get("code") or "").strip()
+    if not code: raise HTTPException(400, "Введи код")
+
+    if code.lower() == "obamna":
+        return {"ok": True, "type": "easter_egg", "video_url": "/uploads/obamna.mp4", "text": "obamna 😢😈"}
+
+    if code == "SODA!":
+        return {"ok": True, "type": "easter_egg", "video_url": "/uploads/soda.mp4", "text": "SODA 🥤‼️😅🤩🥶"}
+
+    if code.upper() == "GUDRA":
+        p = await get_pool()
+        async with p.acquire() as conn:
+            activated = await conn.fetchval("SELECT 1 FROM promo_activations WHERE user_id=$1 AND promo_code='GUDRA'", user["id"])
+            if activated: raise HTTPException(400, "Уже активировал")
+            total = await conn.fetchval("SELECT COUNT(*) FROM promo_activations WHERE promo_code='GUDRA'")
+            if total >= 500: raise HTTPException(400, "Лимит исчерпан")
+            await conn.execute("UPDATE users SET coins=coins+500 WHERE id=$1", user["id"])
+            await conn.execute("INSERT INTO promo_activations(user_id, promo_code, reward) VALUES($1, 'GUDRA', 500)", user["id"])
+            return {"ok": True, "type": "text", "reward": 500, "msg": "🎉 +500 🏅 за GudraWorld!"}
+
+    raise HTTPException(404, "Код не найден")
+
 # ====== TURN CONFIG ======
 @app.get("/api/webrtc/config")
 async def webrtc_config():
@@ -637,6 +755,7 @@ class ConnectionManager:
                 except: self.disconnect(uid, ws)
 
 manager = ConnectionManager()
+manager_ref = manager
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket, token: str):
@@ -680,6 +799,11 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 payload = {"type": "dm", "id": msg["id"], "from_user": uid, "to_user": to_id, "username": user["username"], "display_name": dn, "avatar": user.get("avatar"), "text": text, "file_url": furl, "file_size": fsize, "msg_kind": kind, "created_at": _iso(msg["created_at"]), "temp_id": tid}
                 await manager.send_to(to_id, payload)
                 await manager.send_to(uid, payload)
+
+            elif t == "now_playing":
+                track = data.get("track", "")
+                artist = data.get("artist", "")
+                await manager.broadcast({"type": "now_playing", "user_id": uid, "track": track, "artist": artist}, exclude=uid)
 
             elif t == "street_move":
                 x = max(0, min(100, float(data.get("x", 50))))
@@ -752,121 +876,9 @@ async def sw(): return FileResponse("sw.js", media_type="application/javascript"
 @app.get("/manifest.json")
 async def manifest(): return FileResponse("manifest.json")
 
-@app.post("/api/channels/{cid}/edit")
-async def channel_edit(cid: int, data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        c = await conn.fetchrow("SELECT * FROM channels WHERE id=$1", cid)
-        if not c: raise HTTPException(404, "Нет канала")
-        if c["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
-        
-        new_username = data.get("username")
-        if new_username:
-            new_username = new_username.lower().strip()
-            if len(new_username) < 4: raise HTTPException(400, "Username мин 4")
-            if not re.match(r'^[a-z][a-z0-9_]*$', new_username): raise HTTPException(400, "Только a-z, 0-9, _")
-            if await conn.fetchval("SELECT 1 FROM users WHERE LOWER(username)=$1", new_username):
-                raise HTTPException(400, "Username занят пользователем")
-            if await conn.fetchval("SELECT 1 FROM channels WHERE LOWER(username)=$1 AND id!=$2", new_username, cid):
-                raise HTTPException(400, "Username занят каналом")
-        
-        await conn.execute("""UPDATE channels SET 
-            name=COALESCE($1,name), bio=COALESCE($2,bio), username=COALESCE($3,username)
-            WHERE id=$4""", 
-            data.get("name"), data.get("bio"), new_username, cid)
-    return {"ok": True}
-
-@app.post("/api/channels/{cid}/upload_avatar")
-async def channel_upload_avatar(cid: int, token: str = Form(...), file: UploadFile = File(...)):
-    user = await get_current_user(token)
-    if not user: raise HTTPException(401, "Не авторизован")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        c = await conn.fetchrow("SELECT * FROM channels WHERE id=$1", cid)
-        if not c or c["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
-    if not (file.content_type or "").startswith("image/"): raise HTTPException(400, "Только фото")
-    content = await file.read()
-    if len(content) > 5*1024*1024: raise HTTPException(400, "Макс 5 МБ")
-    ext = os.path.splitext(file.filename or "")[1].lower() or ".png"
-    name = f"ch_av_{secrets.token_hex(8)}{ext}"
-    with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
-    url = f"/uploads/{name}"
-    async with p.acquire() as conn:
-        await conn.execute("UPDATE channels SET avatar=$1 WHERE id=$2", url, cid)
-    return {"ok": True, "url": url}
-
-@app.post("/api/channels/{cid}/delete")
-async def channel_delete(cid: int, data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        c = await conn.fetchrow("SELECT owner_id FROM channels WHERE id=$1", cid)
-        if not c or c["owner_id"] != user["id"]: raise HTTPException(403, "Только владелец")
-        await conn.execute("DELETE FROM channels WHERE id=$1", cid)
-    return {"ok": True}
-
-# ====== МУЗЫКА ======
-@app.get("/api/music/list")
-async def music_list(token: str):
-    user = await get_current_user(token)
-    if not user: raise HTTPException(401, "Не авторизован")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("SELECT * FROM music WHERE user_id=$1 ORDER BY id DESC LIMIT 20", user["id"])
-    return [{"id": r["id"], "title": r["title"], "artist": r["artist"], "url": r["url"]} for r in rows]
-
-@app.post("/api/music/upload")
-async def music_upload(token: str = Form(...), file: UploadFile = File(...), title: str = Form(...)):
-    user = await get_current_user(token)
-    if not user: raise HTTPException(401, "Не авторизован")
-    if not (file.content_type or "").startswith("audio/"):
-        raise HTTPException(400, "Только аудио")
-    content = await file.read()
-    if len(content) > 20*1024*1024: raise HTTPException(400, "Макс 20 МБ")
-    ext = os.path.splitext(file.filename or "")[1].lower() or ".mp3"
-    name = f"music_{secrets.token_hex(8)}{ext}"
-    with open(os.path.join(UPLOAD_DIR, name), "wb") as f: f.write(content)
-    url = f"/uploads/{name}"
-    
-    p = await get_pool()
-    async with p.acquire() as conn:
-        # Проверяем лимит треков
-        cnt = await conn.fetchval("SELECT COUNT(*) FROM music WHERE user_id=$1", user["id"])
-        if cnt >= 20: raise HTTPException(400, "Макс 20 треков")
-        await conn.execute("INSERT INTO music(user_id, title, url) VALUES($1,$2,$3)", user["id"], title, url)
-    return {"url": url, "title": title}
-
-# ====== СТЕНА ======
-@app.get("/api/wall/{uid}")
-async def wall_list(uid: int, token: str):
-    user = await get_current_user(token)
-    if not user: raise HTTPException(401, "Не авторизован")
-    target = uid if uid > 0 else user["id"]
-    p = await get_pool()
-    async with p.acquire() as conn:
-        rows = await conn.fetch("""SELECT pw.*, u.username, u.display_name 
-            FROM profile_wall pw JOIN users u ON u.id=pw.author 
-            WHERE pw.profile_user=$1 ORDER BY pw.id DESC LIMIT 100""", target)
-    return [{"id": r["id"], "text": r["text"], "username": r["username"], "display_name": r["display_name"], "created_at": _iso(r["created_at"])} for r in rows]
-
-@app.post("/api/wall/{uid}/post")
-async def wall_post(uid: int, data: dict):
-    user = await get_current_user(data.get("token"))
-    if not user: raise HTTPException(401, "Не авторизован")
-    target = uid if uid > 0 else user["id"]
-    text = (data.get("text") or "").strip()[:1000]
-    if not text: raise HTTPException(400, "Текст")
-    p = await get_pool()
-    async with p.acquire() as conn:
-        await conn.execute("INSERT INTO profile_wall(profile_user,author,text) VALUES($1,$2,$3)", target, user["id"], text)
-    return {"ok": True}
-
 # ====== ЗАПУСК ======
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    print(f"🚀 BelugaCord 4.3 запущен на порту {port}")
+    print(f"🚀 BelugaCord 4.5 запущен на порту {port}")
     uvicorn.run(app, host="0.0.0.0", port=port, ws="websockets", proxy_headers=True, forwarded_allow_ips="*")
