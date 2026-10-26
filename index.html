@@ -1,77 +1,79 @@
-<!-- index.html — Полный фронтенд (Файлы, Фото, Видео, Кружки, Голосовые, Звонки) -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BelugaCord 4.5 BETA</title>
+<title>BelugaCord 4.5</title>
 <style>
-  :root {
-    --bg: #0e1621; --bg-panel: #17212b; --bg-hover: #202b36;
-    --accent: #51a2e8; --text: #ffffff; --text-muted: #7d8e9e;
-    --border: #101921; --red: #e53935; --green: #4caf50;
-    --purple: #8e44ad;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+  :root { --bg: #0e1621; --bg-panel: #17212b; --bg-hover: #202b36; --accent: #51a2e8; --text: #fff; --muted: #7d8e9e; --border: #101921; --red: #e53935; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; user-select: none; }
   body { background: #000; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
   .app { width: 100%; max-width: 480px; height: 100%; background: var(--bg); display: flex; flex-direction: column; position: relative; color: var(--text); }
   .hidden { display: none !important; }
   
-  /* Header */
-  .header { background: var(--bg-panel); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 10; flex-shrink: 0; }
+  /* Auth */
+  .auth-screen { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; padding: 24px; }
+  .auth-input { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 10px; margin-bottom: 12px; width: 100%; outline: none; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+  
+  /* Main Layout */
+  .main-view { height: 100%; display: flex; flex-direction: column; }
+  .header { background: var(--bg-panel); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
   .header-title { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .header-logo { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .search-container { padding: 8px 16px; background: var(--bg); }
+  .search-bar { background: var(--bg-panel); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 15px; }
   
-  /* Chat list */
-  .chat-list { flex: 1; overflow-y: auto; padding-bottom: 70px; }
+  /* Lists */
+  .scroll-view { flex: 1; overflow-y: auto; padding-bottom: 70px; }
   .chat-item { display: flex; padding: 12px 16px; gap: 12px; cursor: pointer; }
   .chat-item:hover { background: var(--bg-hover); }
   .avatar { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; background: #333; flex-shrink: 0; }
   .chat-info { flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
   .chat-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
   .chat-name { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chat-time { font-size: 12px; color: var(--text-muted); }
+  .chat-time { font-size: 12px; color: var(--muted); }
   .chat-bottom { display: flex; justify-content: space-between; align-items: center; }
-  .chat-msg { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chat-badge { background: var(--accent); color: #fff; font-size: 12px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+  .chat-msg { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   
   /* Bottom Nav */
   .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: var(--bg-panel); display: flex; justify-content: space-around; padding: 8px 0 16px 0; border-top: 1px solid var(--border); z-index: 20; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 11px; gap: 4px; cursor: pointer; width: 25%; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); font-size: 11px; gap: 4px; cursor: pointer; width: 25%; }
   .nav-item.active { color: var(--accent); }
   .nav-icon { font-size: 22px; }
   
-  /* Screen / Chat UI */
-  .chat-screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); display: flex; flex-direction: column; z-index: 50; transform: translateX(100%); transition: transform 0.2s; }
+  /* Settings / Profile Tabs */
+  .section-title { color: var(--accent); font-size: 13px; padding: 16px 16px 8px; font-weight: 500; }
+  .settings-list { background: var(--bg-panel); margin: 8px 16px; border-radius: 10px; overflow: hidden; }
+  .settings-item { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 16px;}
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item:active { background: var(--bg-hover); }
+  .settings-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; margin-right: 12px;}
+  
+  .profile-header { background: var(--bg-panel); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+  .profile-actions { display: flex; gap: 8px; width: 100%; margin-top: 12px; }
+  .btn-outline { flex: 1; background: var(--bg-hover); border: none; color: var(--accent); padding: 10px; border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; }
+  .profile-tabs { display: flex; background: var(--bg-panel); margin-top: 8px; padding: 0 8px; overflow-x: auto; border-bottom: 1px solid var(--border); }
+  .p-tab { padding: 12px 16px; color: var(--muted); font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent; }
+  .p-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  
+  /* Premium */
+  .premium-container { flex: 1; overflow-y: auto; padding-bottom: 70px; background: radial-gradient(circle at top, #3a1c71, #0e1621 60%); }
+  .plan-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin: 0 16px 12px 16px;}
+  .btn-premium { display: block; width: calc(100% - 32px); margin: 24px 16px; padding: 16px; background: linear-gradient(90deg, #8a2be2, #ff1493); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; }
+
+  /* Chat */
+  .chat-screen { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; z-index: 50; transform: translateX(100%); transition: transform 0.2s; }
   .chat-screen.active { transform: translateX(0); }
   .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-  .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-break: break-word; }
+  .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; word-break: break-word; }
   .bubble.in { background: var(--bg-panel); align-self: flex-start; border-bottom-left-radius: 4px; }
   .bubble.out { background: #2b5278; align-self: flex-end; border-bottom-right-radius: 4px; }
   .bubble img, .bubble video { max-width: 100%; border-radius: 8px; margin-top: 4px; }
   .chat-input-area { background: var(--bg-panel); padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
-  .chat-input { flex: 1; background: var(--bg); border: none; color: var(--text); padding: 12px; border-radius: 8px; font-size: 16px; outline: none; }
-  .btn-icon { background: transparent; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; }
-  
-  /* Modals */
-  .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .modal-content { background: var(--bg-panel); width: 90%; max-width: 400px; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-  .modal-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 8px; font-size: 16px; outline: none; }
-  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
-  .btn-text { background: transparent; color: var(--accent); border: none; font-size: 16px; cursor: pointer; padding: 8px; }
-  
-  /* Auth */
-  .auth-screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; padding: 24px; }
-  .auth-logo { text-align: center; margin-top: 60px; margin-bottom: 40px; font-size: 80px; }
-  .auth-title { font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 8px; }
-  .auth-input-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
-  .auth-input { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 10px; font-size: 16px; outline: none; }
-  
-  /* Call Overlay */
-  .call-overlay { position: absolute; top:0; left:0; right:0; bottom:0; background: #000; z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-  .call-video { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-  .call-video-local { width: 120px; height: 160px; position: absolute; bottom: 20px; right: 20px; background: #222; border-radius: 8px; object-fit: cover; border: 2px solid var(--accent); z-index: 301; }
+  .chat-input { flex: 1; background: var(--bg); border: none; color: var(--text); padding: 12px; border-radius: 8px; font-size: 15px; outline: none; }
+  .btn-icon { background: transparent; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px; }
 </style>
 </head>
 <body>
@@ -79,56 +81,161 @@
 
   <!-- AUTH -->
   <div class="auth-screen" id="authScreen">
-    <div class="auth-logo">🐋</div>
-    <div class="auth-title">BelugaCord</div>
-    <div style="text-align:center;color:var(--text-muted);font-size:14px;margin-bottom:32px">Анонимный мессенджер</div>
-    <div class="auth-input-group">
-      <label style="color:var(--accent);font-size:14px">Логин</label>
-      <input type="text" class="auth-input" id="loginUser" placeholder="_fan_beluga_ / admin / mod">
+    <div style="text-align:center;font-size:80px;margin-top:60px;margin-bottom:20px;">🐋</div>
+    <h2 style="text-align:center;margin-bottom:24px;font-size:24px;font-weight:600;">BelugaCord</h2>
+    
+    <div id="authForm">
+      <input class="auth-input" id="loginUser" placeholder="Имя пользователя">
+      <input class="auth-input" id="loginPass" type="password" placeholder="Пароль">
+      <button class="btn-primary" onclick="auth('login')" style="margin-bottom:10px;">Войти</button>
+      <button class="btn-primary" style="background:transparent;color:var(--accent);" onclick="auth('register')">Создать аккаунт</button>
     </div>
-    <div class="auth-input-group">
-      <label style="color:var(--accent);font-size:14px">Пароль</label>
-      <input type="password" class="auth-input" id="loginPass" placeholder="12344321 / admin123 / mod123">
-    </div>
-    <button class="btn-primary" onclick="login()">Войти</button>
   </div>
 
-  <!-- MAIN -->
-  <div id="mainApp" class="hidden" style="height:100%;display:flex;flex-direction:column;">
-    <div class="header">
-      <div class="header-title"><div class="header-logo">🐋</div> BelugaCord</div>
-      <div style="color:var(--text-muted);font-size:24px;cursor:pointer" onclick="openModal('settingsModal')">⋮</div>
-    </div>
+  <!-- MAIN APP -->
+  <div id="mainApp" class="hidden main-view">
     
-    <div class="chat-list">
-      <div class="chat-item" onclick="openChat('general', 'Общий чат')">
-        <img src="https://ui-avatars.com/api/?name=G&background=51a2e8&color=fff&rounded=true" class="avatar">
-        <div class="chat-info">
-          <div class="chat-top"><div class="chat-name">Общий чат</div></div>
-          <div class="chat-bottom"><div class="chat-msg">Нажмите чтобы войти</div></div>
-        </div>
+    <!-- VIEW: CHATS -->
+    <div id="viewChats" class="main-view">
+      <div class="header">
+        <div class="header-title"><div class="header-logo">🐋</div> BelugaCord</div>
+        <div style="font-size:24px;color:var(--muted);cursor:pointer" onclick="switchView('viewSettings')">⋮</div>
       </div>
-      <div class="chat-item" onclick="botFather()">
-        <img src="https://ui-avatars.com/api/?name=BF&background=51a2e8&color=fff&rounded=true" class="avatar">
-        <div class="chat-info">
-          <div class="chat-top"><div class="chat-name">BotFather</div></div>
-          <div class="chat-bottom"><div class="chat-msg">Создай своего бота</div></div>
+      <div class="search-container"><div class="search-bar">🔍 Поиск чатов</div></div>
+      <div class="scroll-view">
+        <div class="chat-item" onclick="openChat('general', 'Общий чат')">
+          <img src="https://ui-avatars.com/api/?name=G&background=51a2e8&color=fff&rounded=true" class="avatar">
+          <div class="chat-info">
+            <div class="chat-top"><div class="chat-name">Общий чат</div><div class="chat-time">11:59</div></div>
+            <div class="chat-bottom"><div class="chat-msg">Нажмите чтобы войти</div></div>
+          </div>
         </div>
-      </div>
-      <div class="chat-item" onclick="openModal('settingsModal')">
-        <img src="https://ui-avatars.com/api/?name=S&background=e67e22&color=fff&rounded=true" class="avatar">
-        <div class="chat-info">
-          <div class="chat-top"><div class="chat-name">Мой профиль</div></div>
-          <div class="chat-bottom"><div class="chat-msg">Настройки и панели</div></div>
+        <div class="chat-item" onclick="openProfile('_fan_beluga_')">
+          <img src="https://ui-avatars.com/api/?name=S&background=e67e22&color=fff&rounded=true" class="avatar">
+          <div class="chat-info">
+            <div class="chat-top"><div class="chat-name">Саша</div><div class="chat-time">11:45</div></div>
+            <div class="chat-bottom"><div class="chat-msg">Люди мне вообще-то не нравятся</div></div>
+          </div>
+        </div>
+        <div class="chat-item" onclick="openProfile('Yarik')">
+          <img src="https://ui-avatars.com/api/?name=Y&background=e53935&color=fff&rounded=true" class="avatar">
+          <div class="chat-info">
+            <div class="chat-top"><div class="chat-name">Ярик &lt;3</div><div class="chat-time">11:05</div></div>
+            <div class="chat-bottom"><div class="chat-msg">Видео 🎬</div></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="bottom-nav">
-      <div class="nav-item active"><div class="nav-icon">💬</div><div>Чаты</div></div>
-      <div class="nav-item" onclick="openModal('settingsModal')"><div class="nav-icon">👤</div><div>Контакты</div></div>
-      <div class="nav-item" onclick="openModal('settingsModal')"><div class="nav-icon">⚙️</div><div>Настройки</div></div>
-      <div class="nav-item" onclick="openModal('settingsModal')"><div class="nav-icon">😺</div><div>Профиль</div></div>
+    <!-- VIEW: CONTACTS -->
+    <div id="viewContacts" class="hidden main-view">
+      <div class="header"><div class="header-title">Контакты</div></div>
+      <div class="scroll-view">
+        <div class="settings-item" style="justify-content:center;color:var(--accent)">Пригласить друзей</div>
+        <div class="section-title">Сортировка по времени захода</div>
+        <div class="chat-item"><img src="https://ui-avatars.com/api/?name=D&background=333&color=fff&rounded=true" class="avatar"><div class="chat-info"><div class="chat-top"><div class="chat-name">Danik</div></div><div class="chat-bottom"><div class="chat-msg">был(а) в 11:10</div></div></div></div>
+        <div class="chat-item"><img src="https://ui-avatars.com/api/?name=N&background=51a2e8&color=fff&rounded=true" class="avatar"><div class="chat-info"><div class="chat-top"><div class="chat-name">Никита</div></div><div class="chat-bottom"><div class="chat-msg">был(а) в 10:52</div></div></div></div>
+      </div>
+    </div>
+
+    <!-- VIEW: SETTINGS -->
+    <div id="viewSettings" class="hidden main-view">
+      <div class="header"><div class="header-title">Настройки</div></div>
+      <div class="scroll-view">
+        <div class="section-title">Аккаунт</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="openProfile('_fan_beluga_')">
+            <div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#3498db">👤</div> Мой профиль</div>
+          </div>
+          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#f39c12">💬</div> Настройки чатов</div></div>
+          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#2ecc71">🔑</div> Конфиденциальность</div></div>
+        </div>
+
+        <div class="section-title">BelugaCord Premium</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="switchView('viewPremium')">
+            <div style="display:flex;align-items:center;"><div class="settings-icon" style="background:linear-gradient(45deg,#8a2be2,#ff1493)">⭐</div> Premium</div> <div style="color:var(--muted)">›</div>
+          </div>
+          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#f1c40f">🌟</div> Звёзды</div> <div style="color:var(--muted)">›</div></div>
+          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#e74c3c">💼</div> Для бизнеса</div> <div style="color:var(--muted)">›</div></div>
+        </div>
+
+        <div class="section-title">DEV Панели</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="openPanel('mod')"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#e67e22">🔨</div> Панель Модера</div></div>
+          <div class="settings-item" onclick="openPanel('admin')"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#c0392b">🛡️</div> Панель Админа</div></div>
+          <div class="settings-item" onclick="openPanel('owner')"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#8e44ad">👑</div> Панель Владельца</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PROFILE -->
+    <div id="viewProfile" class="hidden main-view">
+      <div class="header"><div style="font-size:24px;cursor:pointer" onclick="switchView('viewChats')">←</div><div class="header-title">Профиль</div><div style="width:24px"></div></div>
+      <div class="scroll-view">
+        <div class="profile-header">
+          <img src="https://ui-avatars.com/api/?name=S&background=e67e22&color=fff&rounded=true&size=200" class="profile-avatar" id="profAvatar">
+          <div style="font-size:22px;font-weight:600;" id="profName">Имя</div>
+          <div style="color:var(--muted);font-size:14px;" id="profStatus">@username</div>
+          <div class="profile-actions">
+            <button class="btn-outline">💬 Чат</button>
+            <button class="btn-outline">📞 Звонок</button>
+            <button class="btn-outline">⋮</button>
+          </div>
+        </div>
+        <div class="settings-list" style="margin-top:8px;">
+          <div class="settings-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
+            <div style="color:var(--accent);font-size:14px;">О себе</div>
+            <div style="font-size:16px;" id="profBio">Люди мне вообще-то не нравятся</div>
+          </div>
+          <div class="settings-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
+            <div style="color:var(--accent);font-size:14px;">Баланс</div>
+            <div style="font-size:16px;" id="profCoins">0 Бекоинов</div>
+          </div>
+        </div>
+        
+        <div class="profile-tabs">
+          <div class="p-tab active">Публикации</div>
+          <div class="p-tab">Подарки 🧸🎁</div>
+          <div class="p-tab">Медиа</div>
+        </div>
+        <div style="padding: 16px; display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+          <div style="aspect-ratio:1;background:#333;border-radius:4px;"></div>
+          <div style="aspect-ratio:1;background:#444;border-radius:4px;"></div>
+          <div style="aspect-ratio:1;background:#555;border-radius:4px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PREMIUM -->
+    <div id="viewPremium" class="hidden main-view">
+      <div class="header"><div style="font-size:24px;cursor:pointer" onclick="switchView('viewSettings')">←</div><div class="header-title">Premium</div><div style="width:24px"></div></div>
+      <div class="premium-container">
+        <div style="text-align:center;padding:40px 16px 24px;">
+          <div style="font-size:80px;background:linear-gradient(135deg,#ff007f,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:16px;">⭐</div>
+          <div style="font-size:26px;font-weight:bold;margin-bottom:8px;">BelugaCord Premium</div>
+          <div style="color:var(--muted);font-size:14px;">Больше свободы и десятки эксклюзивных функций</div>
+        </div>
+        
+        <div class="plan-card">
+          <div><div style="font-size:16px;font-weight:500;">На 2 года <span style="background:var(--accent);font-size:11px;padding:2px 6px;border-radius:4px;">-58%</span></div><div style="color:var(--muted);font-size:14px;">124,58 ₽ в месяц</div></div>
+          <div style="text-align:right"><div style="text-decoration:line-through;color:var(--muted);font-size:12px">3 588 ₽</div><div style="font-weight:bold">1 495 ₽ в год</div></div>
+        </div>
+        <div class="plan-card" style="border-color:#8e44ad;background:rgba(142, 68, 173, 0.1);">
+          <div><div style="font-size:16px;font-weight:500;">Ежегодно <span style="background:var(--accent);font-size:11px;padding:2px 6px;border-radius:4px;">-44%</span></div><div style="color:var(--muted);font-size:14px;">165,83 ₽ в месяц</div></div>
+          <div style="text-align:right"><div style="text-decoration:line-through;color:var(--muted);font-size:12px">3 588 ₽</div><div style="font-weight:bold">1 990 ₽ в год</div></div>
+        </div>
+        
+        <button class="btn-premium" onclick="alert('Переход на DonationAlerts')">Подключить за 1 990,00 ₽ в год</button>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav" id="bottomNav">
+      <div class="nav-item active" onclick="switchView('viewChats', this)"><div class="nav-icon">💬</div><div>Чаты</div></div>
+      <div class="nav-item" onclick="switchView('viewContacts', this)"><div class="nav-icon">👤</div><div>Контакты</div></div>
+      <div class="nav-item" onclick="switchView('viewSettings', this)"><div class="nav-icon">⚙️</div><div>Настройки</div></div>
+      <div class="nav-item" onclick="switchView('viewProfile', this)"><div class="nav-icon">😺</div><div>Профиль</div></div>
     </div>
   </div>
 
@@ -140,65 +247,34 @@
       <button class="btn-icon" onclick="startCall()">📞</button>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
-    
     <div class="chat-input-area">
       <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this)">
       <button class="btn-icon" onclick="document.getElementById('fileInput').click()">📎</button>
-      
       <input type="text" class="chat-input" id="chatInput" placeholder="Сообщение" onkeypress="if(event.key==='Enter') sendMsg()">
-      
-      <button class="btn-icon" onmousedown="startRec(false)" onmouseup="stopRec()" ontouchstart="startRec(false)" ontouchend="stopRec()">🎙️</button>
-      <button class="btn-icon" onmousedown="startRec(true)" onmouseup="stopRec()" ontouchstart="startRec(true)" ontouchend="stopRec()">⭕</button>
+      <button class="btn-icon" onmousedown="startRec(false)" onmouseup="stopRec()">🎙️</button>
+      <button class="btn-icon" onmousedown="startRec(true)" onmouseup="stopRec()">⭕</button>
     </div>
-  </div>
-
-  <!-- SETTINGS MODAL -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-content">
-      <div style="font-size:20px;font-weight:600;text-align:center">Настройки</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <button class="btn-primary" onclick="openPanel('mod')">Панель Модера</button>
-        <button class="btn-primary" style="background:#e67e22" onclick="openPanel('admin')">Панель Админа</button>
-        <button class="btn-primary" style="background:#8e44ad" onclick="openPanel('owner')">Панель Владельца</button>
-      </div>
-      <button class="btn-text" onclick="closeModal('settingsModal')">Закрыть</button>
-    </div>
-  </div>
-
-  <!-- PANEL MODAL -->
-  <div class="modal-overlay" id="panelModal">
-    <div class="modal-content">
-      <div style="font-size:20px;font-weight:600;text-align:center" id="panelTitle">Панель</div>
-      <input type="password" class="modal-input" id="panelPass" placeholder="Пароль">
-      <button class="btn-primary" onclick="checkPanelPass()">Войти</button>
-      <button class="btn-text" onclick="closeModal('panelModal')">Отмена</button>
-    </div>
-  </div>
-
-  <!-- CALL OVERLAY -->
-  <div id="callOverlay" class="call-overlay hidden">
-    <video id="remoteVideo" class="call-video" autoplay playsinline></video>
-    <video id="localVideo" class="call-video-local" autoplay playsinline muted></video>
-    <button class="btn-primary" style="position:absolute;bottom:40px;width:80px;background:red;z-index:310;" onclick="endCall()">Сброс</button>
   </div>
 
 </div>
 
 <script>
   let currentUser = '', ws, currentChat = 'general';
-  let peerConnection, localStream;
   let mediaRecorder, audioChunks = [];
-
+  let peerConnection, localStream;
   const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-  async function login() {
+  // АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ
+  async function auth(action) {
     const u = document.getElementById('loginUser').value;
     const p = document.getElementById('loginPass').value;
+    if(!u || !p) return alert('Заполните поля');
+    
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: u, password: p})
+        body: JSON.stringify({username: u, password: p, action: action})
       });
       if (!res.ok) throw new Error(await res.text());
       
@@ -209,24 +285,50 @@
     } catch(e) { alert('Ошибка: ' + e.message); }
   }
 
+  // НАВИГАЦИЯ
+  function switchView(id, navEl = null) {
+    document.querySelectorAll('.main-view').forEach(el => el.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    
+    if (navEl) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      navEl.classList.add('active');
+    }
+    // Включаем подложку навигации только на главных вкладках
+    const mainViews = ['viewChats', 'viewContacts', 'viewSettings'];
+    document.getElementById('bottomNav').style.display = mainViews.includes(id) ? 'flex' : 'none';
+  }
+
+  // ПРОФИЛЬ
+  async function openProfile(username) {
+    try {
+      const res = await fetch('/api/profile/' + username);
+      const data = await res.json();
+      
+      document.getElementById('profName').innerText = data.display_name;
+      document.getElementById('profStatus').innerText = '@' + username;
+      document.getElementById('profBio').innerText = data.bio || 'Нет информации';
+      document.getElementById('profCoins').innerText = data.coins + ' Бекоинов';
+      
+      switchView('viewProfile');
+    } catch(e) { alert('Профиль не найден'); }
+  }
+
+  // WEBSOCKET
   function connectWS() {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     ws = new WebSocket(`${proto}://${location.host}/ws/${currentUser}`);
-    
     ws.onmessage = async (e) => {
       const d = JSON.parse(e.data);
-      
-      // Чат
       if (d.event === 'history') {
         document.getElementById('chatMessages').innerHTML = '';
         d.messages.forEach(m => renderMsg(m.sender, m.text, m.type, m.file_url));
       } else if (d.event === 'new_message') {
         renderMsg(d.sender, d.text, d.type, d.file_url);
       }
-      
-      // WebRTC Сигналинг
+      // WebRTC
       if (d.event === 'call_offer') {
-        if (confirm(`Входящий звонок от ${d.sender}`)) {
+        if (confirm(`Звонок от ${d.sender}`)) {
           document.getElementById('callOverlay').classList.remove('hidden');
           await setupPeer(false, d.sender, d.offer);
         }
@@ -236,18 +338,6 @@
         await peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));
       } else if (d.event === 'call_end') {
         endCallUI();
-      }
-      
-      // Троллинг
-      if (d.event === 'flip') {
-        document.body.style.transition = 'transform 0.5s';
-        document.body.style.transform = 'rotate(180deg)';
-        setTimeout(() => document.body.style.transform = 'rotate(0deg)', 5000);
-      }
-      if (d.event === 'vibrate') navigator.vibrate?.([500, 200, 500]);
-      if (d.event === 'blink') {
-        document.body.style.background = '#000';
-        setTimeout(() => document.body.style.background = '', 500);
       }
     };
   }
@@ -270,103 +360,73 @@
     const div = document.createElement('div');
     div.className = `bubble ${sender === currentUser ? 'out' : 'in'}`;
     let content = `<div style="font-size:11px;color:#51a2e8;margin-bottom:2px">${sender}</div>`;
-    
     if (type === 'image') content += `<img src="${url}">`;
     else if (type === 'video') content += `<video src="${url}" controls></video>`;
     else if (type === 'voice') content += `<audio src="${url}" controls></audio>`;
-    else if (type === 'file') content += `<a href="${url}" target="_blank" style="color:#fff;text-decoration:none;">📎 ${text}</a>`;
+    else if (type === 'file') content += `<a href="${url}" target="_blank" style="color:#fff;">📎 ${text}</a>`;
     else content += text;
-    
     div.innerHTML = content;
     const container = document.getElementById('chatMessages');
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
   }
 
+  // ФАЙЛЫ
   async function uploadFile(inp) {
-    const file = inp.files[0];
-    if (!file) return;
-    
-    const form = new FormData();
-    form.append('file', file);
-    
-    alert('Загрузка... Не закрывайте приложение.');
-    try {
-      const res = await fetch('/api/upload', {method:'POST', body: form});
-      const data = await res.json();
-      
-      let type = 'file';
-      if (file.type.startsWith('image/')) type = 'image';
-      else if (file.type.startsWith('video/')) type = 'video';
-      else if (file.type.startsWith('audio/')) type = 'voice';
-
-      ws.send(JSON.stringify({event: 'message', chat_id: currentChat, text: file.name, type: type, file_url: data.url}));
-    } catch(e) { alert('Ошибка загрузки'); }
+    const file = inp.files[0]; if (!file) return;
+    const form = new FormData(); form.append('file', file);
+    alert('Загрузка...');
+    const res = await fetch('/api/upload', {method:'POST', body: form});
+    const data = await res.json();
+    let type = 'file';
+    if (file.type.startsWith('image/')) type = 'image';
+    else if (file.type.startsWith('video/')) type = 'video';
+    else if (file.type.startsWith('audio/')) type = 'voice';
+    ws.send(JSON.stringify({event: 'message', chat_id: currentChat, text: file.name, type: type, file_url: data.url}));
     inp.value = '';
   }
 
+  // ЗАПИСЬ МЕДИА
   async function startRec(isVideo = false) {
     try {
       const constraints = isVideo ? { video: { facingMode: "user" }, audio: true } : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
       mediaRecorder = new MediaRecorder(stream);
       audioChunks = [];
-      
       mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunks, { type: isVideo ? 'video/webm' : 'audio/webm' });
         const file = new File([blob], `rec_${Date.now()}.webm`, { type: blob.type });
-        
-        const form = new FormData();
-        form.append('file', file);
+        const form = new FormData(); form.append('file', file);
         const res = await fetch('/api/upload', {method:'POST', body: form});
         const data = await res.json();
-        
         ws.send(JSON.stringify({event: 'message', chat_id: currentChat, text: 'Медиа', type: isVideo ? 'video' : 'voice', file_url: data.url}));
-        
         stream.getTracks().forEach(t => t.stop());
       };
-      
       mediaRecorder.start();
-    } catch(err) { alert('Нет доступа к микрофону/камере (нужен HTTPS)'); }
+    } catch(err) { alert('Нет доступа к микрофону (нужен HTTPS)'); }
   }
+  function stopRec() { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
 
-  function stopRec() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
-  }
-
+  // ЗВОНКИ
   async function startCall() {
     const target = prompt('Кому звоним? (Введите @username)');
     if (!target) return;
-    
     document.getElementById('callOverlay').classList.remove('hidden');
     await setupPeer(true, target);
-    
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     ws.send(JSON.stringify({event: 'call_offer', target: target, offer: offer}));
   }
-
   async function setupPeer(isCaller, target, offer = null) {
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     document.getElementById('localVideo').srcObject = localStream;
-    
     peerConnection = new RTCPeerConnection(rtcConfig);
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    
-    peerConnection.ontrack = (event) => {
-      document.getElementById('remoteVideo').srcObject = event.streams[0];
-    };
-    
+    peerConnection.ontrack = (event) => { document.getElementById('remoteVideo').srcObject = event.streams[0]; };
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        ws.send(JSON.stringify({event: 'call_ice', target: target, candidate: event.candidate}));
-      }
+      if (event.candidate) ws.send(JSON.stringify({event: 'call_ice', target: target, candidate: event.candidate}));
     };
-    
     if (!isCaller && offer) {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await peerConnection.createAnswer();
@@ -374,88 +434,10 @@
       ws.send(JSON.stringify({event: 'call_answer', target: target, answer: answer}));
     }
   }
-
-  function endCall() {
-    const target = prompt('Кому звонили? (Введите @username для отключения)');
-    if (target) ws.send(JSON.stringify({event: 'call_end', target: target}));
-    endCallUI();
-  }
-
   function endCallUI() {
     if (peerConnection) { peerConnection.close(); peerConnection = null; }
     if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
     document.getElementById('callOverlay').classList.add('hidden');
-  }
-
-  // Settings / Panels
-  function openModal(id) { document.getElementById(id).classList.add('active'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-  let activePanel = '';
-  function openPanel(panel) {
-    activePanel = panel;
-    document.getElementById('panelTitle').innerText = 
-      panel === 'mod' ? 'Панель Модера' : 
-      panel === 'admin' ? 'Панель Админа' : 'Панель Владельца';
-    document.getElementById('panelPass').value = '';
-    closeModal('settingsModal');
-    openModal('panelModal');
-  }
-
-  function checkPanelPass() {
-    const p = document.getElementById('panelPass').value;
-    let ok = false;
-    if (activePanel === 'mod' && p === 'mod123') ok = true;
-    if (activePanel === 'admin' && p === 'admin123') ok = true;
-    if (activePanel === 'owner' && p === '12344321') ok = true;
-    
-    if (!ok) return alert('Неверный пароль!');
-    
-    closeModal('panelModal');
-    
-    let endpoints = '';
-    if (activePanel === 'mod') endpoints = 'mute | warn | kick';
-    if (activePanel === 'admin') endpoints = 'ban | unban | force_logout';
-    if (activePanel === 'owner') endpoints = 'give_coins | give_premium | give_scam | flip | vibrate | blink';
-    
-    const action = prompt(`Действия:\n${endpoints}\n\nВведите действие:`);
-    if (!action) return;
-    
-    const target = prompt('Введите @username цели:');
-    if (!target) return;
-    
-    let val = '';
-    if (action === 'mute' || action === 'give_coins' || action === 'give_premium') {
-      val = prompt('Значение (минуты/монеты/дни):') || '1';
-    }
-    
-    executeApiCall(activePanel, action, target, val);
-  }
-
-  async function executeApiCall(panel, action, target, value) {
-    const url = `/api/${panel}/${action}`;
-    try {
-      await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({target, value})
-      });
-      alert('Выполнено!');
-    } catch(e) { alert('Ошибка: ' + e.message); }
-  }
-
-  async function botFather() {
-    const name = prompt('Имя бота (например, my_bot):');
-    if (!name) return;
-    try {
-      const res = await fetch('/api/botfather/newbot', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({target: name})
-      });
-      const data = await res.json();
-      alert(`Бот создан!\nИмя: @${data.bot}\nТокен: ${data.token}`);
-    } catch(e) { alert('Ошибка: ' + e.message); }
   }
 </script>
 </body>
