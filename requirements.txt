@@ -1,6 +1,7 @@
 fastapi
-uvicorn[standard]
-asyncpg
+uvicorn
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
+pydantic
 python-multipart
-websockets
-httpx
