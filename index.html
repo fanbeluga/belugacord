@@ -1,444 +1,667 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BelugaCord 4.5</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BelugaCord Ultra</title>
 <style>
-  :root { --bg: #0e1621; --bg-panel: #17212b; --bg-hover: #202b36; --accent: #51a2e8; --text: #fff; --muted: #7d8e9e; --border: #101921; --red: #e53935; }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; user-select: none; }
-  body { background: #000; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-  .app { width: 100%; max-width: 480px; height: 100%; background: var(--bg); display: flex; flex-direction: column; position: relative; color: var(--text); }
-  .hidden { display: none !important; }
-  
-  /* Auth */
-  .auth-screen { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; padding: 24px; }
-  .auth-input { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 10px; margin-bottom: 12px; width: 100%; outline: none; }
-  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
-  
-  /* Main Layout */
-  .main-view { height: 100%; display: flex; flex-direction: column; }
-  .header { background: var(--bg-panel); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
-  .header-title { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .header-logo { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .search-container { padding: 8px 16px; background: var(--bg); }
-  .search-bar { background: var(--bg-panel); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 15px; }
-  
-  /* Lists */
-  .scroll-view { flex: 1; overflow-y: auto; padding-bottom: 70px; }
-  .chat-item { display: flex; padding: 12px 16px; gap: 12px; cursor: pointer; }
-  .chat-item:hover { background: var(--bg-hover); }
-  .avatar { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; background: #333; flex-shrink: 0; }
-  .chat-info { flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
-  .chat-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
-  .chat-name { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chat-time { font-size: 12px; color: var(--muted); }
-  .chat-bottom { display: flex; justify-content: space-between; align-items: center; }
-  .chat-msg { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  
-  /* Bottom Nav */
-  .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: var(--bg-panel); display: flex; justify-content: space-around; padding: 8px 0 16px 0; border-top: 1px solid var(--border); z-index: 20; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); font-size: 11px; gap: 4px; cursor: pointer; width: 25%; }
-  .nav-item.active { color: var(--accent); }
-  .nav-icon { font-size: 22px; }
-  
-  /* Settings / Profile Tabs */
-  .section-title { color: var(--accent); font-size: 13px; padding: 16px 16px 8px; font-weight: 500; }
-  .settings-list { background: var(--bg-panel); margin: 8px 16px; border-radius: 10px; overflow: hidden; }
-  .settings-item { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 16px;}
-  .settings-item:last-child { border-bottom: none; }
-  .settings-item:active { background: var(--bg-hover); }
-  .settings-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; margin-right: 12px;}
-  
-  .profile-header { background: var(--bg-panel); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-  .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
-  .profile-actions { display: flex; gap: 8px; width: 100%; margin-top: 12px; }
-  .btn-outline { flex: 1; background: var(--bg-hover); border: none; color: var(--accent); padding: 10px; border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; }
-  .profile-tabs { display: flex; background: var(--bg-panel); margin-top: 8px; padding: 0 8px; overflow-x: auto; border-bottom: 1px solid var(--border); }
-  .p-tab { padding: 12px 16px; color: var(--muted); font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent; }
-  .p-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  
-  /* Premium */
-  .premium-container { flex: 1; overflow-y: auto; padding-bottom: 70px; background: radial-gradient(circle at top, #3a1c71, #0e1621 60%); }
-  .plan-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin: 0 16px 12px 16px;}
-  .btn-premium { display: block; width: calc(100% - 32px); margin: 24px 16px; padding: 16px; background: linear-gradient(90deg, #8a2be2, #ff1493); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; }
+:root {
+    --bg: #151c26;
+    --card: rgba(29, 39, 51, 0.85);
+    --head: rgba(32, 44, 58, 0.9);
+    --acc: #4fa3ea;
+    --acc-grad: linear-gradient(135deg, #4fa3ea, #a855f7, #ec4899);
+    --txt: #ffffff;
+    --dim: #8a99ab;
+    --line: rgba(255, 255, 255, 0.1);
+    --nav: rgba(30, 42, 56, 0.95);
+    --sel: rgba(79, 163, 234, 0.25);
+    --shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+    --glow: 0 0 24px rgba(79, 163, 234, 0.5);
+    --glass: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: var(--glass);
+    backdrop-filter: var(--glass);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+:root[data-theme=light] {
+    --bg: #eef1f5;
+    --card: rgba(255, 255, 255, 0.85);
+    --head: rgba(255, 255, 255, 0.95);
+    --acc: #2a8bd8;
+    --acc-grad: linear-gradient(135deg, #2a8bd8, #6366f1, #d946ef);
+    --txt: #0f172a;
+    --dim: #64748b;
+    --line: rgba(0, 0, 0, 0.08);
+    --nav: rgba(255, 255, 255, 0.95);
+    --sel: rgba(42, 139, 216, 0.15);
+    --shadow: 0 12px 48px rgba(0, 0, 0, 0.1);
+    --glow: 0 0 24px rgba(42, 139, 216, 0.2);
+}
+html, body { height: 100%; background: var(--bg); }
+* { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+body { color: var(--txt); font: 16px/1.4 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+button, input, select { font: inherit; color: inherit; border: 0; background: none; outline: none; cursor: pointer; }
 
-  /* Chat */
-  .chat-screen { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; z-index: 50; transform: translateX(100%); transition: transform 0.2s; }
-  .chat-screen.active { transform: translateX(0); }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-  .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; word-break: break-word; }
-  .bubble.in { background: var(--bg-panel); align-self: flex-start; border-bottom-left-radius: 4px; }
-  .bubble.out { background: #2b5278; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .bubble img, .bubble video { max-width: 100%; border-radius: 8px; margin-top: 4px; }
-  .chat-input-area { background: var(--bg-panel); padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
-  .chat-input { flex: 1; background: var(--bg); border: none; color: var(--text); padding: 12px; border-radius: 8px; font-size: 15px; outline: none; }
-  .btn-icon { background: transparent; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px; }
+#app { max-width: 480px; height: 100%; margin: 0 auto; position: relative; overflow: hidden; background: var(--bg); }
+.scr { position: absolute; inset: 0; display: none; flex-direction: column; }
+.scr.on { display: flex; animation: fin 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.sc { flex: 1; overflow-y: auto; padding: 0 0 120px; scrollbar-width: none; display: flex; flex-direction: column; }
+.sc::-webkit-scrollbar { display: none; }
+
+#s-auth { z-index: 999; background: var(--bg); justify-content: center; align-items: center; padding: 24px; }
+.auth-box { width: 100%; max-width: 360px; background: var(--card); padding: 40px 24px; border-radius: 32px; box-shadow: var(--shadow); backdrop-filter: var(--glass); border: 1px solid var(--line); text-align: center; animation: pop 0.4s; }
+.auth-box h1 { font-size: 36px; font-weight: 900; margin-bottom: 8px; background: var(--acc-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.auth-box p { color: var(--dim); margin-bottom: 32px; }
+.auth-box input { width: 100%; background: var(--head); padding: 16px; border-radius: 16px; margin-bottom: 16px; color: var(--txt); border: 1px solid var(--line); text-align: center; font-size: 16px; }
+.auth-toggle { margin-top: 20px; font-size: 14px; color: var(--dim); cursor: pointer; text-decoration: underline; }
+
+.hd { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px 16px; font-size: 30px; font-weight: 900; flex: none; letter-spacing: -1px; }
+.dots { color: var(--dim); padding: 0 8px; font-size: 24px; }
+.srch { margin: 0 24px 20px; background: var(--head); border-radius: 20px; padding: 16px 20px; color: var(--txt); display: block; width: calc(100% - 48px); font-size: 16px; transition: 0.3s; border: 1px solid var(--line); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: var(--glass); }
+.srch:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--sel), var(--glow); }
+
+.row { display: flex; gap: 18px; padding: 14px 24px; align-items: center; cursor: pointer; transition: 0.2s; border-radius: 24px; margin: 0 12px; }
+.row:active { background: var(--card); transform: scale(0.96); }
+.av { border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; flex: none; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); }
+.mid { flex: 1; min-width: 0; }
+.r1, .r2 { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.r1 b { font-weight: 800; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
+.pre { color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.dim { color: var(--dim); } .sm { font-size: 13px; }
+.t { color: var(--dim); font-size: 12px; white-space: nowrap; font-weight: 600; }
+.pin { background: var(--head); border-radius: 8px; padding: 2px 8px; font-size: 12px; color: var(--acc); font-weight: 800; }
+.bd { background: var(--acc-grad); color: #fff; border-radius: 12px; min-width: 26px; height: 26px; padding: 0 8px; font-size: 13px; display: grid; place-items: center; font-weight: 900; box-shadow: var(--glow); }
+.bd.m { background: var(--head); color: var(--dim); box-shadow: none; }
+
+.tk { display: inline-block; width: 17px; height: 12px; fill: var(--acc); vertical-align: -1px; margin-right: 6px; }
+
+.card { background: var(--card); border-radius: 32px; margin: 20px 24px; overflow: hidden; box-shadow: var(--shadow); backdrop-filter: var(--glass); border: 1px solid var(--line); }
+.li { display: flex; align-items: center; gap: 18px; padding: 18px 24px; width: 100%; text-align: left; transition: 0.1s; }
+.li:active { background: var(--head); }
+.li + .li { border-top: 1px solid var(--line); }
+.li .v { margin-left: auto; color: var(--acc); font-weight: 700; font-size: 15px; }
+.ico { width: 44px; height: 44px; border-radius: 16px; display: grid; place-items: center; font-size: 22px; flex: none; color: #fff; box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+.cap { color: var(--dim); padding: 24px 28px 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+
+#nav { position: absolute; left: 20px; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--nav); border-radius: 32px; display: flex; padding: 8px; z-index: 10; box-shadow: var(--shadow); backdrop-filter: var(--glass); border: 1px solid var(--line); }
+#nav button { flex: 1; padding: 12px 0; border-radius: 24px; color: var(--dim); font-size: 12px; font-weight: 800; position: relative; display: grid; justify-items: center; gap: 4px; transition: 0.3s; }
+#nav button.on { color: var(--txt); background: var(--acc-grad); box-shadow: var(--glow); }
+#nav .e { font-size: 26px; line-height: 26px; }
+#nav .nb { position: absolute; top: 6px; left: 55%; background: linear-gradient(135deg, #ef4444, #f97316); color: #fff; font-size: 11px; border-radius: 12px; padding: 2px 6px; font-weight: 900; box-shadow: 0 4px 12px rgba(239,68,68,0.6); border: 2px solid var(--bg); }
+
+.back { width: 48px; height: 48px; border-radius: 50%; background: var(--head); display: grid; place-items: center; font-size: 22px; flex: none; transition: 0.2s; backdrop-filter: var(--glass); border: 1px solid var(--line); }
+.back:active { transform: scale(0.85); background: var(--acc); color: #fff; }
+.top { display: flex; gap: 12px; padding: 12px 20px; align-items: center; flex: none; z-index: 10; }
+.pill { flex: 1; background: var(--head); border-radius: 28px; padding: 6px 18px 6px 6px; display: flex; gap: 14px; align-items: center; min-width: 0; cursor: pointer; transition: 0.2s; backdrop-filter: var(--glass); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.pill:active { transform: scale(0.98); background: var(--card); }
+.pill b { font-weight: 800; display: block; font-size: 18px; line-height: 1.2; letter-spacing: -0.3px; }
+
+#msgs { 
+    flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; 
+    background-color: #0e131a;
+    background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.03)"/><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.02)"/><circle cx="90" cy="80" r="1.5" fill="rgba(255,255,255,0.02)"/></svg>');
+    background-size: 100px 100px;
+}
+:root[data-theme=light] #msgs {
+    background-color: #e5e9f0;
+    background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(0,0,0,0.03)"/><circle cx="10" cy="10" r="1.5" fill="rgba(0,0,0,0.02)"/><circle cx="90" cy="80" r="1.5" fill="rgba(0,0,0,0.02)"/></svg>');
+}
+#msgs::-webkit-scrollbar { display: none; }
+
+.chip { align-self: center; background: var(--head); color: var(--dim); border-radius: 16px; padding: 8px 16px; font-size: 13px; margin: 16px 0; font-weight: 700; backdrop-filter: var(--glass); box-shadow: var(--shadow); border: 1px solid var(--line); }
+.b { max-width: 80%; padding: 12px 16px 10px; border-radius: 24px 24px 24px 8px; background: var(--card); align-self: flex-start; word-break: break-word; font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); animation: pop 0.3s; backdrop-filter: var(--glass); border: 1px solid var(--line); }
+.b.out { background: var(--acc-grad); align-self: flex-end; border-radius: 24px 24px 8px 24px; color: #fff; border: none; box-shadow: var(--glow); }
+.b .mt { float: right; margin: 9px 0 -3px 12px; font-size: 11px; color: var(--dim); display: inline-flex; align-items: center; font-weight: 600; }
+.b.out .mt { color: rgba(255,255,255,0.8); }
+.b.out .tk { fill: #fff; margin: 0 0 0 4px; }
+
+.bar { display: flex; gap: 12px; padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px)); align-items: center; flex: none; z-index: 10; }
+.in { flex: 1; background: var(--head); border-radius: 28px; display: flex; align-items: center; padding: 0 8px 0 20px; min-height: 54px; backdrop-filter: var(--glass); border: 1px solid var(--line); transition: 0.3s; }
+.in:focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--sel), var(--glow); }
+.in input { flex: 1; min-width: 0; padding: 14px 8px; font-size: 16px; background: transparent; }
+.in button { width: 44px; height: 44px; border-radius: 50%; color: var(--dim); font-size: 22px; transition: 0.2s; }
+.in button:active { transform: scale(0.85); color: var(--acc); }
+#sb { width: 54px; height: 54px; border-radius: 50%; background: var(--acc-grad); color: #fff; font-size: 22px; flex: none; box-shadow: var(--glow); transition: 0.2s; }
+#sb:active { transform: scale(0.85); }
+
+.g-bg { background: radial-gradient(circle at 50% 30%, #2a3b4c, #151c26 90%); border-radius: 32px; border: 1px solid rgba(255,255,255,0.1); padding: 20px; margin: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+.g { width: 100%; max-width: 220px; text-align: center; position: relative; overflow: hidden; color: #fff; margin: 0 auto; }
+.g .art { font-size: 72px; display: block; margin: 8px 0 12px; position: relative; z-index: 1; filter: drop-shadow(0 12px 24px rgba(0,0,0,0.6)); }
+.g small { display: block; opacity: 0.9; font-size: 13px; position: relative; z-index: 1; font-weight: 600; }
+.g b { display: block; font-weight: 900; font-size: 20px; position: relative; z-index: 1; margin-bottom: 6px; letter-spacing: -0.5px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.g .sym { position: absolute; font-size: 20px; opacity: 0.5; animation: drift 5s linear infinite; }
+.g .r { font-size: 11px; text-transform: uppercase; font-weight: 900; padding: 4px 12px; border-radius: 12px; background: rgba(0,0,0,0.5); display: inline-block; margin: 10px 0; position: relative; z-index: 1; letter-spacing: 1.5px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); }
+.legendary .r { background: #fbbf24; color: #000; box-shadow: 0 0 20px #fbbf24; }
+.epic .r { background: #a855f7; box-shadow: 0 0 20px #a855f7; }
+.rare .r { background: #0ea5e9; box-shadow: 0 0 20px #0ea5e9; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 12px 24px; }
+.tile { background: var(--card); border-radius: 24px; aspect-ratio: 0.85; position: relative; overflow: hidden; display: grid; place-items: center; cursor: pointer; padding-bottom: 48px; box-shadow: var(--shadow); transition: 0.3s; backdrop-filter: var(--glass); border: 1px solid var(--line); }
+.tile:active { transform: scale(0.9) rotate(-2deg); }
+.tile .e { font-size: 52px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4)); transition: 0.3s; }
+.tile:active .e { transform: scale(1.2); }
+.tile .p { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; border-radius: 14px; padding: 6px 14px; font-size: 14px; font-weight: 800; white-space: nowrap; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
+.tile.mk:after { content: "MARKET"; position: absolute; top: 20px; right: -36px; background: linear-gradient(135deg, #2fb344, #14b8a6); color: #fff; font-size: 11px; font-weight: 900; padding: 6px 40px; transform: rotate(45deg); letter-spacing: 1.5px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+.seg { display: flex; background: var(--card); border-radius: 24px; margin: 20px 24px; padding: 6px; gap: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; box-shadow: var(--shadow); backdrop-filter: var(--glass); border: 1px solid var(--line); }
+.seg::-webkit-scrollbar { display: none; }
+.seg button { flex: 1; padding: 12px 20px; border-radius: 20px; color: var(--dim); font-size: 15px; font-weight: 800; transition: 0.3s; }
+.seg .on { background: var(--acc-grad); color: #fff; box-shadow: var(--glow); }
+
+.big { display: grid; justify-items: center; padding: 32px 0 16px; text-align: center; }
+.orb { position: relative; width: 300px; height: 260px; display: grid; place-items: center; }
+.orb i { position: absolute; font-style: normal; font-size: 40px; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 12px 24px rgba(0,0,0,0.5)); }
+
+#sheet { position: absolute; inset: 0; z-index: 50; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); display: none; align-items: flex-end; }
+#sheet.on { display: flex; }
+#sh { background: var(--bg); border-radius: 40px 40px 0 0; width: 100%; max-height: 88%; overflow-y: auto; padding: 28px 0 calc(28px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -20px 60px rgba(0,0,0,0.6); animation: up 0.4s; border-top: 1px solid var(--line); }
+#sh h3 { font-weight: 900; padding: 0 28px 20px; font-size: 26px; letter-spacing: -1px; }
+
+#toast { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); background: var(--head); color: var(--txt); border-radius: 28px; padding: 16px 32px; display: none; z-index: 100; white-space: nowrap; font-weight: 700; box-shadow: var(--shadow); border: 1px solid var(--line); animation: pop 0.3s; backdrop-filter: var(--glass); }
+
+.fld { display: block; width: 100%; background: var(--head); color: var(--txt); border-radius: 20px; padding: 18px; margin: 10px 0; border: 1px solid var(--line); font-size: 16px; transition: 0.3s; }
+.fld:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--sel), var(--glow); }
+.pillb { display: block; text-align: center; background: var(--acc-grad); color: #fff; border-radius: 20px; padding: 18px; margin-top: 16px; font-size: 16px; font-weight: 800; width: 100%; text-decoration: none; transition: 0.2s; box-shadow: var(--glow); letter-spacing: 0.5px; }
+.pillb:active { transform: scale(0.96); opacity: 0.9; }
+.pillb.r { background: linear-gradient(135deg, #ef4444, #f97316); box-shadow: 0 8px 24px rgba(239,68,68,0.4); }
+.pillb.t { background: var(--head); color: var(--txt); box-shadow: none; border: 1px solid var(--line); }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini { background: linear-gradient(135deg, #3a3326, #2a251c); color: #ffc94a; border-radius: 16px; padding: 10px 20px; font-weight: 800; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255, 201, 74, 0.3); }
+
+.bot-menu { position: absolute; bottom: 100px; left: 20px; right: 20px; background: var(--card); border-radius: 32px; padding: 10px; box-shadow: 0 -20px 60px rgba(0,0,0,0.6); z-index: 20; display: none; flex-direction: column; gap: 6px; animation: up 0.3s; border: 1px solid var(--line); backdrop-filter: var(--glass); }
+.bot-menu.on { display: flex; }
+.bot-menu button { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 24px; font-size: 16px; font-weight: 800; transition: 0.1s; text-align: left; }
+.bot-menu button:active { background: var(--head); transform: scale(0.98); }
+.bot-menu .icon { font-size: 22px; width: 44px; height: 44px; display: grid; place-items: center; background: var(--head); border-radius: 14px; border: 1px solid var(--line); }
+
+#call-screen { position: absolute; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+#call-screen.on { display: flex; }
+#remoteVideo { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+#localVideo { width: 120px; height: 160px; object-fit: cover; position: absolute; bottom: 100px; right: 20px; border-radius: 16px; border: 2px solid var(--acc); z-index: 2; box-shadow: var(--shadow); }
+.call-controls { position: absolute; bottom: 40px; display: flex; gap: 20px; z-index: 2; }
+.call-btn { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; color: #fff; cursor: pointer; box-shadow: var(--shadow); }
+.call-end { background: #ef4444; }
+
+@keyframes float { 50% { transform: translateY(-16px); } }
+@keyframes spin { to { transform: rotateY(360deg); } }
+@keyframes pulse { 50% { transform: scale(1.2); } }
+@keyframes shake { 25% { transform: translate(2px, -1px); } 75% { transform: translate(-2px, 1px); } }
+@keyframes drift { from { transform: translateY(140px) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } to { transform: translateY(-180px) rotate(360deg); opacity: 0; } }
+@keyframes fin { from { opacity: 0; transform: translateY(24px); } }
+@keyframes pop { from { opacity: 0; transform: scale(0.85); } }
+@keyframes up { from { opacity: 0; transform: translateY(60px); } }
+.float .art { animation: float 3s ease-in-out infinite; }
+.spin .art { animation: spin 4s linear infinite; }
+.pulse .art { animation: pulse 1.5s ease-in-out infinite; }
+.shake .art { animation: shake 0.4s steps(2) infinite; }
 </style>
 </head>
 <body>
-<div class="app">
+<div id="app">
 
-  <!-- AUTH -->
-  <div class="auth-screen" id="authScreen">
-    <div style="text-align:center;font-size:80px;margin-top:60px;margin-bottom:20px;">🐋</div>
-    <h2 style="text-align:center;margin-bottom:24px;font-size:24px;font-weight:600;">BelugaCord</h2>
-    
-    <div id="authForm">
-      <input class="auth-input" id="loginUser" placeholder="Имя пользователя">
-      <input class="auth-input" id="loginPass" type="password" placeholder="Пароль">
-      <button class="btn-primary" onclick="auth('login')" style="margin-bottom:10px;">Войти</button>
-      <button class="btn-primary" style="background:transparent;color:var(--accent);" onclick="auth('register')">Создать аккаунт</button>
+<!-- ЭКРАН ЗВОНКА -->
+<div id="call-screen">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div class="call-controls">
+        <button class="call-btn call-end" onclick="endCall()">❌</button>
     </div>
-  </div>
-
-  <!-- MAIN APP -->
-  <div id="mainApp" class="hidden main-view">
-    
-    <!-- VIEW: CHATS -->
-    <div id="viewChats" class="main-view">
-      <div class="header">
-        <div class="header-title"><div class="header-logo">🐋</div> BelugaCord</div>
-        <div style="font-size:24px;color:var(--muted);cursor:pointer" onclick="switchView('viewSettings')">⋮</div>
-      </div>
-      <div class="search-container"><div class="search-bar">🔍 Поиск чатов</div></div>
-      <div class="scroll-view">
-        <div class="chat-item" onclick="openChat('general', 'Общий чат')">
-          <img src="https://ui-avatars.com/api/?name=G&background=51a2e8&color=fff&rounded=true" class="avatar">
-          <div class="chat-info">
-            <div class="chat-top"><div class="chat-name">Общий чат</div><div class="chat-time">11:59</div></div>
-            <div class="chat-bottom"><div class="chat-msg">Нажмите чтобы войти</div></div>
-          </div>
-        </div>
-        <div class="chat-item" onclick="openProfile('_fan_beluga_')">
-          <img src="https://ui-avatars.com/api/?name=S&background=e67e22&color=fff&rounded=true" class="avatar">
-          <div class="chat-info">
-            <div class="chat-top"><div class="chat-name">Саша</div><div class="chat-time">11:45</div></div>
-            <div class="chat-bottom"><div class="chat-msg">Люди мне вообще-то не нравятся</div></div>
-          </div>
-        </div>
-        <div class="chat-item" onclick="openProfile('Yarik')">
-          <img src="https://ui-avatars.com/api/?name=Y&background=e53935&color=fff&rounded=true" class="avatar">
-          <div class="chat-info">
-            <div class="chat-top"><div class="chat-name">Ярик &lt;3</div><div class="chat-time">11:05</div></div>
-            <div class="chat-bottom"><div class="chat-msg">Видео 🎬</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: CONTACTS -->
-    <div id="viewContacts" class="hidden main-view">
-      <div class="header"><div class="header-title">Контакты</div></div>
-      <div class="scroll-view">
-        <div class="settings-item" style="justify-content:center;color:var(--accent)">Пригласить друзей</div>
-        <div class="section-title">Сортировка по времени захода</div>
-        <div class="chat-item"><img src="https://ui-avatars.com/api/?name=D&background=333&color=fff&rounded=true" class="avatar"><div class="chat-info"><div class="chat-top"><div class="chat-name">Danik</div></div><div class="chat-bottom"><div class="chat-msg">был(а) в 11:10</div></div></div></div>
-        <div class="chat-item"><img src="https://ui-avatars.com/api/?name=N&background=51a2e8&color=fff&rounded=true" class="avatar"><div class="chat-info"><div class="chat-top"><div class="chat-name">Никита</div></div><div class="chat-bottom"><div class="chat-msg">был(а) в 10:52</div></div></div></div>
-      </div>
-    </div>
-
-    <!-- VIEW: SETTINGS -->
-    <div id="viewSettings" class="hidden main-view">
-      <div class="header"><div class="header-title">Настройки</div></div>
-      <div class="scroll-view">
-        <div class="section-title">Аккаунт</div>
-        <div class="settings-list">
-          <div class="settings-item" onclick="openProfile('_fan_beluga_')">
-            <div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#3498db">👤</div> Мой профиль</div>
-          </div>
-          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#f39c12">💬</div> Настройки чатов</div></div>
-          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#2ecc71">🔑</div> Конфиденциальность</div></div>
-        </div>
-
-        <div class="section-title">BelugaCord Premium</div>
-        <div class="settings-list">
-          <div class="settings-item" onclick="switchView('viewPremium')">
-            <div style="display:flex;align-items:center;"><div class="settings-icon" style="background:linear-gradient(45deg,#8a2be2,#ff1493)">⭐</div> Premium</div> <div style="color:var(--muted)">›</div>
-          </div>
-          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#f1c40f">🌟</div> Звёзды</div> <div style="color:var(--muted)">›</div></div>
-          <div class="settings-item"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#e74c3c">💼</div> Для бизнеса</div> <div style="color:var(--muted)">›</div></div>
-        </div>
-
-        <div class="section-title">DEV Панели</div>
-        <div class="settings-list">
-          <div class="settings-item" onclick="openPanel('mod')"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#e67e22">🔨</div> Панель Модера</div></div>
-          <div class="settings-item" onclick="openPanel('admin')"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#c0392b">🛡️</div> Панель Админа</div></div>
-          <div class="settings-item" onclick="openPanel('owner')"><div style="display:flex;align-items:center;"><div class="settings-icon" style="background:#8e44ad">👑</div> Панель Владельца</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: PROFILE -->
-    <div id="viewProfile" class="hidden main-view">
-      <div class="header"><div style="font-size:24px;cursor:pointer" onclick="switchView('viewChats')">←</div><div class="header-title">Профиль</div><div style="width:24px"></div></div>
-      <div class="scroll-view">
-        <div class="profile-header">
-          <img src="https://ui-avatars.com/api/?name=S&background=e67e22&color=fff&rounded=true&size=200" class="profile-avatar" id="profAvatar">
-          <div style="font-size:22px;font-weight:600;" id="profName">Имя</div>
-          <div style="color:var(--muted);font-size:14px;" id="profStatus">@username</div>
-          <div class="profile-actions">
-            <button class="btn-outline">💬 Чат</button>
-            <button class="btn-outline">📞 Звонок</button>
-            <button class="btn-outline">⋮</button>
-          </div>
-        </div>
-        <div class="settings-list" style="margin-top:8px;">
-          <div class="settings-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
-            <div style="color:var(--accent);font-size:14px;">О себе</div>
-            <div style="font-size:16px;" id="profBio">Люди мне вообще-то не нравятся</div>
-          </div>
-          <div class="settings-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
-            <div style="color:var(--accent);font-size:14px;">Баланс</div>
-            <div style="font-size:16px;" id="profCoins">0 Бекоинов</div>
-          </div>
-        </div>
-        
-        <div class="profile-tabs">
-          <div class="p-tab active">Публикации</div>
-          <div class="p-tab">Подарки 🧸🎁</div>
-          <div class="p-tab">Медиа</div>
-        </div>
-        <div style="padding: 16px; display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-          <div style="aspect-ratio:1;background:#333;border-radius:4px;"></div>
-          <div style="aspect-ratio:1;background:#444;border-radius:4px;"></div>
-          <div style="aspect-ratio:1;background:#555;border-radius:4px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: PREMIUM -->
-    <div id="viewPremium" class="hidden main-view">
-      <div class="header"><div style="font-size:24px;cursor:pointer" onclick="switchView('viewSettings')">←</div><div class="header-title">Premium</div><div style="width:24px"></div></div>
-      <div class="premium-container">
-        <div style="text-align:center;padding:40px 16px 24px;">
-          <div style="font-size:80px;background:linear-gradient(135deg,#ff007f,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:16px;">⭐</div>
-          <div style="font-size:26px;font-weight:bold;margin-bottom:8px;">BelugaCord Premium</div>
-          <div style="color:var(--muted);font-size:14px;">Больше свободы и десятки эксклюзивных функций</div>
-        </div>
-        
-        <div class="plan-card">
-          <div><div style="font-size:16px;font-weight:500;">На 2 года <span style="background:var(--accent);font-size:11px;padding:2px 6px;border-radius:4px;">-58%</span></div><div style="color:var(--muted);font-size:14px;">124,58 ₽ в месяц</div></div>
-          <div style="text-align:right"><div style="text-decoration:line-through;color:var(--muted);font-size:12px">3 588 ₽</div><div style="font-weight:bold">1 495 ₽ в год</div></div>
-        </div>
-        <div class="plan-card" style="border-color:#8e44ad;background:rgba(142, 68, 173, 0.1);">
-          <div><div style="font-size:16px;font-weight:500;">Ежегодно <span style="background:var(--accent);font-size:11px;padding:2px 6px;border-radius:4px;">-44%</span></div><div style="color:var(--muted);font-size:14px;">165,83 ₽ в месяц</div></div>
-          <div style="text-align:right"><div style="text-decoration:line-through;color:var(--muted);font-size:12px">3 588 ₽</div><div style="font-weight:bold">1 990 ₽ в год</div></div>
-        </div>
-        
-        <button class="btn-premium" onclick="alert('Переход на DonationAlerts')">Подключить за 1 990,00 ₽ в год</button>
-      </div>
-    </div>
-
-    <!-- BOTTOM NAV -->
-    <div class="bottom-nav" id="bottomNav">
-      <div class="nav-item active" onclick="switchView('viewChats', this)"><div class="nav-icon">💬</div><div>Чаты</div></div>
-      <div class="nav-item" onclick="switchView('viewContacts', this)"><div class="nav-icon">👤</div><div>Контакты</div></div>
-      <div class="nav-item" onclick="switchView('viewSettings', this)"><div class="nav-icon">⚙️</div><div>Настройки</div></div>
-      <div class="nav-item" onclick="switchView('viewProfile', this)"><div class="nav-icon">😺</div><div>Профиль</div></div>
-    </div>
-  </div>
-
-  <!-- CHAT SCREEN -->
-  <div class="chat-screen" id="chatScreen">
-    <div class="header">
-      <div style="font-size:24px;cursor:pointer" onclick="closeChat()">←</div>
-      <div class="header-title" id="chatTitle">Чат</div>
-      <button class="btn-icon" onclick="startCall()">📞</button>
-    </div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input-area">
-      <input type="file" id="fileInput" style="display:none" onchange="uploadFile(this)">
-      <button class="btn-icon" onclick="document.getElementById('fileInput').click()">📎</button>
-      <input type="text" class="chat-input" id="chatInput" placeholder="Сообщение" onkeypress="if(event.key==='Enter') sendMsg()">
-      <button class="btn-icon" onmousedown="startRec(false)" onmouseup="stopRec()">🎙️</button>
-      <button class="btn-icon" onmousedown="startRec(true)" onmouseup="stopRec()">⭕</button>
-    </div>
-  </div>
-
 </div>
 
+<!-- ЭКРАН АВТОРИЗАЦИИ -->
+<div class="scr on" id="s-auth">
+    <div class="auth-box">
+        <h1 id="auth-title">BelugaCord</h1>
+        <p id="auth-sub">Добро пожаловать</p>
+        <input type="text" id="auth-login" placeholder="Логин">
+        <input type="password" id="auth-pass" placeholder="Пароль">
+        <button class="pillb" onclick="doAuth()" id="auth-btn">Войти</button>
+        <div class="auth-toggle" onclick="toggleAuth()" id="auth-toggle">У меня нет аккаунта (Регистрация)</div>
+    </div>
+</div>
+
+<div class="scr" id="s-chats">
+    <div class="hd"><span>BelugaCord</span><span class="dots">⋮</span></div>
+    <input class="srch" id="q" placeholder="Поиск" oninput="draw()">
+    <div class="sc" id="chl"></div>
+</div>
+<div class="scr" id="s-contacts">
+    <div class="hd"><span>Контакты</span><span class="dots">⋮</span></div>
+    <div class="sc" id="cts"></div>
+</div>
+<div class="scr" id="s-settings">
+    <div class="hd"><span>Настройки</span><span class="dots">⋮</span></div>
+    <div class="sc" id="set"></div>
+</div>
+<div class="scr" id="s-profile">
+    <div class="hd"><span>Профиль</span><span class="dots">⋮</span></div>
+    <div class="sc" id="prf"></div>
+</div>
+
+<div class="scr ov" id="chat">
+    <div class="top">
+        <button class="back" onclick="closeChat()">←</button>
+        <div class="pill" onclick="openPeerProfile(cur.id)">
+            <span id="pa"></span>
+            <div><b id="pn"></b><span class="dim sm" id="ps"></span></div>
+        </div>
+        <button class="back" onclick="chatMenu()">⋮</button>
+    </div>
+    <div id="msgs"></div>
+    
+    <div class="bot-menu" id="bot-menu">
+        <button onclick="useCmd('/start')"><span class="icon">▶️</span>/start</button>
+        <button onclick="useCmd('/help')"><span class="icon">❓</span>/help</button>
+        <button onclick="useCmd('/settings')"><span class="icon">⚙️</span>/settings</button>
+        <button onclick="useCmd('/stats')"><span class="icon">📊</span>/stats</button>
+    </div>
+
+    <div class="bar">
+        <button class="back" onclick="toggleBotMenu()" style="font-size:22px; width:54px; height:54px; border-radius:20px;">☰</button>
+        <div class="in">
+            <button>☺</button>
+            <input id="txt" placeholder="Сообщение" oninput="mic()" onkeydown="if(event.key==='Enter')send()">
+            <button onclick="openShop(cur.id)">🎁</button>
+        </div>
+        <button id="sb" onclick="send()">🎤</button>
+    </div>
+</div>
+
+<div class="scr ov" id="shop">
+    <div class="top">
+        <button class="back" onclick="$('shop').classList.remove('on')">←</button>
+        <div style="flex:1;font-size:24px;font-weight:900;padding-left:8px;letter-spacing:-0.5px">Магазин</div>
+        <span style="color:#ffc94a;padding-right:12px;font-weight:900;font-size:18px" id="sbal"></span>
+    </div>
+    <div class="sc" id="shg"></div>
+</div>
+
+<div class="scr ov" id="pg">
+    <div class="top">
+        <button class="back" onclick="closePg()">←</button>
+        <div id="pgt" style="flex:1;font-size:24px;font-weight:900;padding-left:8px;letter-spacing:-0.5px"></div>
+    </div>
+    <div class="sc" id="pgb"></div>
+</div>
+
+<div id="nav">
+    <button data-t="chats" class="on" onclick="go('chats')"><span class="e">💬</span>Чаты<span class="nb" id="nb"></span></button>
+    <button data-t="contacts" onclick="go('contacts')"><span class="e">👤</span>Контакты</button>
+    <button data-t="settings" onclick="go('settings')"><span class="e">⚙️</span>Настройки</button>
+    <button data-t="profile" onclick="go('profile')"><span class="e">🙂</span>Профиль</button>
+</div>
+
+<div id="sheet" onclick="if(event.target===this)closeS()"><div id="sh"></div></div>
+<div id="toast"></div>
+
+</div>
 <script>
-  let currentUser = '', ws, currentChat = 'general';
-  let mediaRecorder, audioChunks = [];
-  let peerConnection, localStream;
-  const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]));
+const now = Date.now();
 
-  // АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ
-  async function auth(action) {
-    const u = document.getElementById('loginUser').value;
-    const p = document.getElementById('loginPass').value;
-    if(!u || !p) return alert('Заполните поля');
-    
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: u, password: p, action: action})
-      });
-      if (!res.ok) throw new Error(await res.text());
-      
-      currentUser = u;
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      connectWS();
-    } catch(e) { alert('Ошибка: ' + e.message); }
-  }
+const CAT = {
+    rocket: {e:"🚀", n:"Ракета", p:50, s:5000},
+    champ: {e:"🍾", n:"Шампанское", p:50, s:5000},
+    gem: {e:"💎", n:"Кристалл", p:100, s:3000},
+    bear: {e:"🧸", n:"Белуга-мишка", p:100, s:3000},
+    heart: {e:"💜", n:"Неон-сердце", p:150, s:2000},
+    skull: {e:"💀", n:"Глитч-череп", p:250, s:1500},
+    cake: {e:"🎂", n:"Торт", p:300, s:1000},
+    crown: {e:"👑", n:"Корона", p:1500, s:200}
+};
+const MOD = {"Парящий":"float", "Вертушка":"spin", "Пульсар":"pulse", "Глитч":"shake"};
+const BG = {"Неон":"#d946ef,#22d3ee", "Закат":"#f97316,#7c3aed", "Токсик":"#22c55e,#0f172a", "Лёд":"#67e8f9,#1e3a8a", "Кровь":"#ef4444,#2a0010"};
+const SY = ["⚡","✦","☠","◈","❖","☢"];
+const COL = [["#ff885e","#ff516a"],["#ffcd6a","#ffa85c"],["#82b1ff","#665fff"],["#a0de7e","#54cb68"],["#53edd6","#28c9b7"],["#72d5fd","#2a9ef1"],["#e0a2f3","#d669ed"]];
 
-  // НАВИГАЦИЯ
-  function switchView(id, navEl = null) {
-    document.querySelectorAll('.main-view').forEach(el => el.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
+let ME = { role: "user", un: "", prem: 0, nums: [], usernames: [], used: {} };
+let bal = 1000, gid = 1, cur = null, tab = "chats", shopFor = null;
+let BF = { st: 0 }, MYB = [];
+
+// ==== АВТОРИЗАЦИЯ ====
+let isLogin = true;
+function toggleAuth() {
+    isLogin = !isLogin;
+    $("auth-title").textContent = isLogin ? "BelugaCord" : "Регистрация";
+    $("auth-sub").textContent = isLogin ? "Добро пожаловать" : "Создай новый аккаунт";
+    $("auth-btn").textContent = isLogin ? "Войти" : "Создать аккаунт";
+    $("auth-toggle").textContent = isLogin ? "У меня нет аккаунта (Регистрация)" : "Уже есть аккаунт (Войти)";
+}
+
+function doAuth() {
+    const un = $("auth-login").value.trim().toLowerCase();
+    const pw = $("auth-pass").value.trim();
+    if (!un || !pw) return toast("Заполни логин и пароль");
     
-    if (navEl) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      navEl.classList.add('active');
+    if (isLogin) {
+        const saved = JSON.parse(localStorage.getItem("bc_users") || "{}");
+        if (!saved[un] || saved[un] !== pw) return toast("Неверный логин или пароль");
+        loginUser(un);
+    } else {
+        const saved = JSON.parse(localStorage.getItem("bc_users") || "{}");
+        if (saved[un]) return toast("Этот логин уже занят");
+        saved[un] = pw;
+        localStorage.setItem("bc_users", JSON.stringify(saved));
+        loginUser(un);
     }
-    // Включаем подложку навигации только на главных вкладках
-    const mainViews = ['viewChats', 'viewContacts', 'viewSettings'];
-    document.getElementById('bottomNav').style.display = mainViews.includes(id) ? 'flex' : 'none';
-  }
+}
 
-  // ПРОФИЛЬ
-  async function openProfile(username) {
-    try {
-      const res = await fetch('/api/profile/' + username);
-      const data = await res.json();
-      
-      document.getElementById('profName').innerText = data.display_name;
-      document.getElementById('profStatus').innerText = '@' + username;
-      document.getElementById('profBio').innerText = data.bio || 'Нет информации';
-      document.getElementById('profCoins').innerText = data.coins + ' Бекоинов';
-      
-      switchView('viewProfile');
-    } catch(e) { alert('Профиль не найден'); }
-  }
+function loginUser(un) {
+    ME.un = un;
+    localStorage.setItem("bc_current", un);
+    $("s-auth").classList.remove("on");
+    $("s-chats").classList.add("on");
+    $("nav").style.display = "flex";
+    draw();
+}
 
-  // WEBSOCKET
-  function connectWS() {
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    ws = new WebSocket(`${proto}://${location.host}/ws/${currentUser}`);
-    ws.onmessage = async (e) => {
-      const d = JSON.parse(e.data);
-      if (d.event === 'history') {
-        document.getElementById('chatMessages').innerHTML = '';
-        d.messages.forEach(m => renderMsg(m.sender, m.text, m.type, m.file_url));
-      } else if (d.event === 'new_message') {
-        renderMsg(d.sender, d.text, d.type, d.file_url);
-      }
-      // WebRTC
-      if (d.event === 'call_offer') {
-        if (confirm(`Звонок от ${d.sender}`)) {
-          document.getElementById('callOverlay').classList.remove('hidden');
-          await setupPeer(false, d.sender, d.offer);
+window.onload = () => {
+    const savedUser = localStorage.getItem("bc_current");
+    if (savedUser) {
+        ME.un = savedUser;
+        $("s-auth").classList.remove("on");
+        $("s-chats").classList.add("on");
+        $("nav").style.display = "flex";
+        draw();
+    }
+};
+
+// ==== ОСНОВНОЙ КОД ====
+const C = [
+    {id:2, n:"Мирон", un:"miron", pin:1, seen:"в 05:32", nums:[], usernames:[]},
+    {id:3, n:"Ярик", un:"yarik", pin:1, seen:"в 11:05", nums:[], usernames:[]},
+    {id:4, n:"Макс", un:"max", pin:1, seen:"в 04:04", nums:[], usernames:[]},
+    {id:5, n:"Киря", un:"kirya", pin:1, seen:"в 08:59", nums:[], usernames:[]},
+    {id:6, n:"Full", un:"full", mute:1, seen:"недавно", nums:[], usernames:[]},
+    {id:7, n:"Знакомства", un:"dating", mute:1, seen:"недавно", nums:[], usernames:[]},
+    {id:8, n:"Поддержка BelugaCord", un:"support", bot:"sup", seen:"недавно", nums:[], usernames:[]},
+    {id:9, n:"BotFather", un:"botfather", bot:"bf", seen:"недавно", nums:[], usernames:[]}
+];
+const G = [], M = {};
+C.forEach(c => M[c.id] = []); // Чистые чаты, без фейковых сообщений
+
+const gift = (k, own) => { const g = {id: gid++, k, own, u: 0}; G.push(g); return g; };
+
+const last = c => M[c.id].length ? M[c.id][M[c.id].length-1] : {t: 0, out: 0, text: ""};
+const unr = c => M[c.id].filter(m => m.unread).length;
+const hm = t => new Date(t).toLocaleTimeString("ru", {hour:"2-digit", minute:"2-digit"});
+const TK = r => `<svg class="tk" viewBox="0 0 16 11"><path d="M11.1.6L5.3 6.4 3.1 4.2 2 5.3l3.3 3.3 6.9-6.9z${r?"M14.1.6L8.3 6.4l-.5-.5-1.1 1.1 1.6 1.6 6.9-6.9z":""}"/></svg>`;
+const av = (c, s) => { const k = COL[c.id % 7]; return `<span class="av" style="width:${s}px;height:${s}px;font-size:${s*.4}px;background:linear-gradient(${k[0]},${k[1]})">${esc(c.n[0])}</span>`; };
+
+function row(c) {
+    const m = last(c), u = unr(c);
+    const pv = m.g ? "🎁 Подарок" : esc(m.text || ""), tk = m.out ? TK(m.r) : "";
+    const time = m.t ? hm(m.t) : "";
+    return `<div class="row" onclick="openChat(${c.id})">${av(c,60)}<div class="mid"><div class="r1"><b>${esc(c.n)}${c.mute?" 🔇":""}</b><span class="t">${tk}${c.pin?'<span class="pin">📌 '+time+"</span>":time}</span></div><div class="r2"><span class="pre">${(m.out?"":"")+pv}</span>${u?`<span class="bd ${c.mute?"m":""}">${u}</span>`:""}</div></div></div>`;
+}
+
+function draw() {
+    const q = $("q").value.toLowerCase().trim();
+    const l = C.filter(c => c.n.toLowerCase().includes(q) || (c.un && c.un.toLowerCase().includes(q))).sort((a,b)=>(!!b.pin-!!a.pin)||last(b).t-last(a).t);
+    
+    $("chl").innerHTML = (q?"":`<div class="row"><span class="av" style="width:60px;height:60px;background:#2b3a4d;font-size:26px">🗃</span><div class="mid"><div class="r1"><b>Архив чатов</b></div><div class="r2"><span class="pre">Старые чаты и каналы</span><span class="bd m">49</span></div></div></div>`) + l.map(row).join("");
+    
+    const n = C.reduce((a,c)=>a+unr(c),0); $("nb").textContent = n||""; $("nb").style.display = n?"":"none";
+    
+    $("cts").innerHTML = `<div class="card"><button class="li" onclick="toast('Ссылка-приглашение скопирована')"><span class="ico" style="background:linear-gradient(135deg,#2a8bd8,#6366f1)">➕</span>Пригласить друзей</button><button class="li" onclick="toast('Звонки скоро')"><span class="ico" style="background:linear-gradient(135deg,#2fb344,#14b8a6)">📞</span>Недавние звонки</button></div><div class="cap">Сортировка по времени захода</div><div class="card" style="padding:8px 0">${C.map(c=>`<div class="row" onclick="openChat(${c.id})">${av(c,54)}<div class="mid"><b style="font-weight:800;font-size:17px">${esc(c.n)}</b><div class="dim sm">был(а) ${c.seen}</div></div></div>`).join("")}</div>`;
+    
+    const li = (c,i,t,v,f)=>`<button class="li" onclick="${f||"toast('Скоро')"}"><span class="ico" style="background:${c}">${i}</span>${t}${v?`<span class="v">${v}</span>`:""}</button>`;
+    
+    $("set").innerHTML = `<div class="big"><span class="av" style="width:130px;height:130px;font-size:52px;background:var(--acc-grad);box-shadow:var(--glow)">С</span><div style="font-size:30px;font-weight:900;margin-top:16px;letter-spacing:-1px">${ME.un}</div><div class="dim" style="font-weight:600">@${ME.un} • ◈ ${bal} • 1 ◈ = 1 ₽</div></div>
+    <div class="card">${li("linear-gradient(135deg,#2a8bd8,#6366f1)","👤","Аккаунт", null, "void(0)")}${li("linear-gradient(135deg,#f59e0b,#f97316)","💬","Настройки чатов", null, "void(0)")}${li("linear-gradient(135deg,#2fb344,#14b8a6)","🔑","Конфиденциальность", null, "void(0)")}${li("linear-gradient(135deg,#ef4444,#f43f5e)","🔔","Уведомления", null, "void(0)")}</div>
+    <div class="card">${li("linear-gradient(135deg,#2fb344,#10b981)","₽","Пополнить бекоины","1 ◈ = 1 ₽","pgTop()")}${li("linear-gradient(135deg,#a855f7,#ec4899)","⭐","Premium",premTxt(),"pgPrem()")}${li("linear-gradient(135deg,#ffb020,#f59e0b)","🏷","Биржа: номера и юзы","","pgEx()")}${li("linear-gradient(135deg,#2a8bd8,#3b82f6)","@","Проверка юзернейма","","pgUn()")}${li("linear-gradient(135deg,#ea7a14,#ef4444)","🎟","Промокод","","pgPromo()")}${li("linear-gradient(135deg,#14b8a6,#06b6d4)","💬","Поддержка","","openChat(8)")}${li("linear-gradient(135deg,#2a8bd8,#6366f1)","🤖","BotFather","","openChat(9)")}${ME.role!=="user"?li("linear-gradient(135deg,#ef4444,#f43f5e)","🛡",ME.role==="owner"?"Панель владельца":"Панель админа","","pgOwner()"):""}${li("linear-gradient(135deg,#64748b,#475569)","🎭","Роль (тест): "+ME.role,"","cyc()")}</div>
+    <div class="card">${li("linear-gradient(135deg,#a855f7,#d946ef)","🎁","Отправить подарок","","openShop(null)")}${li("linear-gradient(135deg,#ffb020,#f59e0b)","◈","Получить 500 бекоинов (тест)","","addB()")}${li("linear-gradient(135deg,#64748b,#475569)","🌓","Светлая тема","","theme()")}</div>
+    <div class="card">${li("linear-gradient(135deg,#ef4444,#f43f5e)","🚪","Выйти из аккаунта", null, "logout()")}</div>`;
+    
+    const mine = G.filter(g=>g.own==="me"), pos = [[10,40],[60,5],[200,10],[225,90],[190,170],[20,150]];
+    
+    let usernamesHtml = `<div class="li" style="display:block; margin-bottom:8px;" onclick="myUsMenu('${ME.un}')"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:900;color:var(--acc);font-size:17px">@${ME.un}</span><span style="color:var(--dim);font-size:16px;font-weight:600">текущий</span></div><div class="dim sm" style="margin-top:4px">Имя пользователя</div></div>`;
+    if (ME.usernames) { ME.usernames.forEach(u => { usernamesHtml += `<div class="li" style="display:block; margin-bottom:8px;" onclick="myUsMenu('${u}')"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:800;font-size:17px">@${u}</span><span style="color:var(--acc);font-size:16px">⚙️</span></div><div class="dim sm" style="margin-top:4px">Купленный юзернейм</div></div>`; }); }
+    
+    $("prf").innerHTML = `<div class="big"><div class="orb">${mine.slice(0,6).map((g,i)=>`<i style="left:${pos[i][0]}px;top:${pos[i][1]}px;animation-delay:-${i*.5}s">${CAT[g.k].e}</i>`).join("")}<span class="av" style="width:170px;height:170px;font-size:70px;background:var(--acc-grad);box-shadow:var(--glow)">С</span></div><div style="font-size:32px;font-weight:900;letter-spacing:-1px;text-shadow:0 4px 16px rgba(0,0,0,0.4)">${ME.un} <span style="color:var(--acc)">✔</span></div><div class="dim" style="font-weight:600;font-size:16px">в сети</div></div>
+    <div class="card"><div class="li" style="display:block"><div style="font-weight:600;font-size:16px">Привет, я в BelugaCord</div><div class="dim sm" style="margin-top:4px">О себе</div></div>${usernamesHtml}${ME.nums.map(n=>`<div class="li" style="display:block"><div style="font-weight:700;font-size:17px">${n.replace(/(\d{3})(?=\d)/g,"$1 ")}</div><div class="dim sm" style="margin-top:4px">Анонимный номер</div></div>`).join("")}</div>
+    <div class="seg"><button class="on">Подарки 🎁</button><button onclick="void(0)">Медиа</button><button onclick="void(0)">Файлы</button><button onclick="void(0)">Музыка</button></div>
+    <div class="grid">${mine.map(g=>`<div class="tile" onclick="gSheet(${g.id})"><span class="e">${CAT[g.k].e}</span><span class="p" style="${g.u?"background:linear-gradient(135deg,#2a2f4a,#1a1a2e);color:#b9a8ff":""}">${g.u?"#"+g.num:"◈ "+CAT[g.k].p}</span></div>`).join("")||'<div class="dim" style="grid-column:1/4;text-align:center;padding:48px;font-weight:600">Подарки появятся здесь</div>'}</div>`;
+}
+
+function logout() {
+    localStorage.removeItem("bc_current");
+    location.reload();
+}
+
+function go(t) { tab = t; document.querySelectorAll(".scr:not(.ov)").forEach(s => s.classList.toggle("on", s.id === "s-"+t)); document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.t === t)); }
+
+function openChat(id) { cur = C.find(c=>c.id===id); M[id].forEach(m=>m.unread=0); $("pa").innerHTML = av(cur,46); $("pn").textContent = cur.n; $("ps").textContent = "был(а) "+cur.seen; $("chat").classList.add("on"); $("nav").style.display = "none"; thread(); draw(); }
+function closeChat() { $("chat").classList.remove("on"); $("nav").style.display = ""; $("bot-menu").classList.remove("on"); cur = null; draw(); }
+function thread() { $("msgs").innerHTML = '<div class="chip">Сегодня</div>'; M[cur.id].forEach(bub); $("msgs").scrollTop = 1e9; }
+function bub(m) { const d = document.createElement("div"); if (m.g) { d.className = "svc"; d.innerHTML = `<div class="chip">${m.out?"Ты отправил(а) подарок":"Тебе прислали подарок"}</div><br>` + gh(m.g); } else if (m.us) { d.className = "svc"; d.innerHTML = `<div class="chip">${m.out?"Ты подарил(а) юзернейм":"Тебе подарили юзернейм"} @${m.us}</div>`; } else { d.className = "b " + (m.out?"out":""); d.innerHTML = esc(m.text) + `<span class="mt">${hm(m.t)}${m.out?TK(m.r):""}</span>`; } $("msgs").appendChild(d); $("msgs").scrollTop = 1e9; }
+
+function gh(g) { const c = CAT[g.k], col = g.u?BG[g.bg].split(","):["#4a5f7a","#243447"]; const sy = g.u?[10,70,130,40].map((l,i)=>`<span class="sym" style="left:${l}%;animation-delay:-${i*1.2}s">${g.sy}</span>`).join(""):""; const info = g.u?`<small>${g.md} · ${g.bg}</small><span class="r">${g.rar}</span><small>#${g.num} из ${c.s}</small>`:`<small>обычный подарок · ◈${c.p}</small>`; const a = g.own==="me"?`<div class="acts" style="display:flex;gap:8px;justify-content:center;margin-top:16px;position:relative;z-index:1"><button onclick="upg(${g.id})" style="background:rgba(255,255,255,0.25);border-radius:14px;padding:8px 16px;font-size:13px;color:#fff;font-weight:800;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2)">Улучшить</button><button onclick="sell(${g.id})" style="background:rgba(255,255,255,0.25);border-radius:14px;padding:8px 16px;font-size:13px;color:#fff;font-weight:800;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2)">Продать</button></div>`:(g.own===0?"<small>продан</small>":""); return `<div class="g-bg"><div class="g ${g.u?MOD[g.md]+" "+g.rar:"float"}" style="background:radial-gradient(circle at 50% 30%,${col[0]},${col[1]} 90%)">${sy}<span class="art">${c.e}</span><b>${c.n}</b>${info}${a}</div></div>`; }
+
+function mic() { $("sb").textContent = $("txt").value ? "➤" : "🎤"; }
+function send() {
+    const t = $("txt").value.trim(); if (!cur || !t) return;
+    $("txt").value = ""; mic(); $("bot-menu").classList.remove("on");
+    const m = {out:1, text:t, t:Date.now(), r:0}; M[cur.id].push(m); bub(m); draw();
+    cur.bot ? botReply(cur, t) : null;
+}
+
+function toggleBotMenu() { $("bot-menu").classList.toggle("on"); }
+function useCmd(cmd) { $("txt").value = cmd; $("bot-menu").classList.remove("on"); send(); }
+
+function openShop(to) {
+    shopFor = to; $("sbal").textContent = "◈ " + bal;
+    const marketBtn = `<button class="pillb" style="background:linear-gradient(135deg,#10b981,#059669); margin:12px 24px; width:calc(100% - 48px);" onclick="void(0)">🛒 Открыть маркет (перепродажа)</button>`;
+    $("shg").innerHTML = marketBtn + `<div class="grid">${Object.entries(CAT).map(([k,c])=>`<div class="tile" onclick="pick('${k}')"><span class="e">${c.e}</span><span class="p">◈ ${c.p}</span></div>`).join("")}</div>`;
+    $("shop").classList.add("on");
+}
+
+function pick(k) {
+    if (shopFor !== null) return buy(k, shopFor);
+    sheet(`<h3>Отправить подарок</h3><div class="row" onclick="closeS();buy('${k}',0)"><span class="av" style="width:54px;height:54px;background:var(--acc-grad)">${ME.un[0].toUpperCase()}</span><div class="mid"><b style="font-weight:800;font-size:17px">${ME.un}</b><div class="dim">купить подарок себе</div></div></div><div class="cap">Частые контакты</div>` + C.map(c=>`<div class="row" onclick="closeS();buy('${k}',${c.id})">${av(c,54)}<div class="mid"><b style="font-weight:800;font-size:17px">${esc(c.n)}</b><div class="dim sm">был(а) ${c.seen}</div></div></div>`).join(""));
+}
+
+function buy(k, to) {
+    const p = CAT[k].p; if (bal < p) return toast("Не хватает бекоинов");
+    bal -= p; const g = gift(k, to===0?"me":to); $("shop").classList.remove("on");
+    if (to === 0) { go("profile"); draw(); return toast("Подарок у тебя в профиле"); }
+    M[to].push({out:1, text:"", t:Date.now(), g, r:0}); const c = C.find(x=>x.id===to);
+    if (cur && cur.id === to) { thread(); } else openChat(to);
+    draw();
+}
+
+function upg(id) { const g = G.find(x=>x.id===id), c = CAT[g.k].p*2; if (bal < c) return toast(`Нужно ◈ ${c}`); bal -= c; const R=["common","common","rare","rare","epic","legendary"], pk=a=>a[Math.random()*a.length|0]; Object.assign(g,{u:1,md:pk(Object.keys(MOD)),bg:pk(Object.keys(BG)),sy:pk(SY),rar:pk(R),num:G.filter(x=>x.k===g.k&&x.u).length}); closeS(); cur&&thread(); draw(); toast("Подарок стал уникальным"); }
+function sell(id) { const g = G.find(x=>x.id===id); bal += Math.floor(CAT[g.k].p*(g.u?2:1)*.8); g.own = 0; closeS(); cur&&thread(); draw(); toast("Продано за 80% цены"); }
+function gSheet(id) { sheet(`<h3>Подарок</h3><div style="padding:0 28px">${gh(G.find(g=>g.id===id))}</div>`); }
+
+function openPeerProfile(id) {
+    const c = C.find(x=>x.id===id); if(!c) return;
+    const renderTabs = (act) => { const tabs = [{id:'gifts',name:'Подарки'},{id:'media',name:'Медиа'},{id:'files',name:'Файлы'},{id:'links',name:'Ссылки'},{id:'music',name:'Музыка'}]; return `<div class="seg" style="margin-top:10px;">` + tabs.map(t=>`<button class="${act===t.id?'on':''}" onclick="switchPeerTab(${c.id},'${t.id}')">${t.name}</button>`).join('') + `</div>`; };
+    const renderContent = (act) => { if (act==='gifts') { const gifts = G.filter(g=>g.own===c.id); return `<div class="grid">${gifts.length?gifts.map(g=>`<div class="tile"><span class="e">${CAT[g.k].e}</span><span class="p">${g.u?"#"+g.num:"◈ "+CAT[g.k].p}</span></div>`).join(""):'<div class="dim" style="grid-column:1/4;text-align:center;padding:24px;font-weight:600">Пока нет подарков</div>'}</div><div style="padding:24px"><button class="pillb" onclick="closeS();openShop(${c.id})">🎁 Отправить подарок ${esc(c.n)}</button></div>`; } return `<div class="dim" style="text-align:center;padding:48px 24px;font-weight:500">Здесь будут ${act==='media'?'фото и видео':act==='files'?'документы':act==='links'?'ссылки':'аудио'} из этого чата.</div>`; };
+    const headerHtml = `<div class="big" style="padding-bottom:0">${av(c,130)}<div style="font-size:30px;font-weight:900;margin-top:16px;letter-spacing:-1px">${esc(c.n)}</div><div class="dim" style="font-weight:600">был(а) ${c.seen}</div></div><div class="peer-prof-actions" style="display:flex;justify-content:space-around;padding:24px 0;background:var(--card);margin:20px 24px;border-radius:32px;backdrop-filter:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow)"><div class="act" onclick="closeS();openChat(${c.id})" style="text-align:center;cursor:pointer"><div class="ic" style="width:54px;height:54px;border-radius:50%;background:var(--acc-grad);display:grid;place-items:center;font-size:24px;margin:0 auto 8px;box-shadow:var(--glow)">💬</div><span style="font-size:12px;color:var(--dim);font-weight:800">Чат</span></div><div class="act" onclick="startCall(${c.id})" style="text-align:center;cursor:pointer"><div class="ic" style="width:54px;height:54px;border-radius:50%;background:var(--acc-grad);display:grid;place-items:center;font-size:24px;margin:0 auto 8px;box-shadow:var(--glow)">📞</div><span style="font-size:12px;color:var(--dim);font-weight:800">Звонок</span></div><div class="act" onclick="startCall(${c.id})" style="text-align:center;cursor:pointer"><div class="ic" style="width:54px;height:54px;border-radius:50%;background:var(--acc-grad);display:grid;place-items:center;font-size:24px;margin:0 auto 8px;box-shadow:var(--glow)">📹</div><span style="font-size:12px;color:var(--dim);font-weight:800">Видео</span></div><div class="act" onclick="toast('Уведомления включены')" style="text-align:center;cursor:pointer"><div class="ic" style="width:54px;height:54px;border-radius:50%;background:var(--acc-grad);display:grid;place-items:center;font-size:24px;margin:0 auto 8px;box-shadow:var(--glow)">🔔</div><span style="font-size:12px;color:var(--dim);font-weight:800">Звук</span></div></div><div class="card"><div class="li" style="display:block; margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:900;font-size:17px">@${esc(c.un||c.n.toLowerCase())}</span><span style="color:var(--acc);font-size:22px">📁</span></div><div class="dim sm" style="margin-top:4px">Имя пользователя</div></div><div class="li" style="display:block; margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:800;font-size:17px">${c.id}8128535674</span><span style="color:var(--acc);font-size:22px">📅</span></div><div class="dim sm" style="margin-top:4px">DC2, Amsterdam, NL</div></div>${c.usernames?c.usernames.map(u=>`<div class="li" style="display:block; margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:800;font-size:17px">@${u}</span></div><div class="dim sm" style="margin-top:4px">Подаренный юзернейм</div></div>`).join(""):""}</div>`;
+    sheet(headerHtml + `<div id="peer-tabs-area">${renderTabs('gifts')}</div><div id="peer-content-area">${renderContent('gifts')}</div>`);
+}
+
+function switchPeerTab(id, tabId) {
+    const c = C.find(x=>x.id===id); const tabsHtml = `<div class="seg" style="margin-top:10px;">` + [{id:'gifts',name:'Подарки'},{id:'media',name:'Медиа'},{id:'files',name:'Файлы'},{id:'links',name:'Ссылки'},{id:'music',name:'Музыка'}].map(t=>`<button class="${tabId===t.id?'on':''}" onclick="switchPeerTab(${id},'${t.id}')">${t.name}</button>`).join('') + `</div>`;
+    let contentHtml = ""; if (tabId==='gifts') { const gifts = G.filter(g=>g.own===c.id); contentHtml = `<div class="grid">${gifts.length?gifts.map(g=>`<div class="tile"><span class="e">${CAT[g.k].e}</span><span class="p">${g.u?"#"+g.num:"◈ "+CAT[g.k].p}</span></div>`).join(""):'<div class="dim" style="grid-column:1/4;text-align:center;padding:24px;font-weight:600">Пока нет подарков</div>'}</div><div style="padding:24px"><button class="pillb" onclick="closeS();openShop(${c.id})">🎁 Отправить подарок ${esc(c.n)}</button></div>`; } else { contentHtml = `<div class="dim" style="text-align:center;padding:48px 24px;font-weight:500">Здесь будут ${tabId==='media'?'фото и видео':tabId==='files'?'документы':tabId==='links'?'ссылки':'аудио'} из этого чата.</div>`; }
+    $("peer-tabs-area").innerHTML = tabsHtml; $("peer-content-area").innerHTML = contentHtml;
+}
+
+function chatMenu() {
+    if (!cur) return;
+    sheet(`<h3>Настройки чата: ${esc(cur.n)}</h3><div class="li" onclick="togglePin(${cur.id})"><span class="ico" style="background:linear-gradient(135deg,#4fa3ea,#a855f7)">📌</span>${cur.pin?"Открепить чат":"Закрепить чат"}</div><div class="li" onclick="toast('Уведомления выключены');closeS();"><span class="ico" style="background:linear-gradient(135deg,#4fa3ea,#a855f7)">🔕</span>Уведомления</div><div class="li" onclick="toast('Чат очищен');closeS();"><span class="ico" style="background:linear-gradient(135deg,#4fa3ea,#a855f7)">🗑</span>Очистить историю</div><div class="li" onclick="toast('Чат удален');closeS();closeChat();" style="color:#ef4444"><span class="ico" style="background:linear-gradient(135deg,#ef4444,#f43f5e)">❌</span>Удалить чат</div>`);
+}
+
+function togglePin(id) { const c = C.find(x=>x.id===id); if (c) { c.pin = c.pin?0:1; closeS(); draw(); toast(c.pin?"Чат закреплен":"Чат откреплен"); } }
+function sheet(h) { $("sh").innerHTML = h; $("sheet").classList.add("on"); }
+function closeS() { $("sheet").classList.remove("on"); }
+function addB() { bal += 500; draw(); toast("+500 бекоинов"); }
+function theme() { const r = document.documentElement; r.dataset.theme = r.dataset.theme==="light"?"dark":"light"; draw(); }
+
+const DA = "https://www.donationalerts.com/r/belugacord";
+const day = 864e5;
+const U = {dev:1,crow:1,max:1,sasha:1}, CH = {belugacord:1,news:1,belugachat:1};
+let LOTS = [], exT = "n";
+
+function generateNumberLots() { LOTS = LOTS.filter(l=>l.k==="u"); for (let i=0; i<15; i++) { let num = Math.floor(Math.random()*(999999999-111111111+1))+111111111; LOTS.push({k:"n", v:String(num), p: Math.floor(Math.random()*5000)+1000}); } }
+LOTS.push({k:"u",v:"ceo",p:12000},{k:"u",v:"wallet",p:8000},{k:"u",v:"luxury",p:3000});
+const PROMO = {BELUGA:{t:"b",a:300,n:100},PREMIUM7:{t:"p",a:7,n:100}};
+C.forEach(c => { c.bal=100; c.adm=0; c.prem=0; c.nums=[]; c.usernames=[]; });
+const isP = t => t > Date.now(), premTxt = () => isP(ME.prem) ? "до "+new Date(ME.prem).toLocaleDateString("ru") : "299 ₽ / мес";
+
+function pg(t,h) { $("pgt").textContent = t; $("pgb").innerHTML = h; $("pg").classList.add("on"); }
+function closePg() { $("pg").classList.remove("on"); draw(); }
+function pgTop() { pg("Пополнить бекоины", `<div class="card" style="padding:28px"><div style="font-size:24px;font-weight:900">1 ◈ = 1 ₽</div><div class="dim sm" style="margin:10px 0 20px;line-height:1.6">Оплата через DonationAlerts. В сообщении к донату напиши свой юзернейм: <b>${ME.un}</b>.</div><input id="sum" class="fld" type="number" value="500" min="10"><a class="pillb" target="_blank" rel="noopener" href="${DA}">Оплатить</a><button class="pillb t" onclick="topup()">Тест: зачислить</button></div>`); }
+function topup() { bal += Math.max(0, +$("sum").value||0); toast("Баланс: ◈ "+bal); }
+function pgPrem() { pg("Premium", `<div class="big"><div style="font-size:80px;filter:drop-shadow(0 0 40px #fbbf24)">⭐</div><div style="font-size:30px;font-weight:900;margin-top:16px;letter-spacing:-1px">BelugaCord Premium</div><div class="dim" style="font-weight:600;font-size:16px">${premTxt()}</div></div><div class="card" style="padding:28px;line-height:2;font-weight:500;font-size:16px">✔ Значок ⭐ рядом с ником<br>✔ Файлы до 100 МБ<br>✔ Эксклюзивные фоны профиля<br><br>299 ◈ на 30 дней = 299 ₽<button class="pillb" onclick="buyPrem()">Купить за ◈ 299</button><a class="pillb t" target="_blank" rel="noopener" href="${DA}">Оплатить рублями</a></div>`); }
+function buyPrem() { if (bal<299) return toast("Не хватает бекоинов"); bal -= 299; ME.prem = Math.max(ME.prem, Date.now()) + 30*day; pgPrem(); toast("Premium активен"); }
+
+function pgEx() {
+    if (exT === "n") generateNumberLots();
+    pg("Биржа", `<div class="seg"><button class="${exT==="n"?"on":""}" onclick="exT='n';pgEx()">Номера</button><button class="${exT==="u"?"on":""}" onclick="exT='u';pgEx()">Юзернеймы</button></div><div class="card">${LOTS.filter(l=>l.k===exT).map(l=>`<div class="li"><span class="ico" style="background:${exT==="n"?"linear-gradient(135deg,#2fb344,#10b981)":"linear-gradient(135deg,#2a8bd8,#6366f1)"}">${exT==="n"?"☎":"@"}</span><div style="flex:1"><b style="font-weight:800;font-size:17px">${exT==="n"?l.v.replace(/(\d{3})(?=\d)/g,"$1 "):"@"+l.v}</b><div class="dim sm" style="margin-top:2px">${exT==="n"?"Анонимный номер":"Юзернейм"}</div></div><button class="mini" onclick="exBuy('${l.v}')">◈ ${l.p}</button></div>`).join("")||'<div class="li dim" style="justify-content:center;padding:48px;font-weight:600">Лотов нет</div>'}</div><div class="dim sm" style="padding:0 28px;font-weight:600;font-size:14px">Баланс: ◈ ${bal} · 1 ◈ = 1 ₽</div>`);
+}
+
+function exBuy(v) {
+    const l = LOTS.find(x=>x.v===v); if (bal<l.p) return toast("Не хватает бекоинов");
+    bal -= l.p; LOTS = LOTS.filter(x=>x!==l);
+    if (l.k==="n") { ME.nums.push(l.v); } else { ME.usernames.push(l.v); U[l.v]=1; }
+    pgEx(); toast("Куплено: "+(l.k==="n"?l.v:"@"+l.v));
+}
+
+function myUsMenu(un) { if (un===ME.un) { toast("Нельзя управлять текущим юзернеймом"); return; } sheet(`<h3>Управление @${un}</h3><div class="li" onclick="sellMyUs('${un}')"><span class="ico" style="background:linear-gradient(135deg,#f59e0b,#f97316)">🏷</span>Выставить на биржу (за 80%)</div><div class="li" onclick="giftMyUs('${un}')"><span class="ico" style="background:linear-gradient(135deg,#2fb344,#10b981)">🎁</span>Подарить другу</div><div class="li" onclick="closeS()"><span class="ico" style="background:var(--head);color:var(--acc)">←</span>Отмена</div>`); }
+function sellMyUs(un) { ME.usernames = ME.usernames.filter(u=>u!==un); LOTS.push({k:"u",v:un,p:5000}); closeS(); draw(); toast(`@${un} выставлен на биржу`); }
+function giftMyUs(un) { sheet(`<h3>Подарить @${un}</h3><div class="cap">Выберите друга</div>` + C.map(c=>`<div class="row" onclick="confirmGiftUs('${un}',${c.id})">${av(c,54)}<div class="mid"><b style="font-weight:800;font-size:17px">${esc(c.n)}</b></div></div>`).join("") + `<div class="li" onclick="closeS()"><span class="ico" style="background:var(--head);color:var(--acc)">←</span>Отмена</div>`); }
+function confirmGiftUs(un, toId) { 
+    ME.usernames = ME.usernames.filter(u=>u!==un); 
+    const c = C.find(x=>x.id===toId); 
+    if (!c.usernames) c.usernames = []; 
+    c.usernames.push(un); 
+    M[toId].push({out:1, us:un, t:Date.now(), r:0}); 
+    closeS(); draw(); 
+    if(cur && cur.id === toId) thread();
+    toast(`@${un} подарен ${c.n}`); 
+}
+
+function unStatus(v) { const l = LOTS.find(x=>x.k==="u"&&x.v===v); if (!/^[a-z][a-z0-9_]{4,31}$/.test(v)) return ["Неверный формат","#ef4444",0]; if (v===ME.un||ME.usernames.includes(v)) return ["Твой юзернейм","#4fa3ea",0]; if (l) return ["На бирже за ◈ "+l.p,"#ffb020",0]; if (CH[v]) return ["Занят каналом","#ef4444",0]; if (U[v]) return ["Занят пользователем @"+v,"#ef4444",0]; return ["Свободен","#2fb344",1]; }
+function pgUn() { pg("Проверка юзернейма", `<div class="card" style="padding:28px"><input id="unv" class="fld" placeholder="@юзернейм" oninput="chk()"><div id="unr" style="margin-top:12px;font-weight:700"></div></div>`); }
+function chk() { const v = $("unv").value.trim().replace(/^@/,"").toLowerCase(), r = unStatus(v); $("unr").innerHTML = v ? `<span style="color:${r[1]};font-weight:bold">● ${r[0]}</span>` + (r[2]?`<button class="pillb" onclick="takeUn('${v}')">Занять @${v}</button>`:"") : ""; }
+function takeUn(v) { ME.un = v; U[v]=1; chk(); draw(); toast("Теперь ты @"+v); }
+function pgPromo() { pg("Промокод", `<div class="card" style="padding:28px"><input id="pcode" class="fld" placeholder="Введи промокод"><button class="pillb" onclick="redeem()">Активировать</button></div>`); }
+function redeem() { const k = $("pcode").value.trim().toUpperCase(), p = PROMO[k]; if (!p||p.n<1) return toast("Промокод не найден"); if (ME.used[k]) return toast("Уже использован"); p.n--; ME.used[k]=1; if (p.t==="b") { bal+=p.a; toast("+"+p.a+" бекоинов"); } else { ME.prem=Math.max(ME.prem,Date.now())+p.a*day; toast("Premium на "+p.a+" дн."); } $("pcode").value = ""; draw(); }
+
+function pgOwner(sel) {
+    const o = ME.role==="owner", us = C.filter(c=>!c.bot);
+    let adminHtml = `<div class="card" style="padding:28px"><div class="dim sm" style="font-weight:700">Выберите пользователя</div><select id="ou" class="fld">${us.map(c=>`<option value="${c.id}" ${c.id===sel?"selected":""}>${esc(c.n)} ${c.adm?"(Админ)":""}</option>`).join("")}</select><div class="dim sm" style="margin-top:24px;font-weight:900;color:var(--acc);text-transform:uppercase;font-size:13px;letter-spacing:1.5px">Модерация</div><div class="two" style="margin-top:10px"><button class="pillb r" onclick="admAct('mute',1)">Мут (1ч)</button><button class="pillb r" onclick="admAct('ban',1)">Бан</button><button class="pillb t" onclick="admAct('mute',0)">Снять мут</button><button class="pillb t" onclick="admAct('ban',0)">Разбан</button></div><div class="two" style="margin-top:10px"><button class="pillb" onclick="admAct('warn',1)">Варн</button><button class="pillb t" onclick="admAct('warn',0)">Снять варн</button><button class="pillb r" onclick="admAct('kick',1)">Кикнуть</button><button class="pillb t" onclick="admAct('readonly',1)">Только чтение</button></div><div class="dim sm" style="margin-top:24px;font-weight:900;color:var(--acc);text-transform:uppercase;font-size:13px;letter-spacing:1.5px">Информация</div><div class="two" style="margin-top:10px"><button class="pillb t" onclick="admAct('info',0)">История наказаний</button><button class="pillb t" onclick="admAct('stats',0)">Статистика</button></div></div>`;
+    if (o) {
+        adminHtml += `<div class="card" style="padding:28px"><div class="dim sm" style="font-weight:900;color:var(--acc);text-transform:uppercase;font-size:13px;letter-spacing:1.5px">Управление сервером</div><div class="two" style="margin-top:10px"><button class="pillb" onclick="admAct('slowmode',1)">Слоумод</button><button class="pillb r" onclick="admAct('slowmode',0)">Выкл слоумод</button><button class="pillb" onclick="admAct('globalmute',1)">Глоб. мут</button><button class="pillb r" onclick="admAct('globalmute',0)">Снять глоб. мут</button></div><div class="two" style="margin-top:10px"><button class="pillb" onclick="admAct('clear',1)">Очистить кэш</button><button class="pillb" onclick="admAct('backup',1)">Бэкап БД</button><button class="pillb t" onclick="admAct('update',1)">Обновить</button><button class="pillb t" onclick="admAct('logs',1)">Логи</button></div><div class="dim sm" style="margin-top:24px;font-weight:900;color:var(--acc);text-transform:uppercase;font-size:13px;letter-spacing:1.5px">Права</div><div class="two" style="margin-top:10px"><button class="pillb" onclick="admAct('setadmin',1)">Дать админку</button><button class="pillb r" onclick="admAct('setadmin',0)">Снять админку</button></div><div class="dim sm" style="margin-top:24px;font-weight:900;color:var(--acc);text-transform:uppercase;font-size:13px;letter-spacing:1.5px">Промокод</div><input id="pc" class="fld" placeholder="КОД" style="margin-top:10px"><select id="pt" class="fld"><option value="b">Бекоины</option><option value="p">Premium (дней)</option></select><input id="pa" class="fld" type="number" placeholder="Количество"><input id="pn" class="fld" type="number" value="10" placeholder="Активаций"><button class="pillb" onclick="oPromo()">Создать</button></div>
+        <div class="card" style="padding:28px"><div class="dim sm" style="font-weight:900;color:var(--acc);text-transform:uppercase;font-size:13px;letter-spacing:1.5px">Создать NFT-подарок</div><input id="nftName" class="fld" placeholder="Название" style="margin-top:10px"><input id="nftEmoji" class="fld" placeholder="Эмодзи" maxlength="2"><input id="nftPrice" class="fld" type="number" placeholder="Цена (◈)"><button class="pillb" onclick="createNFT()">Добавить</button></div>`;
+    }
+    pg(o?"Панель владельца":"Панель админа", adminHtml);
+}
+
+function admAct(type, val) { const id = +$("ou").value, u = C.find(c=>c.id===id); if (!u) return; if (type==='mute') { u.mute=val; toast(val?'Замучен':'Мут снят'); } if (type==='ban') { u.ban=val; toast(val?'Забанен':'Разбанен'); } if (type==='warn') { toast(val?'Выдан варн':'Варн снят'); } if (type==='kick') { toast('Кикнут'); } if (type==='readonly') { toast('Только чтение'); } if (type==='info') { toast('Наказаний нет'); } if (type==='stats') { toast('Онлайн: 14, Сообщений: 1204'); } if (type==='setadmin') { u.adm=val; toast(val?'Права выданы':'Права сняты'); } if (type==='slowmode') { toast(val?'Слоумод вкл':'Слоумод выкл'); } if (type==='globalmute') { toast(val?'Глоб мут вкл':'Глоб мут выкл'); } if (type==='clear') { toast('Кэш очищен'); } if (type==='backup') { toast('Бэкап запущен'); } if (type==='update') { toast('Сервер обновлен'); } if (type==='logs') { toast('Логи загружены'); } pgOwner(id); }
+function oPromo() { const k = $("pc").value.trim().toUpperCase(), a = +$("pa").value; if (!k||!a) return toast("Заполни код и кол-во"); PROMO[k] = {t:$("pt").value, a, n:+$("pn").value||1}; pgOwner(+$("ou").value); toast("Промокод "+k+" создан"); }
+function createNFT() { const name = $("nftName").value.trim(), emoji = $("nftEmoji").value.trim(), price = +$("nftPrice").value; if (!name||!emoji||!price) return toast("Заполни все поля"); const key = "nft_"+Date.now(); CAT[key] = {e:emoji, n:name, p:price, s:100}; toast(`Подарок "${name}" добавлен!`); $("nftName").value=""; $("nftEmoji").value=""; $("nftPrice").value=""; }
+function cyc() { ME.role = {user:"admin",admin:"owner",owner:"user"}[ME.role]; draw(); toast("Роль: "+ME.role); }
+
+function say(c,t,ms=1100) { setTimeout(()=>{if(cur===c)$("ps").textContent="печатает…";},300); setTimeout(()=>{M[c.id].forEach(m=>m.r=1); M[c.id].push({out:0,text:t,t:Date.now(),r:1,unread:cur!==c}); if(cur===c){$("ps").textContent="был(а) "+c.seen; thread();} draw();},ms); }
+
+function botReply(c,t) {
+    const q = t.toLowerCase();
+    if (c.bot==="sup") { const A = [[/бекоин|баланс|пополн|донат|руб/,"1 ◈ = 1 ₽. Пополнение: Настройки → Пополнить бекоины (DonationAlerts)."],[/premium|премиум/,"Premium: 299 ◈ на 30 дней."],[/номер/,"Анонимные номера продаются на бирже."],[/юз|username|ник/,"Свободен ли юз, покажет Проверка юзернейма."],[/промо/,"Промокод вводится в Настройках."],[/бот/,"Бота можно создать у BotFather."]], a = A.find(x=>x[0].test(q)); return say(c, a?a[1]:"Не нашёл ответ в базе."); }
+    if (c.bot==="bf") {
+        if (/^\/newbot/.test(q)) { BF.st=1; return say(c,"Как назовём бота?"); }
+        if (BF.st===1) { BF.n=t; BF.st=2; return say(c,"Теперь юзернейм (заканчивается на bot)."); }
+        if (BF.st===2) { 
+            const v = q.replace(/^@/,""), r = unStatus(v); 
+            if (!/bot$/.test(v)) return say(c,"Юзернейм бота должен заканчиваться на bot."); 
+            if (!r[2]) return say(c,"Юзернейм недоступен: "+r[0]); 
+            
+            // Генерация реального токена в виде URL
+            const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-", tk = (1e8+Math.random()*9e8|0)+":"+Array.from({length:35},()=>A[Math.random()*64|0]).join(""); 
+            const apiUrl = `https://belugacord.com/bot/${v}?token=${tk}`;
+            
+            U[v]=1; MYB.push({n:BF.n,u:v,t:tk,url:apiUrl}); BF.st=0; 
+            
+            const instruction = `Готово! Бот @${v} создан.\n\nТвой API-токен (URL):\n${apiUrl}\n\nКАК ИСПОЛЬЗОВАТЬ В PYTHON:\n1. Скопируй URL выше.\n2. Вставь его в свой Python-скрипт (переменная API_URL).\n3. Скрипт будет делать запросы на этот URL, и сервер поймет, что это именно твой бот.\n\nШаблон скрипта:\n\`\`\`python\nimport requests\nAPI_URL = "${apiUrl}"\n# Теперь любой запрос с этим URL авторизует твоего бота!\n\`\`\`\n\nНикому не показывай токен!`; 
+            return say(c, instruction); 
         }
-      } else if (d.event === 'call_answer') {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(d.answer));
-      } else if (d.event === 'call_ice') {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));
-      } else if (d.event === 'call_end') {
-        endCallUI();
-      }
-    };
-  }
-
-  function openChat(id, title) {
-    currentChat = id;
-    document.getElementById('chatTitle').innerText = title;
-    document.getElementById('chatScreen').classList.add('active');
-  }
-  function closeChat() { document.getElementById('chatScreen').classList.remove('active'); }
-
-  function sendMsg() {
-    const inp = document.getElementById('chatInput');
-    if (!inp.value.trim()) return;
-    ws.send(JSON.stringify({event: 'message', chat_id: currentChat, text: inp.value, type: 'text'}));
-    inp.value = '';
-  }
-
-  function renderMsg(sender, text, type, url) {
-    const div = document.createElement('div');
-    div.className = `bubble ${sender === currentUser ? 'out' : 'in'}`;
-    let content = `<div style="font-size:11px;color:#51a2e8;margin-bottom:2px">${sender}</div>`;
-    if (type === 'image') content += `<img src="${url}">`;
-    else if (type === 'video') content += `<video src="${url}" controls></video>`;
-    else if (type === 'voice') content += `<audio src="${url}" controls></audio>`;
-    else if (type === 'file') content += `<a href="${url}" target="_blank" style="color:#fff;">📎 ${text}</a>`;
-    else content += text;
-    div.innerHTML = content;
-    const container = document.getElementById('chatMessages');
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-  }
-
-  // ФАЙЛЫ
-  async function uploadFile(inp) {
-    const file = inp.files[0]; if (!file) return;
-    const form = new FormData(); form.append('file', file);
-    alert('Загрузка...');
-    const res = await fetch('/api/upload', {method:'POST', body: form});
-    const data = await res.json();
-    let type = 'file';
-    if (file.type.startsWith('image/')) type = 'image';
-    else if (file.type.startsWith('video/')) type = 'video';
-    else if (file.type.startsWith('audio/')) type = 'voice';
-    ws.send(JSON.stringify({event: 'message', chat_id: currentChat, text: file.name, type: type, file_url: data.url}));
-    inp.value = '';
-  }
-
-  // ЗАПИСЬ МЕДИА
-  async function startRec(isVideo = false) {
-    try {
-      const constraints = isVideo ? { video: { facingMode: "user" }, audio: true } : { audio: true };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: isVideo ? 'video/webm' : 'audio/webm' });
-        const file = new File([blob], `rec_${Date.now()}.webm`, { type: blob.type });
-        const form = new FormData(); form.append('file', file);
-        const res = await fetch('/api/upload', {method:'POST', body: form});
-        const data = await res.json();
-        ws.send(JSON.stringify({event: 'message', chat_id: currentChat, text: 'Медиа', type: isVideo ? 'video' : 'voice', file_url: data.url}));
-        stream.getTracks().forEach(t => t.stop());
-      };
-      mediaRecorder.start();
-    } catch(err) { alert('Нет доступа к микрофону (нужен HTTPS)'); }
-  }
-  function stopRec() { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
-
-  // ЗВОНКИ
-  async function startCall() {
-    const target = prompt('Кому звоним? (Введите @username)');
-    if (!target) return;
-    document.getElementById('callOverlay').classList.remove('hidden');
-    await setupPeer(true, target);
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    ws.send(JSON.stringify({event: 'call_offer', target: target, offer: offer}));
-  }
-  async function setupPeer(isCaller, target, offer = null) {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    document.getElementById('localVideo').srcObject = localStream;
-    peerConnection = new RTCPeerConnection(rtcConfig);
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    peerConnection.ontrack = (event) => { document.getElementById('remoteVideo').srcObject = event.streams[0]; };
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) ws.send(JSON.stringify({event: 'call_ice', target: target, candidate: event.candidate}));
-    };
-    if (!isCaller && offer) {
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      ws.send(JSON.stringify({event: 'call_answer', target: target, answer: answer}));
+        if (/^\/mybots/.test(q)) return say(c, MYB.length ? MYB.map(b=>"@"+b.u+" — "+b.n).join("\n") : "Ботов нет."); 
+        if (/^\/token/.test(q)) return say(c, MYB.length ? MYB.map(b=>"@"+b.u+"\n"+b.url).join("\n\n") : "Токенов нет."); 
+        return say(c,"Команды:\n/newbot — создать бота\n/mybots — мои боты\n/token — показать токены");
     }
-  }
-  function endCallUI() {
-    if (peerConnection) { peerConnection.close(); peerConnection = null; }
+    say(c,"Ха, понял. Это тестовый чат, я тут просто отвечаю.");
+}
+
+// === ЛОГИКА ЗВОНКОВ (WebRTC) ===
+let ws;
+let pc;
+let localStream;
+let activeCallTarget = null;
+
+async function startCall(targetId) {
+    activeCallTarget = targetId;
+    $("call-screen").classList.add("on");
+
+    try {
+        const res = await fetch("http://localhost:8000/api/turn_config");
+        const config = await res.json();
+
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        $("localVideo").srcObject = localStream;
+
+        const myId = ME.un === "sasha" ? 1 : 2; 
+        ws = new WebSocket(`ws://localhost:8000/ws/${myId}`);
+
+        ws.onopen = async () => {
+            pc = new RTCPeerConnection(config);
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            pc.onicecandidate = (event) => {
+                if (event.candidate) ws.send(JSON.stringify({ target_id: targetId, type: "candidate", data: event.candidate }));
+            };
+            pc.ontrack = (event) => { $("remoteVideo").srcObject = event.streams[0]; };
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({ target_id: targetId, type: "offer", data: offer }));
+        };
+
+        ws.onmessage = async (event) => {
+            const msg = JSON.parse(event.data);
+            if (!pc) return;
+            if (msg.type === "offer") {
+                await pc.setRemoteDescription(new RTCSessionDescription(msg.data));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                ws.send(JSON.stringify({ target_id: msg.from_id, type: "answer", data: answer }));
+            } else if (msg.type === "answer") {
+                await pc.setRemoteDescription(new RTCSessionDescription(msg.data));
+            } else if (msg.type === "candidate") {
+                await pc.addIceCandidate(new RTCIceCandidate(msg.data));
+            }
+        };
+    } catch (err) {
+        alert("Ошибка доступа к камере или сети: " + err.message);
+        endCall();
+    }
+}
+
+function endCall() {
     if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-    document.getElementById('callOverlay').classList.add('hidden');
-  }
+    if (pc) { pc.close(); pc = null; }
+    if (ws) { ws.close(); ws = null; }
+    $("call-screen").classList.remove("on");
+    $("remoteVideo").srcObject = null;
+    $("localVideo").srcObject = null;
+}
+
+function toast(t) { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(e.t); e.t = setTimeout(()=>e.style.display="none", 2200); }
+
+draw();
 </script>
 </body>
 </html>
