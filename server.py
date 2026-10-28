@@ -6,13 +6,15 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 import random, string, uuid, time, json
 
-# ==================== ПОДКЛЮЧЕНИЕ К POSTGRESQL ====================
+# ==================== НАСТРОЙКИ ====================
+# ВСТАВЬ СВОЙ ПАРОЛЬ ОТ POSTGRES ЗДЕСЬ!
 DATABASE_URL = "postgresql://postgres:твой_пароль@localhost:5432/belugacord"
+
+# ==================== БАЗА ДАННЫХ ====================
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# ==================== МОДЕЛИ БАЗЫ ДАННЫХ ====================
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -40,6 +42,7 @@ class Bot(Base):
 
 Base.metadata.create_all(bind=engine)
 
+# ==================== БЕЗОПАСНОСТЬ ====================
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def get_password_hash(password): return pwd_context.hash(password)
 def verify_password(plain, hashed): return pwd_context.verify(plain, hashed)
@@ -52,7 +55,7 @@ def get_db():
 app = FastAPI(title="BelugaCord API + WebRTC")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-# === WEBSOCKET МЕНЕДЖЕР (ДЛЯ ЗВОНКОВ) ===
+# === WEBSOCKET МЕНЕДЖЕР (ЗВОНКИ) ===
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[int, WebSocket] = {}
@@ -131,7 +134,7 @@ def bot_api(bot_username: str, token: str = None, db: Session = Depends(get_db))
     if not bot or bot.api_token != token: raise HTTPException(403, "Неверный токен")
     return {"status": "ok", "bot_name": bot.name, "message": "Авторизация успешна"}
 
-# 4. ЗВОНКИ (WebSocket Сигнализация)
+# 4. ЗВОНКИ (WebSocket)
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await manager.connect(user_id, websocket)
@@ -140,24 +143,26 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
             data = await websocket.receive_text()
             message = json.loads(data)
             target_id = message.get("target_id")
-            
-            # Пересылаем данные (SDP offer/answer или ICE-кандидаты) целевому пользователю
             if target_id:
                 await manager.send_personal_message(json.dumps({
                     "from_id": user_id,
-                    "type": message.get("type"), # "offer", "answer", "candidate"
+                    "type": message.get("type"), 
                     "data": message.get("data")
                 }), target_id)
     except WebSocketDisconnect:
         manager.disconnect(user_id)
 
-# 5. КОНФИГ ДЛЯ TURN (Отдаем твой TURN-сервер клиентам)
+# 5. КОНФИГ TURN (ТВОИ ДАННЫЕ УЖЕ ВПИСАНЫ)
 @app.get("/api/turn_config")
 def get_turn_config():
     return {
         "iceServers": [
-            {"urls": "stun:stun.l.google.com:19302"}, # Публичный STUN
-            {"urls": "turn:ТВОЙ_IP:3478", "username": "твой_юзер", "credential": "твой_пароль"} # ТВОЙ TURN
+            {"urls": "stun:stun.l.google.com:19302"},
+            {
+                "urls": "turn:189.74.125.21:3478",
+                "username": "beluga",
+                "credential": "1VSALM1cow"
+            }
         ]
     }
 
