@@ -1,7 +1,5 @@
 fastapi
-uvicorn
-sqlalchemy
-psycopg2-binary
+uvicorn[standard]
+asyncpg
 passlib[bcrypt]
-pydantic
 python-multipart
