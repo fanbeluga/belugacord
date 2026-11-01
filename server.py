@@ -11,7 +11,7 @@ Run:
     pip install fastapi uvicorn[standard] asyncpg passlib[bcrypt] python-multipart
     export DATABASE_URL=postgresql://user:pass@host/belugacord
     uvicorn server:app --host 0.0.0.0 --port 8000
-"""
+
 import os, secrets, time, random, string
 from pathlib import Path
 import asyncpg
