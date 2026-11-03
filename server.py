@@ -9,7 +9,7 @@ these tables, startup adds nothing new and touches no existing data.
 
 Run:
     pip install fastapi uvicorn[standard] asyncpg passlib[bcrypt] python-multipart
-    export DATABASE_URL=postgresql://user:pass@host/belugacord
+    export DATABASE_URL=postgresql://belugacord_user:1VSALM1cow@localhost/belugacord_zjgh
     uvicorn server:app --host 0.0.0.0 --port 8000
 
 import os, secrets, time, random, string
