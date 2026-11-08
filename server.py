@@ -1,4 +1,4 @@
-import os, secrets, time, random, string, hashlib
+import os, secrets, time, random, string, hashlib, json
 from pathlib import Path
 import asyncpg
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header, Depends, UploadFile, File, Form
@@ -17,7 +17,7 @@ live: dict[int, set[WebSocket]] = {}
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, name TEXT NOT NULL, pw_hash TEXT NOT NULL, token TEXT UNIQUE, becoins INT DEFAULT 0, premium_until BIGINT DEFAULT 0, role TEXT DEFAULT 'user', bio TEXT DEFAULT '', created_at BIGINT, banned BOOLEAN DEFAULT false, avatar TEXT);
 CREATE TABLE IF NOT EXISTS usernames(uname TEXT PRIMARY KEY, owner_id INT REFERENCES users(id), is_primary BOOLEAN DEFAULT false, for_sale_price INT, acquired_at BIGINT);
-CREATE TABLE IF NOT EXISTS messages(id SERIAL PRIMARY KEY, frm INT, to_ INT, kind TEXT DEFAULT 'text', text TEXT, file_path TEXT, file_name TEXT, file_size BIGINT, ts BIGINT, pinned BOOLEAN DEFAULT false);
+CREATE TABLE IF NOT EXISTS messages(id SERIAL PRIMARY KEY, frm INT, to_ INT, kind TEXT DEFAULT 'text', text TEXT, file_path TEXT, file_name TEXT, file_size BIGINT, ts BIGINT, pinned BOOLEAN DEFAULT false, reactions JSONB DEFAULT '{}');
 CREATE TABLE IF NOT EXISTS channels(id SERIAL PRIMARY KEY, uname TEXT UNIQUE NOT NULL, title TEXT NOT NULL, bio TEXT DEFAULT '', owner_id INT REFERENCES users(id), avatar TEXT, created_at BIGINT);
 CREATE TABLE IF NOT EXISTS channel_subs(channel_id INT REFERENCES channels(id), user_id INT REFERENCES users(id), PRIMARY KEY(channel_id, user_id));
 CREATE TABLE IF NOT EXISTS channel_posts(id SERIAL PRIMARY KEY, channel_id INT REFERENCES channels(id), text TEXT, file_path TEXT, file_name TEXT, file_size BIGINT, kind TEXT DEFAULT 'text', pinned BOOLEAN DEFAULT false, ts BIGINT);
@@ -65,6 +65,7 @@ class MsgIn(BaseModel): to: int; text: str
 class ChanIn(BaseModel): uname: str; title: str; bio: str = ""
 class GroupIn(BaseModel): name: str; bio: str = ""
 class PostIn(BaseModel): text: str
+class EditMsgIn(BaseModel): text: str
 
 @app.post("/api/register")
 async def register(b: RegIn):
@@ -95,6 +96,12 @@ async def me(u=Depends(auth)):
     async with pool.acquire() as con:
         return dict(id=u["id"], username=u["username"], name=u["name"], role=u["role"], becoins=u["becoins"], bio=u["bio"], avatar=u["avatar"])
 
+@app.post("/api/me/edit")
+async def edit_me(b: EditMsgIn, u=Depends(auth)):
+    async with pool.acquire() as con:
+        await con.execute("UPDATE users SET name=$1 WHERE id=$2", b.text[:40], u["id"])
+    return {"ok": True}
+
 @app.get("/api/chats")
 async def get_chats(u=Depends(auth)):
     async with pool.acquire() as con:
@@ -122,6 +129,35 @@ async def dm_send(b: MsgIn, u=Depends(auth)):
     await push([u["id"], b.to], {"type": "msg", "msg": msg})
     return {"ok": True}
 
+@app.post("/api/dm/edit/{mid}")
+async def dm_edit(mid: int, b: EditMsgIn, u=Depends(auth)):
+    async with pool.acquire() as con:
+        await con.execute("UPDATE messages SET text=$1 WHERE id=$2 AND frm=$3", b.text[:4000], mid, u["id"])
+    return {"ok": True}
+
+@app.post("/api/dm/del/{mid}")
+async def dm_del(mid: int, u=Depends(auth)):
+    async with pool.acquire() as con:
+        await con.execute("DELETE FROM messages WHERE id=$1 AND frm=$2", mid, u["id"])
+    return {"ok": True}
+
+@app.post("/api/pin_dm/{mid}")
+async def pin_dm(mid: int, u=Depends(auth)):
+    async with pool.acquire() as con:
+        await con.execute("UPDATE messages SET pinned = NOT pinned WHERE id=$1 AND (frm=$2 OR to_=$2)", mid, u["id"])
+    return {"ok": True}
+
+@app.post("/api/react/{mid}")
+async def react(mid: int, emoji: str = Form(...), u=Depends(auth)):
+    async with pool.acquire() as con:
+        row = await con.fetchrow("SELECT reactions FROM messages WHERE id=$1", mid)
+        rx = row["reactions"] or {}
+        if emoji not in rx: rx[emoji] = []
+        if u["id"] in rx[emoji]: rx[emoji].remove(u["id"])
+        else: rx[emoji].append(u["id"])
+        await con.execute("UPDATE messages SET reactions=$1 WHERE id=$2", json.dumps(rx), mid)
+    return {"ok": True}
+
 @app.post("/api/upload")
 async def upload(to: int = Form(...), kind: str = Form("file"), file: UploadFile = File(...), u=Depends(auth)):
     dest_dir = UP_DIR / str(u["id"]); dest_dir.mkdir(exist_ok=True)
@@ -143,12 +179,30 @@ def get_file(uid: int, name: str):
     if not p.exists(): raise HTTPException(404)
     return FileResponse(p)
 
-@app.post("/api/pin_dm/{mid}")
-async def pin_dm(mid: int, u=Depends(auth)):
+@app.get("/api/search")
+async def search(q: str, u=Depends(auth)):
     async with pool.acquire() as con:
-        await con.execute("UPDATE messages SET pinned = NOT pinned WHERE id=$1 AND (frm=$2 OR to_=$2)", mid, u["id"])
-    return {"ok": True}
+        users = await con.fetch("SELECT id, username, name FROM users WHERE username ILIKE $1 OR name ILIKE $1 LIMIT 10", f"%{q}%")
+        channels = await con.fetch("SELECT id, uname as username, title as name, avatar FROM channels WHERE uname ILIKE $1 OR title ILIKE $1 LIMIT 10", f"%{q}%")
+        groups = await con.fetch("SELECT id, name, bio FROM groups WHERE name ILIKE $1 LIMIT 10", f"%{q}%")
+    return {"users": [dict(r) for r in users], "channels": [dict(r) for r in channels], "groups": [dict(r) for r in groups]}
 
+@app.websocket("/ws")
+async def ws(sock: WebSocket, token: str):
+    async with pool.acquire() as con:
+        u = await con.fetchrow("SELECT * FROM users WHERE token=$1", token)
+    if not u: return await sock.close()
+    await sock.accept()
+    live.setdefault(u["id"], set()).add(sock)
+    try:
+        while True:
+            data = await sock.receive_json()
+            if data.get("type") == "msg":
+                to_id = int(data["to"])
+                mid = await pool.fetchval("INSERT INTO messages(frm,to_,kind,text,ts) VALUES($1,$2,'text',$3,$4) RETURNING id", u["id"], to_id, data["text"], now())
+                await push([u["id"], to_id], {"type": "msg", "msg": dict(id=mid, frm=u["id"], to=to_id, text=data["text"], kind="text", ts=now())})
+    except: live[u["id"]].discard(sock)
+# --- КАНАЛЫ ---
 @app.get("/api/channels/search")
 async def search_channels(q: str = "", u=Depends(auth)):
     async with pool.acquire() as con:
@@ -163,6 +217,26 @@ async def channel_create(b: ChanIn, u=Depends(auth)):
         cid = await con.fetchval("INSERT INTO channels(uname,title,owner_id,bio,created_at) VALUES($1,$2,$3,$4,$5) RETURNING id", un, b.title, u["id"], b.bio, now())
     return {"id": cid}
 
+@app.post("/api/channels/{cid}/edit")
+async def channel_edit(cid: int, b: ChanIn, u=Depends(auth)):
+    async with pool.acquire() as con:
+        ch = await con.fetchrow("SELECT owner_id FROM channels WHERE id=$1", cid)
+        if not ch or ch["owner_id"] != u["id"]: raise HTTPException(403, "Не твой канал")
+        await con.execute("UPDATE channels SET title=$1, bio=$2 WHERE id=$3", b.title, b.bio, cid)
+    return {"ok": True}
+
+@app.post("/api/channels/{cid}/avatar")
+async def channel_avatar(cid: int, file: UploadFile = File(...), u=Depends(auth)):
+    async with pool.acquire() as con:
+        ch = await con.fetchrow("SELECT owner_id FROM channels WHERE id=$1", cid)
+        if not ch or ch["owner_id"] != u["id"]: raise HTTPException(403, "Не твой канал")
+    dest_dir = UP_DIR / "avatars"; dest_dir.mkdir(exist_ok=True)
+    name = f"ch_{cid}_{secrets.token_hex(4)}.jpg"
+    with open(dest_dir / name, "wb") as out: out.write(await file.read())
+    async with pool.acquire() as con:
+        await con.execute("UPDATE channels SET avatar=$1 WHERE id=$2", f"/files/avatars/{name}", cid)
+    return {"ok": True}
+
 @app.get("/api/channels/{cid}/posts")
 async def channel_posts(cid: int):
     async with pool.acquire() as con:
@@ -176,6 +250,26 @@ async def channel_post(cid: int, b: PostIn, u=Depends(auth)):
         if not ch or ch["owner_id"] != u["id"]: raise HTTPException(403, "Не твой канал")
         pid = await con.fetchval("INSERT INTO channel_posts(channel_id,text,ts) VALUES($1,$2,$3) RETURNING id", cid, b.text, now())
     return {"id": pid}
+
+@app.post("/api/channels/post/edit/{pid}")
+async def edit_post(pid: int, b: PostIn, u=Depends(auth)):
+    async with pool.acquire() as con:
+        post = await con.fetchrow("SELECT channel_id FROM channel_posts WHERE id=$1", pid)
+        if post:
+            ch = await con.fetchrow("SELECT owner_id FROM channels WHERE id=$1", post["channel_id"])
+            if ch["owner_id"] == u["id"] or u["role"] == "owner":
+                await con.execute("UPDATE channel_posts SET text=$1 WHERE id=$2", b.text, pid)
+    return {"ok": True}
+
+@app.post("/api/channels/post/del/{pid}")
+async def del_post(pid: int, u=Depends(auth)):
+    async with pool.acquire() as con:
+        post = await con.fetchrow("SELECT channel_id FROM channel_posts WHERE id=$1", pid)
+        if post:
+            ch = await con.fetchrow("SELECT owner_id FROM channels WHERE id=$1", post["channel_id"])
+            if ch["owner_id"] == u["id"] or u["role"] == "owner":
+                await con.execute("DELETE FROM channel_posts WHERE id=$1", pid)
+    return {"ok": True}
 
 @app.post("/api/channels/pin/{pid}")
 async def pin_channel_post(pid: int, u=Depends(auth)):
@@ -206,6 +300,7 @@ def get_ch_file(cid: int, name: str):
     if not p.exists(): raise HTTPException(404)
     return FileResponse(p)
 
+# --- ГРУППЫ ---
 @app.post("/api/groups")
 async def group_create(b: GroupIn, u=Depends(auth)):
     async with pool.acquire() as con:
@@ -231,33 +326,37 @@ async def group_send(gid: int, b: PostIn, u=Depends(auth)):
         mid = await con.fetchval("INSERT INTO group_msgs(group_id,frm,text,ts) VALUES($1,$2,$3,$4) RETURNING id", gid, u["id"], b.text, now())
     return {"id": mid}
 
-@app.get("/api/search")
-async def search(q: str, u=Depends(auth)):
+@app.post("/api/groups/{gid}/add")
+async def group_add(gid: int, uname: str = Form(...), u=Depends(auth)):
     async with pool.acquire() as con:
-        users = await con.fetch("SELECT id, username, name FROM users WHERE username ILIKE $1 OR name ILIKE $1 LIMIT 10", f"%{q}%")
-        channels = await con.fetch("SELECT id, uname as username, title as name, avatar FROM channels WHERE uname ILIKE $1 OR title ILIKE $1 LIMIT 10", f"%{q}%")
-        groups = await con.fetch("SELECT id, name, bio FROM groups WHERE name ILIKE $1 LIMIT 10", f"%{q}%")
-    return {"users": [dict(r) for r in users], "channels": [dict(r) for r in channels], "groups": [dict(r) for r in groups]}
+        g = await con.fetchrow("SELECT owner_id FROM groups WHERE id=$1", gid)
+        if g["owner_id"] != u["id"] and u["role"] != "owner": raise HTTPException(403, "Нет прав")
+        target = await con.fetchrow("SELECT id FROM users WHERE username=$1", uname.strip().lower().lstrip("@"))
+        if target:
+            await con.execute("INSERT INTO group_members(group_id,user_id,role) VALUES($1,$2,'member') ON CONFLICT DO NOTHING", gid, target["id"])
+    return {"ok": True}
+
+@app.get("/api/groups/{gid}/members")
+async def group_members(gid: int, u=Depends(auth)):
+    async with pool.acquire() as con:
+        rows = await con.fetch("SELECT u.id, u.username, u.name, m.role FROM users u JOIN group_members m ON u.id=m.user_id WHERE m.group_id=$1", gid)
+    return [dict(r) for r in rows]
 
 # --- ПАНЕЛЬ ВЛАДЕЛЬЦА ---
-def require_owner(u):
-    if u["role"] != "owner": raise HTTPException(403, "Только для владельца")
-
 class OwnerUserIn(BaseModel): user_id: int
 class OwnerCoinIn(BaseModel): user_id: int; amount: int
-class OwnerPremIn(BaseModel): user_id: int; days: int
 class OwnerBcIn(BaseModel): text: str
+class OwnerPromoIn(BaseModel): code: str; kind: str; amount: int; uses: int
+class OwnerRoleIn(BaseModel): user_id: int; role: str
+
+def require_owner(u):
+    if u["role"] != "owner": raise HTTPException(403, "Только для владельца")
 
 @app.get("/api/owner/stats")
 async def owner_stats(u=Depends(auth)):
     require_owner(u)
     async with pool.acquire() as con:
-        return {
-            "users": await con.fetchval("SELECT count(*) FROM users"),
-            "messages": await con.fetchval("SELECT count(*) FROM messages"),
-            "channels": await con.fetchval("SELECT count(*) FROM channels"),
-            "groups": await con.fetchval("SELECT count(*) FROM groups")
-        }
+        return {"users": await con.fetchval("SELECT count(*) FROM users"), "messages": await con.fetchval("SELECT count(*) FROM messages"), "channels": await con.fetchval("SELECT count(*) FROM channels"), "groups": await con.fetchval("SELECT count(*) FROM groups"), "banned": await con.fetchval("SELECT count(*) FROM users WHERE banned=true")}
 
 @app.get("/api/owner/users")
 async def owner_users(u=Depends(auth)):
@@ -269,6 +368,7 @@ async def owner_users(u=Depends(auth)):
 @app.post("/api/owner/ban")
 async def owner_ban(b: OwnerUserIn, u=Depends(auth)):
     require_owner(u)
+    if b.user_id == u["id"]: raise HTTPException(400, "Себя нельзя")
     async with pool.acquire() as con: await con.execute("UPDATE users SET banned=true, token=NULL WHERE id=$1", b.user_id)
     return {"ok": True}
 
@@ -284,30 +384,37 @@ async def owner_coins(b: OwnerCoinIn, u=Depends(auth)):
     async with pool.acquire() as con: await con.execute("UPDATE users SET becoins=GREATEST(0,becoins+$1) WHERE id=$2", b.amount, b.user_id)
     return {"ok": True}
 
+@app.post("/api/owner/role")
+async def owner_role(b: OwnerRoleIn, u=Depends(auth)):
+    require_owner(u)
+    async with pool.acquire() as con: await con.execute("UPDATE users SET role=$1 WHERE id=$2", b.role, b.user_id)
+    return {"ok": True}
+
 @app.post("/api/owner/broadcast")
 async def owner_broadcast(b: OwnerBcIn, u=Depends(auth)):
     require_owner(u)
     async with pool.acquire() as con:
         users = await con.fetch("SELECT id FROM users WHERE id != $1", u["id"])
-        for usr in users:
-            await con.execute("INSERT INTO messages(frm,to_,kind,text,ts) VALUES(0,$1,'system',$2,$3)", usr["id"], b.text, now())
+        for usr in users: await con.execute("INSERT INTO messages(frm,to_,kind,text,ts) VALUES(0,$1,'system',$2,$3)", usr["id"], b.text, now())
     return {"ok": True}
 
-@app.websocket("/ws")
-async def ws(sock: WebSocket, token: str):
+@app.post("/api/owner/promo")
+async def owner_promo(b: OwnerPromoIn, u=Depends(auth)):
+    require_owner(u)
     async with pool.acquire() as con:
-        u = await con.fetchrow("SELECT * FROM users WHERE token=$1", token)
-    if not u: return await sock.close()
-    await sock.accept()
-    live.setdefault(u["id"], set()).add(sock)
-    try:
-        while True:
-            data = await sock.receive_json()
-            if data.get("type") == "msg":
-                to_id = int(data["to"])
-                mid = await pool.fetchval("INSERT INTO messages(frm,to_,kind,text,ts) VALUES($1,$2,'text',$3,$4) RETURNING id", u["id"], to_id, data["text"], now())
-                await push([u["id"], to_id], {"type": "msg", "msg": dict(id=mid, frm=u["id"], to=to_id, text=data["text"], kind="text", ts=now())})
-    except: live[u["id"]].discard(sock)
+        await con.execute("INSERT INTO promo_codes(code,kind,amount,uses_left) VALUES($1,$2,$3,$4) ON CONFLICT (code) DO UPDATE SET kind=$2, amount=$3, uses_left=$4", b.code.upper(), b.kind, b.amount, b.uses)
+    return {"ok": True}
+
+@app.post("/api/promo/redeem")
+async def redeem(code: str = Form(...), u=Depends(auth)):
+    async with pool.acquire() as con, con.transaction():
+        p = await con.fetchrow("SELECT * FROM promo_codes WHERE code=$1 FOR UPDATE", code.upper())
+        if not p or p["uses_left"] < 1: raise HTTPException(400, "Не найден")
+        if await con.fetchval("SELECT 1 FROM promo_redemptions WHERE code=$1 AND user_id=$2", p["code"], u["id"]): raise HTTPException(400, "Уже использован")
+        await con.execute("UPDATE promo_codes SET uses_left=uses_left-1 WHERE code=$1", p["code"])
+        await con.execute("INSERT INTO promo_redemptions(code,user_id) VALUES($1,$2)", p["code"], u["id"])
+        if p["kind"] == "becoins": await con.execute("UPDATE users SET becoins=becoins+$1 WHERE id=$2", p["amount"], u["id"])
+    return {"ok": True}
 
 @app.get("/", response_class=HTMLResponse)
 def index():
