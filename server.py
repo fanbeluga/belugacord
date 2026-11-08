@@ -1,16 +1,15 @@
-
-BelugaCord backend — PostgreSQL (asyncpg). Real auth, DMs over WebSocket,
-file/voice/circle uploads, username+number marketplace with gifting,
-channels, BotFather-style bots, promo codes, WebRTC call signaling.
-
-Safe to redeploy: every table is CREATE TABLE IF NOT EXISTS, every new column
-is ALTER TABLE ... ADD COLUMN IF NOT EXISTS. If the database already has
-these tables, startup adds nothing new and touches no existing data.
-
-Run:
-    pip install fastapi uvicorn[standard] asyncpg passlib[bcrypt] python-multipart
-    export DATABASE_URL=postgresql://belugacord_user:1VSALM1cow@localhost/belugacord_zjgh
-    uvicorn server:app --host 0.0.0.0 --port 8000
+# BelugaCord backend - PostgreSQL (asyncpg). Real auth, DMs over WebSocket,
+# file/voice/circle uploads, username+number marketplace with gifting,
+# channels, BotFather-style bots, promo codes, WebRTC call signaling.
+#
+# Safe to redeploy: every table is CREATE TABLE IF NOT EXISTS, every new column
+# is ALTER TABLE ... ADD COLUMN IF NOT EXISTS. If the database already has
+# these tables, startup adds nothing new and touches no existing data.
+#
+# Run:
+#     pip install fastapi uvicorn[standard] asyncpg passlib[bcrypt] python-multipart
+#     export DATABASE_URL=postgresql://belugacord_user:1VSALM1cow@localhost/belugacord_zjgh
+#     uvicorn server:app --host 0.0.0.0 --port 8000
 
 import os, secrets, time, random, string
 from pathlib import Path
