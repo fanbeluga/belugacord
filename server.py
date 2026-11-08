@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS bots(
 CREATE TABLE IF NOT EXISTS promo_codes(
     code TEXT PRIMARY KEY, kind TEXT NOT NULL, amount INT NOT NULL, uses_left INT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS promo_redemptions(
+    code TEXT NOT NULL REFERENCES promo_codes(code), user_id INT NOT NULL REFERENCES users(id), PRIMARY KEY(code, user_id)
+);
 """
 
 ALTERS = [
