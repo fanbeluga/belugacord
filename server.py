@@ -12,7 +12,6 @@ UP = Path("uploads"); UP.mkdir(exist_ok=True)
 app = FastAPI()
 pool: asyncpg.Pool = None
 live: dict[int, set[WebSocket]] = {}
-online_users: set[int] = set()
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, name TEXT NOT NULL, pw_hash TEXT NOT NULL, token TEXT UNIQUE, becoins INT DEFAULT 0, role TEXT DEFAULT 'user', bio TEXT DEFAULT '', avatar TEXT, banner TEXT, online_status TEXT DEFAULT 'online', custom_status TEXT, banned BOOLEAN DEFAULT false, created_at BIGINT, public_key TEXT, font_choice TEXT, compact_mode BOOLEAN DEFAULT false, wallpaper TEXT);
@@ -51,17 +50,15 @@ async def auth(authorization: str = Header(None), x_token: str = Header(None), t
     return u
 
 def user_dict(u):
-    return dict(id=u["id"], username=u["username"], name=u["name"], role=u["role"], becoins=u["becoins"], bio=u["bio"], avatar=u["avatar"], banner=u["banner"], online_status=u["online_status"], custom_status=u["custom_status"], public_key=u["public_key"], font_choice=u["font_choice"], compact_mode=u["compact_mode"], wallpaper=u["wallpaper"], messages_count=0)
+    return dict(id=u["id"], username=u["username"], name=u["name"], role=u["role"], becoins=u["becoins"], bio=u["bio"], avatar=u["avatar"], banner=u["banner"], online_status=u["online_status"], custom_status=u["custom_status"], public_key=u["public_key"], font_choice=u["font_choice"], compact_mode=u["compact_mode"], wallpaper=u["wallpaper"])
 
-# --- МОДЕЛИ ---
 class AuthIn(BaseModel): username: str; password: str; email: Optional[str] = None
 class MsgIn(BaseModel): channel_id: Optional[int] = None; text: str = ""; file_url: Optional[str] = None
 class DMIn(BaseModel): to_user: int; text: str = ""; file_url: Optional[str] = None
 class FriendIn(BaseModel): user_id: Optional[int] = None; username: Optional[str] = None
 class FriendAccept(BaseModel): request_id: int
-class ProfileIn(BaseModel): avatar: Optional[str] = None; banner: Optional[str] = None; bio: Optional[str] = None; nickname_color: Optional[str] = None; nickname_gradient: Optional[str] = None; font_choice: Optional[str] = None; compact_mode: Optional[bool] = None; wallpaper: Optional[str] = None; avatar_pos: Optional[str] = None; banner_pos: Optional[str] = None; fav_music: Optional[str] = None
+class ProfileIn(BaseModel): avatar: Optional[str] = None; banner: Optional[str] = None; bio: Optional[str] = None; font_choice: Optional[str] = None; compact_mode: Optional[bool] = None; wallpaper: Optional[str] = None
 
-# --- АВТОРИЗАЦИЯ ---
 @app.post("/api/register")
 async def register(b: AuthIn):
     u = b.username.strip().lower()
@@ -96,17 +93,9 @@ async def check_username(username: str):
 @app.post("/api/update_profile")
 async def update_profile(b: ProfileIn, u=Depends(auth)):
     async with pool.acquire() as con:
-        await con.execute("""UPDATE users SET avatar=COALESCE($1,avatar), banner=COALESCE($2,banner), bio=COALESCE($3,bio), font_choice=COALESCE($4,font_choice), compact_mode=COALESCE($5,compact_mode), wallpaper=COALESCE($6,wallpaper) WHERE id=$7""",
-            b.avatar, b.banner, b.bio, b.font_choice, b.compact_mode, b.wallpaper, u["id"])
+        await con.execute("""UPDATE users SET avatar=COALESCE($1,avatar), banner=COALESCE($2,banner), bio=COALESCE($3,bio), font_choice=COALESCE($4,font_choice), compact_mode=COALESCE($5,compact_mode), wallpaper=COALESCE($6,wallpaper) WHERE id=$7""", b.avatar, b.banner, b.bio, b.font_choice, b.compact_mode, b.wallpaper, u["id"])
     return {"ok": True}
 
-@app.post("/api/user/status")
-async def set_status(online_status: str = Form("online"), custom_status: str = Form(""), u=Depends(auth)):
-    async with pool.acquire() as con:
-        await con.execute("UPDATE users SET online_status=$1, custom_status=$2 WHERE id=$3", online_status, custom_status, u["id"])
-    return {"ok": True}
-
-# --- ПОИСК И ЮЗЕРЫ ---
 @app.get("/api/users/search")
 async def search_users(q: str, u=Depends(auth)):
     async with pool.acquire() as con:
@@ -120,7 +109,6 @@ async def get_user(uid: int, u=Depends(auth)):
     if not row: raise HTTPException(404)
     return user_dict(row)
 
-# --- ДРУЗЬЯ ---
 @app.get("/api/friends/list")
 async def friends_list(u=Depends(auth)):
     async with pool.acquire() as con:
@@ -160,12 +148,6 @@ async def friend_accept(b: FriendAccept, u=Depends(auth)):
         await con.execute("UPDATE friends SET status='accepted' WHERE id=$1 AND to_user=$2", b.request_id, u["id"])
     return {"ok": True}
 
-@app.post("/api/friends/decline")
-async def friend_decline(b: FriendAccept, u=Depends(auth)):
-    async with pool.acquire() as con:
-        await con.execute("DELETE FROM friends WHERE id=$1 AND to_user=$2", b.request_id, u["id"])
-    return {"ok": True}
-
 @app.post("/api/friends/remove")
 async def friend_remove(b: FriendIn, u=Depends(auth)):
     async with pool.acquire() as con:
@@ -178,15 +160,6 @@ async def friends_count(u=Depends(auth)):
         n = await con.fetchval("SELECT count(*) FROM friends WHERE to_user=$1 AND status='pending'", u["id"])
     return {"count": n}
 
-@app.get("/api/friends/check/{uid}")
-async def friend_check(uid: int, u=Depends(auth)):
-    async with pool.acquire() as con:
-        row = await con.fetchrow("SELECT id, status, from_user, to_user FROM friends WHERE (from_user=$1 AND to_user=$2) OR (from_user=$2 AND to_user=$1)", u["id"], uid)
-    if not row: return {"status": "none"}
-    if row["status"] == "accepted": return {"status": "accepted"}
-    return {"status": "incoming" if row["to_user"] == u["id"] else "outgoing", "request_id": row["id"]}
-
-# --- ЛИЧНЫЕ СООБЩЕНИЯ (DM) ---
 @app.get("/api/dm/{peer_id}/messages")
 async def dm_messages(peer_id: int, u=Depends(auth)):
     async with pool.acquire() as con:
@@ -204,7 +177,6 @@ async def dm_send(b: DMIn, u=Depends(auth)):
     await push([u["id"], b.to_user], {"type": "dm", **msg})
     return msg
 
-# --- СЕРВЕРЫ И КАНАЛЫ ---
 @app.get("/api/servers/list")
 async def servers_list(u=Depends(auth)):
     async with pool.acquire() as con:
@@ -233,93 +205,11 @@ async def server_channels(sid: int, u=Depends(auth)):
         rows = await con.fetch("SELECT * FROM channels WHERE server_id=$1 ORDER BY id", sid)
     return [dict(r) for r in rows]
 
-@app.get("/api/servers/{sid}/members")
-async def server_members(sid: int, u=Depends(auth)):
-    async with pool.acquire() as con:
-        rows = await con.fetch("SELECT u.id, u.username, u.avatar, u.role FROM users u JOIN server_members m ON m.user_id=u.id WHERE m.server_id=$1", sid)
-    return [dict(r) for r in rows]
-
 @app.get("/api/channels/{cid}/messages")
 async def channel_msgs(cid: int, u=Depends(auth)):
     async with pool.acquire() as con:
-        rows = await con.fetch("SELECT m.*, u.username, u.avatar, u.role FROM channel_messages m JOIN users u ON u.id=m.user_id WHERE m.channel_id=$1 ORDER BY m.id", cid)
+        rows = await con.fetch("SELECT m.*, u.username, u.avatar FROM channel_messages m JOIN users u ON u.id=m.user_id WHERE m.channel_id=$1 ORDER BY m.id", cid)
     return {"messages": [dict(r) for r in rows], "pinned": []}
-
-@app.post("/api/messages/send")
-async def msg_send(b: MsgIn, u=Depends(auth)):
-    async with pool.acquire() as con:
-        mid = await con.fetchval("INSERT INTO channel_messages(channel_id,user_id,text,file_url,created_at) VALUES($1,$2,$3,$4,$5) RETURNING id", b.channel_id, u["id"], b.text, b.file_url, now())
-    await push_channel(b.channel_id, {"type": "message", "id": mid, "channel_id": b.channel_id, "user_id": u["id"], "username": u["username"], "avatar": u["avatar"], "text": b.text, "file_url": b.file_url, "created_at": now()})
-    return {"id": mid}
-
-# --- ГРУППЫ ---
-@app.get("/api/groups/list")
-async def groups_list(u=Depends(auth)):
-    async with pool.acquire() as con:
-        rows = await con.fetch("SELECT g.* FROM groups g JOIN group_members m ON m.group_id=g.id WHERE m.user_id=$1", u["id"])
-    return [dict(r) for r in rows]
-
-@app.post("/api/groups/create")
-async def group_create(name: str = Form(...), u=Depends(auth)):
-    async with pool.acquire() as con:
-        gid = await con.fetchval("INSERT INTO groups(name,owner_id,created_at) VALUES($1,$2,$3) RETURNING id", name, u["id"], now())
-        await con.execute("INSERT INTO group_members(group_id,user_id) VALUES($1,$2)", gid, u["id"])
-    return {"id": gid, "name": name}
-
-@app.get("/api/groups/{gid}")
-async def get_group(gid: int, u=Depends(auth)):
-    async with pool.acquire() as con:
-        row = await con.fetchrow("SELECT * FROM groups WHERE id=$1", gid)
-    if not row: raise HTTPException(404)
-    return dict(row)
-
-@app.get("/api/groups/{gid}/messages")
-async def group_msgs(gid: int, u=Depends(auth)):
-    async with pool.acquire() as con:
-        rows = await con.fetch("SELECT m.*, u.username, u.avatar FROM group_messages m JOIN users u ON u.id=m.user_id WHERE m.group_id=$1 ORDER BY m.id", gid)
-    return [dict(r) for r in rows]
-
-@app.post("/api/groups/{gid}/send")
-async def group_send(gid: int, text: str = Form(...), u=Depends(auth)):
-    async with pool.acquire() as con:
-        mid = await con.fetchval("INSERT INTO group_messages(group_id,user_id,text,created_at) VALUES($1,$2,$3,$4) RETURNING id", gid, u["id"], text, now())
-    return {"id": mid}
-
-# --- ЗАГЛУШКИ ДЛЯ ВСЕГО ОСТАЛЬНОГО (чтобы фронт не падал) ---
-@app.get("/api/coins/balance") -> dict:
-@app.get("/api/coins/leaders") -> list:
-async def dummy_get(): return []
-@app.post("/api/coins/transfer") -> dict:
-async def dummy_post(): return {"ok": True}
-
-@app.get("/api/nft/list") -> list:
-@app.get("/api/nft/my") -> list:
-@app.get("/api/nft_market/list") -> list:
-async def dummy_list(): return []
-
-@app.get("/api/cases/list") -> list:
-async def dummy_cases(): return []
-
-@app.get("/api/gifts/all") -> list:
-@app.get("/api/gifts/list/{uid}") -> list:
-async def dummy_gifts(): return []
-
-@app.get("/api/stickers/list") -> list:
-@app.get("/api/themes/list") -> list:
-@app.get("/api/achievements/all") -> dict:
-async def dummy_ach(): return {}
-
-@app.get("/api/abuse/access") -> dict:
-async def abuse_access(): return {"access": False}
-
-@app.get("/api/games/tournament") -> dict:
-async def games_tour(): return {"game": None}
-
-@app.get("/api/games/top3") -> dict:
-async def games_top3(): return {}
-
-@app.get("/api/admin/stats") -> dict:
-async def admin_stats(): return {"users": 0, "servers": 0, "messages": 0, "online": 0}
 
 @app.post("/api/upload")
 async def upload(file: UploadFile = File(...), u=Depends(auth)):
@@ -333,17 +223,11 @@ def get_upload(name: str):
     if not p.exists(): raise HTTPException(404)
     return FileResponse(p)
 
-# --- WEBSOCKET ---
 async def push(uids, payload):
     for uid in set(uids):
         for ws in list(live.get(uid, [])):
             try: await ws.send_json(payload)
             except: live[uid].discard(ws)
-
-async def push_channel(cid, payload):
-    async with pool.acquire() as con:
-        uids = [r["user_id"] for r in await con.fetch("SELECT user_id FROM server_members WHERE server_id=(SELECT server_id FROM channels WHERE id=$1)", cid)]
-    await push(uids, payload)
 
 @app.websocket("/ws")
 async def ws(sock: WebSocket, token: str):
@@ -352,22 +236,19 @@ async def ws(sock: WebSocket, token: str):
     if not u: return await sock.close()
     await sock.accept()
     live.setdefault(u["id"], set()).add(sock)
-    online_users.add(u["id"])
     try:
         while True:
             data = await sock.receive_json()
-            t = data.get("type")
-            if t == "message":
+            if data.get("type") == "message":
                 cid = data["channel_id"]
                 mid = await pool.fetchval("INSERT INTO channel_messages(channel_id,user_id,text,created_at) VALUES($1,$2,$3,$4) RETURNING id", cid, u["id"], data.get("text",""), now())
-                await push_channel(cid, {"type": "message", "id": mid, "channel_id": cid, "user_id": u["id"], "username": u["username"], "avatar": u["avatar"], "text": data.get("text",""), "temp_id": data.get("temp_id"), "created_at": now()})
-            elif t == "dm":
+                await push([u["id"]], {"type": "message", "id": mid, "channel_id": cid, "user_id": u["id"], "username": u["username"], "avatar": u["avatar"], "text": data.get("text",""), "created_at": now()})
+            elif data.get("type") == "dm":
                 to = data["to_user"]
                 mid = await pool.fetchval("INSERT INTO dm_messages(from_user,to_user,text,created_at) VALUES($1,$2,$3,$4) RETURNING id", u["id"], to, data.get("text",""), now())
-                await push([u["id"], to], {"type": "dm", "id": mid, "from_user": u["id"], "to_user": to, "username": u["username"], "avatar": u["avatar"], "text": data.get("text",""), "temp_id": data.get("temp_id"), "created_at": now()})
+                await push([u["id"], to], {"type": "dm", "id": mid, "from_user": u["id"], "to_user": to, "username": u["username"], "avatar": u["avatar"], "text": data.get("text",""), "created_at": now()})
     except WebSocketDisconnect:
         live[u["id"]].discard(sock)
-        online_users.discard(u["id"])
 
 @app.get("/", response_class=HTMLResponse)
 def index():
