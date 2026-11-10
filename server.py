@@ -1,13 +1,15 @@
-import os, secrets, time, hashlib, json
+import os, secrets, time, hashlib
 from pathlib import Path
 from typing import Optional
 import asyncpg
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header, Depends, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 DB_URL = os.getenv("DATABASE_URL", "postgresql://belugacord_user:1VSALM1cow@localhost/belugacord_zjgh")
-UP = Path("uploads"); UP.mkdir(exist_ok=True)
+UP_DIR = Path("uploads"); UP_DIR.mkdir(exist_ok=True)
+BASE_DIR = Path(__file__).parent.resolve()
 
 app = FastAPI()
 pool: asyncpg.Pool = None
@@ -213,13 +215,13 @@ async def channel_msgs(cid: int, u=Depends(auth)):
 
 @app.post("/api/upload")
 async def upload(file: UploadFile = File(...), u=Depends(auth)):
-    dest = UP / f"{int(time.time())}_{file.filename}"
+    dest = UP_DIR / f"{int(time.time())}_{file.filename}"
     with open(dest, "wb") as f: f.write(await file.read())
     return {"url": f"/uploads/{dest.name}"}
 
 @app.get("/uploads/{name}")
 def get_upload(name: str):
-    p = UP / name
+    p = UP_DIR / name
     if not p.exists(): raise HTTPException(404)
     return FileResponse(p)
 
@@ -250,6 +252,28 @@ async def ws(sock: WebSocket, token: str):
     except WebSocketDisconnect:
         live[u["id"]].discard(sock)
 
+# --- СТАТИЧЕСКИЕ ФАЙЛЫ И СТРАНИЦЫ ---
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return open("index.html", encoding="utf-8").read()
+    return open(BASE_DIR / "index.html", encoding="utf-8").read()
+
+# Раздаём всё из корня и папки pages
+@app.get("/{page_path:path}")
+def serve_pages(page_path: str):
+    if page_path.startswith("api/") or page_path.startswith("ws") or page_path.startswith("uploads/"):
+        raise HTTPException(404)
+    
+    file_path = BASE_DIR / page_path
+    if file_path.exists() and file_path.is_file():
+        if file_path.suffix == ".html":
+            return HTMLResponse(file_path.read_text(encoding="utf-8"))
+        return FileResponse(file_path)
+        
+    if not os.path.splitext(page_path)[1]:
+        file_path_html = BASE_DIR / (page_path + ".html")
+        if file_path_html.exists():
+            return HTMLResponse(file_path_html.read_text(encoding="utf-8"))
+            
+    raise HTTPException(404, "Page not found")
+
+app.mount("/pages", StaticFiles(directory=BASE_DIR / "pages"), name="pages")
