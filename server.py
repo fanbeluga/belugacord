@@ -5,7 +5,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Head
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/belugacord")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://belugacord_user:1VSALM1cow@localhost/belugacord_zjgh")
 UP_DIR = Path("uploads"); UP_DIR.mkdir(exist_ok=True)
 MB = 1024 * 1024
 MAX_FREE, MAX_PREM, MAX_OWNER = 100 * MB, 1024 * MB, 20 * 1024 * MB
